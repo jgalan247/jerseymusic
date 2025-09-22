@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Artists - Jersey Artwork{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <h1>Our Artists</h1>
+    <div class="row">
+    {% for artist in artists %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>{{ artist.get_full_name|default:artist.username }}</h5>
+                    <p>Artist since {{ artist.date_joined|date:"Y" }}</p>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>No artists yet.</p>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}

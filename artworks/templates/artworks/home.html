@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Jersey Artwork - Local Art for Your Home & Heart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
+                    url('https://via.placeholder.com/1920x600/4a90e2/ffffff?text=Jersey+Coastal+View') center/cover;
+        color: white;
+        padding: 100px 0;
+        text-align: center;
+    }
+
+    .jersey-collage {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+        }
+
+    .jersey-collage img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+    .jersey-collage img:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    
+    .feature-card {
+        transition: transform 0.3s;
+        height: 100%;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .artwork-card {
+        transition: all 0.3s;
+        height: 100%;
+    }
+    
+    .artwork-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    .artwork-image {
+        height: 250px;
+        object-fit: cover;
+        width: 100%;
+    }
+    
+    .price-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.95);
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: bold;
+        color: #28a745;
+    }
+    
+    .category-pill {
+        display: inline-block;
+        padding: 5px 15px;
+        margin: 5px;
+        background: #f8f9fa;
+        border-radius: 20px;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    
+    .category-pill:hover {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .jersey-collage {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 20px 0;
+    }
+    
+    .jersey-collage img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-4">Discover Jersey's Finest Art</h1>
+        <p class="lead mb-4">Transform your space with authentic local artwork.<br>
+        Perfect for interior decoration, meaningful gifts, and celebrating Jersey's beauty.</p>
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'artworks:gallery' %}" class="btn btn-primary btn-lg px-4">
+                <i class="fas fa-palette"></i> Browse Gallery
+            </a>
+            <a href="#featured" class="btn btn-outline-light btn-lg px-4">
+                View Featured Art
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Jersey Artwork -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Perfect For Every Occasion</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-home fa-3x text-primary mb-3"></i>
+                        <h4>Interior Decoration</h4>
+                        <p>Elevate your home with unique pieces that capture Jersey's essence. From coastal scenes to contemporary abstracts.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-gift fa-3x text-success mb-3"></i>
+                        <h4>Meaningful Gifts</h4>
+                        <p>Give the gift of local art. Perfect for weddings, housewarmings, or anyone who loves Jersey.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-building fa-3x text-info mb-3"></i>
+                        <h4>Office & Business</h4>
+                        <p>Add character to your workspace with professional artwork that tells Jersey's story.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Filters -->
+<section class="py-4">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h3>Browse By Category</h3>
+        </div>
+        <div class="text-center">
+            <a href="{% url 'artworks:gallery' %}?category=paintings" class="category-pill">
+                <i class="fas fa-paint-brush"></i> Paintings
+            </a>
+            <a href="{% url 'artworks:gallery' %}?category=photography" class="category-pill">
+                <i class="fas fa-camera"></i> Photography
+            </a>
+            <a href="{% url 'artworks:gallery' %}?category=sculptures" class="category-pill">
+                <i class="fas fa-cube"></i> Sculptures
+            </a>
+            <a href="{% url 'artworks:gallery' %}?category=jewelry" class="category-pill">
+                <i class="fas fa-gem"></i> Jewelry
+            </a>
+            <a href="{% url 'artworks:gallery' %}?category=ceramics" class="category-pill">
+                <i class="fas fa-vase"></i> Ceramics
+            </a>
+            <a href="{% url 'artworks:gallery' %}?category=textiles" class="category-pill">
+                <i class="fas fa-cut"></i> Textiles
+            </a>
+        </div>
+        <div class="text-center mt-3">
+            <p class="text-muted">Or browse by: 
+                <a href="{% url 'artworks:gallery' %}?sort=price_low">Price (Low to High)</a> | 
+                <a href="{% url 'artworks:gallery' %}?sort=price_high">Price (High to Low)</a> | 
+                <a href="{% url 'artworks:artists' %}">Artist</a>
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Artworks -->
+<section id="featured" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Artworks</h2>
+        <div class="row g-4">
+            {% for artwork in featured_artworks %}
+            <div class="col-md-4 col-lg-3">
+                <div class="card artwork-card shadow-sm">
+                    <div class="position-relative">
+                        {% if artwork.main_image %}
+                            <img src="{{ artwork.main_image.url }}" class="artwork-image" alt="{{ artwork.title }}">
+                        {% elif artwork.additional_images.exists %}
+                            <img src="{{ artwork.additional_images.first.image.url }}" class="artwork-image" alt="{{ artwork.title }}">
+                        {% else %}
+                            <div class="artwork-image bg-light d-flex align-items-center justify-content-center">
+                                <span class="text-muted">No image</span>
+                            </div>
+                        {% endif %}
+                        <span class="price-badge">£{{ artwork.price }}</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ artwork.title }}</h5>
+                        <p class="text-muted small">by {{ artwork.artist.get_full_name|default:artwork.artist.username }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-secondary">{{ artwork.category.name }}</span>
+                            <a href="{% url 'artworks:artwork_detail' artwork.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p>No featured artworks at the moment. Check back soon!</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'artworks:gallery' %}" class="btn btn-primary btn-lg">
+                View All Artworks <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Jersey Showcase -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="mb-4">The Beauty of Jersey</h2>
+                <p class="lead">From the dramatic cliffs of the north coast to the golden beaches of St. Brelade's Bay, our artists capture the unique spirit of Jersey.</p>
+                <p>Each piece in our collection tells a story - whether it's the morning light on Elizabeth Castle, the vibrant colors of the Central Market, or the peaceful Jersey countryside dotted with our famous cows.</p>
+                <p>When you purchase from Jersey Artwork, you're not just buying art - you're taking home a piece of our island's soul.</p>
+                <a href="{% url 'artworks:about' %}" class="btn btn-outline-primary mt-3">Learn More About Us</a>
+            </div>
+            <div class="col-lg-6">
+                <div class="jersey-collage">
+                <img src="{% static 'images/jersey/ElizabethCastle.png' %}" alt="Elizabeth Castle">
+                <img src="{% static 'images/jersey/LaFermeMilkingcow.png' %}" alt="Jersey Cows">
+                <img src="{% static 'images/jersey/St_Brelade.png' %}" alt="St Brelade">
+                <img src="{% static 'images/jersey/Corbierre.png' %}" alt="Corbiere">
+                <img src="{% static 'images/jersey/mount_orgueil.png' %}" alt="Mont Orgueil">
+                <img src="{% static 'images/jersey/StAubinHarbour.png' %}" alt="St Aubin's Harbour">
+            </div>
+
+        
+        </div>
+    </div>
+</section>
+
+<!-- Featured Artists -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Meet Our Artists</h2>
+        <div class="row g-4">
+            {% for artist in featured_artists %}
+            <div class="col-md-3 text-center">
+                <div class="card border-0">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user fa-3x"></i>
+                        </div>
+                        <h5 class="mt-3">{{ artist.get_full_name|default:artist.username }}</h5>
+                        <p class="text-muted small">{{ artist.artworks.count }} artworks</p>
+                        <a href="{% url 'artworks:gallery' %}?artist={{ artist.id }}" class="btn btn-sm btn-outline-primary">View Portfolio</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p>Artists coming soon!</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'artworks:artists' %}" class="btn btn-outline-primary">View All Artists</a>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Start Your Art Collection Today</h2>
+        <p class="lead mb-4">Join thousands of art lovers who have discovered the beauty of Jersey through our local artists.</p>
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'artworks:gallery' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-palette"></i> Browse Gallery
+            </a>
+            <a href="{% url 'accounts:register_customer' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-user-plus"></i> Create Account
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Signup -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h4>Stay Updated</h4>
+                <p class="mb-0">Get notified about new artworks and exclusive offers</p>
+            </div>
+            <div class="col-md-6">
+                <form class="d-flex gap-2">
+                    <input type="email" class="form-control" placeholder="Your email address">
+                    <button class="btn btn-primary">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

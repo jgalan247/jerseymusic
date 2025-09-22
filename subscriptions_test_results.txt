@@ -1,0 +1,38 @@
+📧 Using MailHog for emails (localhost:1025)
+   View emails at: http://localhost:8025
+Traceback (most recent call last):
+  File "/Users/josegalan/Documents/jersey_artwork/manage.py", line 22, in <module>
+    main()
+  File "/Users/josegalan/Documents/jersey_artwork/manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/core/management/commands/test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/core/management/base.py", line 413, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/core/management/base.py", line 459, in execute
+    output = self.handle(*args, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/core/management/commands/test.py", line 68, in handle
+    failures = test_runner.run_tests(test_labels)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/test/runner.py", line 1054, in run_tests
+    suite = self.build_suite(test_labels)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/test/runner.py", line 909, in build_suite
+    tests = self.load_tests_for_label(label, discover_kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josegalan/Documents/jersey_artwork/venv/lib/python3.12/site-packages/django/test/runner.py", line 890, in load_tests_for_label
+    tests = self.test_loader.discover(start_dir=label, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/loader.py", line 304, in discover
+    self._top_level_dir = self._get_directory_containing_module(top_part)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/loader.py", line 316, in _get_directory_containing_module
+    full_path = os.path.abspath(module.__file__)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 410, in abspath
+TypeError: expected str, bytes or os.PathLike object, not NoneType

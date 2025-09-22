@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">My Profile</h1>
+        <p class="mt-2 text-gray-600">Manage your account information and preferences.</p>
+    </div>
+    
+    <div class="bg-white shadow rounded-lg">
+        <form method="post" class="divide-y divide-gray-200">
+            {% csrf_token %}
+            
+            <!-- Personal Information -->
+            <div class="px-6 py-6">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+                    Personal Information
+                </h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ user_form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            First Name
+                        </label>
+                        {{ user_form.first_name }}
+                        {% if user_form.first_name.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ user_form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ user_form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Last Name
+                        </label>
+                        {{ user_form.last_name }}
+                        {% if user_form.last_name.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ user_form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ user_form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Email
+                        </label>
+                        {{ user_form.email }}
+                        {% if user_form.email.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ user_form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ user_form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Phone
+                        </label>
+                        {{ user_form.phone }}
+                        {% if user_form.phone.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ user_form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Address Information -->
+            <div class="px-6 py-6">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+                    Address Information
+                </h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="sm:col-span-2">
+                        <label for="{{ profile_form.address_line_1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Address
+                        </label>
+                        {{ profile_form.address_line_1 }}
+                        {% if profile_form.address_line_1.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.address_line_1.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ profile_form.parish.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Parish
+                        </label>
+                        {{ profile_form.parish }}
+                        {% if profile_form.parish.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.parish.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ profile_form.postcode.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Postcode
+                        </label>
+                        {{ profile_form.postcode }}
+                        {% if profile_form.postcode.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.postcode.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ profile_form.date_of_birth.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Date of Birth (Optional)
+                        </label>
+                        {{ profile_form.date_of_birth }}
+                        {% if profile_form.date_of_birth.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.date_of_birth.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Marketing Consent -->
+                <div class="mt-6">
+                    <div class="flex items-start">
+                        {{ profile_form.marketing_consent }}
+                        <div class="ml-3 text-sm">
+                            <label for="{{ profile_form.marketing_consent.id_for_label }}" class="font-medium text-gray-700">
+                                Email Marketing
+                            </label>
+                            <p class="text-gray-500">
+                                Receive updates about new artists, featured artwork, and special events.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Save Button -->
+            <div class="px-6 py-3 bg-gray-50 text-right">
+                <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Order Status</h2>
+{% if order %}
+  <p>Order: {{ order.order_number }}</p>
+  <p>Status: {{ order.status }}</p>
+{% else %}
+  <p>Order not found</p>
+{% endif %}
+{% endblock %}

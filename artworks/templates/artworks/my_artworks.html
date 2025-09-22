@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}My Artworks{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>My Artworks</h2>
+    
+    <a href="{% url 'artworks:upload' %}" class="btn btn-success mb-3">+ Upload New Artwork</a>
+    
+    {% if artworks %}
+    <div class="row">
+        {% for artwork in artworks %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5>{{ artwork.title }}</h5>
+                    <p>£{{ artwork.price }}</p>
+                    <span class="badge bg-{% if artwork.status == 'active' %}success{% elif artwork.status == 'draft' %}warning{% else %}secondary{% endif %}">
+                        {{ artwork.status|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>You haven't uploaded any artworks yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

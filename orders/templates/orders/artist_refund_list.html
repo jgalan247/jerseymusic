@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Refund Requests - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Refund Requests</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Total Requests</h6>
+                    <h3>{{ total_requests }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Pending Review</h6>
+                    <h3 class="text-warning">{{ pending_requests }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Approved</h6>
+                    <h3 class="text-success">{{ approved_requests }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Important Notice -->
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Processing Refunds:</strong> 
+        When you approve a refund request, you must process the actual refund through your SumUp dashboard. 
+        This platform only facilitates communication between you and customers.
+    </div>
+    
+    <!-- Refund Requests Table -->
+    {% if refund_requests %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">All Refund Requests</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Request Date</th>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in refund_requests %}
+                        <tr class="{% if request.status == 'requested' %}table-warning{% endif %}">
+                            <td>{{ request.created_at|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'orders:artist_order_detail' order_number=request.order.order_number %}">
+                                    {{ request.order.order_number|truncatechars:12 }}
+                                </a>
+                            </td>
+                            <td>
+                                {{ request.customer.get_full_name }}<br>
+                                <small class="text-muted">{{ request.customer.email }}</small>
+                            </td>
+                            <td>
+                            
+                                £{{ request.artist_subtotal|default:0|floatformat:2 }}
+                                
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if request.status == 'requested' %}warning{% elif request.status == 'approved' %}success{% elif request.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if request.status in ('requested', 'artist_reviewing') %}
+                                <a href="{% url 'orders:artist_handle_refund' refund_id=request.id %}" class="btn btn-sm btn-primary">Review</a>
+                                {% else %}
+                                    <a href="{% url 'orders:artist_handle_refund' refund_id=request.id %}" class="btn btn-sm btn-outline-secondary">View</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+            <h4 class="mt-3">No Refund Requests</h4>
+            <p class="text-muted">You haven't received any refund requests yet.</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Guide -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Quick Guide: Processing Refunds</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>On Jersey Artwork Platform:</h6>
+                    <ol class="small">
+                        <li>Review the refund request</li>
+                        <li>Communicate with the customer</li>
+                        <li>Approve or reject the request</li>
+                        <li>Document your decision</li>
+                    </ol>
+                </div>
+                <div class="col-md-6">
+                    <h6>On SumUp Dashboard:</h6>
+                    <ol class="small">
+                        <li>Log into your SumUp account</li>
+                        <li>Find the transaction</li>
+                        <li>Process the refund</li>
+                        <li>Keep the receipt for records</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="alert alert-warning mt-3 mb-0">
+                <small>
+                    <strong>Remember:</strong> Jersey Artwork does not process payments. 
+                    All financial transactions are handled through SumUp directly between you and your customers.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

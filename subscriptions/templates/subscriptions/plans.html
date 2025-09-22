@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Subscription Plans - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Choose Your Artist Plan</h1>
+    <p class="text-center lead">Start selling your artwork on Jersey's premier art marketplace</p>
+    
+    <div class="row mt-5">
+        {% for plan in plans %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header text-center">
+                    <h3>{{ plan.name }}</h3>
+                    <h4 class="text-primary">{{ plan.price }}</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for feature in plan.features %}
+                        <li class="mb-2">✓ {{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'subscriptions:subscribe' forloop.counter %}" 
+                       class="btn btn-primary btn-block">
+                        Choose {{ plan.name }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="text-center mt-4">
+        <p class="text-muted">All plans include:</p>
+        <p>✓ Secure payments via SumUp ✓ 90% of sales go to you ✓ Jersey-based support</p>
+        
+        <hr class="my-4">
+        
+        <a href="{% url 'accounts:artist_dashboard' %}" class="btn btn-outline-secondary">
+            Skip for now (limited features)
+        </a>
+    </div>
+</div>
+{% endblock %}

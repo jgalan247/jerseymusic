@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Terms & Conditions{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <h1>Terms & Conditions</h1>
+
+  <h2>Introduction</h2>
+  <p>
+    Welcome to our website. By using this site, you agree to these Terms & Conditions. 
+    If you do not agree, please do not use the site.
+  </p>
+
+  <h2>Our Role as Agent</h2>
+  <p>
+    We operate this website as an <strong>Agent</strong> on behalf of independent artists, 
+    event organisers, and vendors (“Vendors”). When you make a purchase on this site, 
+    the contract is formed between <strong>you</strong> and the <strong>Vendor</strong>, 
+    not directly with us. We provide the platform and act as a facilitator of the transaction, 
+    but we are not the seller of the goods, artworks, or tickets.
+  </p>
+
+  <h2>Purchases</h2>
+  <ul>
+    <li>All prices are displayed in GBP (£) and include applicable taxes unless stated otherwise.</li>
+    <li>Payment must be made in full before your order is processed.</li>
+    <li>We reserve the right to refuse or cancel transactions if fraudulent activity is suspected.</li>
+  </ul>
+
+  <h2>Refunds & Cancellations</h2>
+  <p>
+    Refunds and cancellations are subject to the Vendor’s own policy. We provide tools 
+    (such as the “Request Refund” option) to allow you to submit requests, but the decision 
+    and responsibility for refunds or cancellations lies with the Vendor. 
+  </p>
+  <ul>
+    <li>If an event is cancelled by the Vendor, you will normally be entitled to a full refund, managed by the Vendor.</li>
+    <li>If you wish to cancel an order, you must contact the Vendor directly. We cannot guarantee cancellation once the order has been confirmed.</li>
+  </ul>
+
+  <h2>Use of Website</h2>
+  <ul>
+    <li>You agree not to misuse the website or attempt to disrupt its functionality.</li>
+    <li>You are responsible for ensuring your login details remain confidential.</li>
+  </ul>
+
+  <h2>Intellectual Property</h2>
+  <p>
+    All content on this site (text, images, code) is owned by us or our Vendors. 
+    You may not copy, reproduce, or reuse content without permission.
+  </p>
+
+  <h2>Liability</h2>
+  <p>
+    As an Agent, we are not liable for the performance, quality, or fulfilment of goods or services sold by Vendors. 
+    Our liability is limited to providing the platform and ensuring it functions as described. 
+    Any claims regarding the goods, artworks, or events must be directed to the Vendor.
+  </p>
+
+  <h2>Changes to Terms</h2>
+  <p>
+    We may update these Terms & Conditions from time to time. Continued use of the site 
+    indicates your acceptance of any updated terms.
+  </p>
+
+  <h2>Contact Us</h2>
+  <p>
+    If you have questions about these Terms & Conditions, please contact us at 
+    <a href="mailto:info@example.com">info@example.com</a>.
+  </p>
+
+  <p>Last updated: {{ now|date:"d M Y" }}</p>
+</div>
+{% endblock %}

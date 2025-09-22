@@ -1,0 +1,44 @@
+<!-- Email to Artist when refund is requested -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>New Refund Request</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #ff9800;">New Refund Request</h2>
+        
+        <p>Hello {{ artist.get_full_name }},</p>
+        
+        <p>You have received a new refund request for order #{{ order.order_number }}.</p>
+        
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Customer:</strong> {{ customer.get_full_name }}</p>
+            <p><strong>Order Total:</strong> £{{ order.total|floatformat:2 }}</p>
+            <p><strong>Your Items Total:</strong> £{{ artist_total|floatformat:2 }}</p>
+            <p><strong>Reason:</strong><br>{{ reason }}</p>
+        </div>
+        
+        <p><strong>Action Required:</strong></p>
+        <p>Please log into your Jersey Artwork dashboard to review and respond to this request within 2-3 business days.</p>
+        
+        <p style="text-align: center; margin: 30px 0;">
+            <a href="{{ site_url }}{% url 'orders:artist_handle_refund' refund_request.id %}" 
+               style="background: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                Review Refund Request
+            </a>
+        </p>
+        
+        <p style="color: #666; font-size: 14px;">
+            <strong>Remember:</strong> If you approve this refund, you'll need to process the actual payment refund through your SumUp dashboard.
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        
+        <p style="color: #999; font-size: 12px;">
+            This is an automated message from Jersey Artwork. Please do not reply to this email.
+        </p>
+    </div>
+</body>
+</html>

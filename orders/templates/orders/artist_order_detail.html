@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Order {{ order.order_number }}</h2>
+<p>Status: {{ order.status }}</p>
+<p>Total: £{{ order.total }}</p>
+{% for item in artist_items %}
+  <p>{{ item.artwork.title }} - Qty: {{ item.quantity }}</p>
+{% endfor %}
+{% endblock %}

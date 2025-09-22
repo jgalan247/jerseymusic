@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}About Us - Jersey Artwork{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 mb-4">About Jersey Artwork</h1>
+            <p class="lead">Celebrating the unique creativity of Jersey's local artists and craftspeople</p>
+        </div>
+    </div>
+
+    <!-- Our Story -->
+    <div class="row mb-5">
+        <div class="col-lg-6">
+            <h2 class="mb-4"><i class="fas fa-heart text-primary"></i> Our Story</h2>
+            <p>Jersey Artwork was born from a passion to showcase the incredible talent of Jersey's local artists and craftspeople. Our island, though small, is home to a vibrant community of creators working across diverse mediums - from traditional paintings capturing Jersey's stunning coastlines to contemporary sculptures, handcrafted jewelry, ceramics, and textiles.</p>
+            <p>We believe that every piece tells a story - of Jersey's heritage, its natural beauty, and the unique perspective of island life. Our platform connects these talented artists with art lovers both locally and around the world.</p>
+        </div>
+        <div class="col-lg-6">
+            <img src="{% static 'images/jersey/JerseyArt.png' %}" alt="Elizabeth Castle"
+                 alt="Jersey Artists" class="img-fluid rounded shadow">
+        </div>
+    </div>
+
+    <!-- What We Offer -->
+    <div class="row mb-5">
+        <div class="col-lg-12">
+            <h2 class="text-center mb-4"><i class="fas fa-palette text-primary"></i> Supporting Local Crafts & Arts</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-paint-brush fa-3x text-primary mb-3"></i>
+                    <h4>Paintings & Drawings</h4>
+                    <p>From watercolors of Jersey's beaches to oil paintings of the countryside, our artists capture the island's essence.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-gem fa-3x text-primary mb-3"></i>
+                    <h4>Jewelry & Crafts</h4>
+                    <p>Handcrafted jewelry featuring Jersey pearls, sea glass, and locally-inspired designs by talented artisans.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-vase fa-3x text-primary mb-3"></i>
+                    <h4>Ceramics & Pottery</h4>
+                    <p>Beautiful, functional pottery and ceramic art pieces created in local studios across the island.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-camera fa-3x text-primary mb-3"></i>
+                    <h4>Photography</h4>
+                    <p>Stunning captures of Jersey's landscapes, wildlife, and heritage sites by local photographers.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-cut fa-3x text-primary mb-3"></i>
+                    <h4>Textiles & Fashion</h4>
+                    <p>Unique textile art, handwoven pieces, and locally-designed fashion inspired by Jersey's culture.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-cube fa-3x text-primary mb-3"></i>
+                    <h4>Sculptures</h4>
+                    <p>Three-dimensional art in various materials, from bronze to driftwood, reflecting island themes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Mission -->
+    <div class="row mb-5 bg-light rounded p-5">
+        <div class="col-lg-6">
+            <h2 class="mb-4"><i class="fas fa-bullseye text-primary"></i> Our Mission</h2>
+            <ul class="list-unstyled">
+                <li class="mb-3"><i class="fas fa-check text-success"></i> <strong>Support Local Artists:</strong> Provide Jersey artists with a platform to showcase and sell their work</li>
+                <li class="mb-3"><i class="fas fa-check text-success"></i> <strong>Preserve Heritage:</strong> Celebrate and preserve Jersey's artistic traditions and crafts</li>
+                <li class="mb-3"><i class="fas fa-check text-success"></i> <strong>Connect Communities:</strong> Bridge the gap between artists and art lovers locally and globally</li>
+                <li class="mb-3"><i class="fas fa-check text-success"></i> <strong>Fair Trade:</strong> Ensure artists receive fair compensation for their creativity and skill</li>
+            </ul>
+        </div>
+        <div class="col-lg-6">
+            <h2 class="mb-4"><i class="fas fa-users text-primary"></i> Why Choose Jersey Artwork?</h2>
+            <ul class="list-unstyled">
+                <li class="mb-3"><i class="fas fa-star text-warning"></i> <strong>100% Authentic:</strong> All pieces are created by verified Jersey-based artists</li>
+                <li class="mb-3"><i class="fas fa-star text-warning"></i> <strong>Quality Guaranteed:</strong> Every artwork is reviewed to ensure highest standards</li>
+                <li class="mb-3"><i class="fas fa-star text-warning"></i> <strong>Secure Transactions:</strong> Safe and secure payment processing through SumUp</li>
+                <li class="mb-3"><i class="fas fa-star text-warning"></i> <strong>Supporting Local:</strong> 90% of sale proceeds go directly to the artist</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Jersey Heritage Section -->
+    <div class="row mb-5">
+        <div class="col-lg-12">
+            <h2 class="text-center mb-4"><i class="fas fa-landmark text-primary"></i> Jersey's Rich Artistic Heritage</h2>
+            <p class="text-center lead">From the ancient dolmens to modern galleries, Jersey has always been a haven for creativity</p>
+        </div>
+        <div class="col-md-6">
+            <p>Jersey's artistic tradition spans centuries, influenced by both British and French cultures. The island's dramatic coastlines, historic castles, and unique light have inspired countless artists. Today's Jersey artists continue this tradition while bringing fresh, contemporary perspectives.</p>
+            <p>Our platform celebrates this diversity - from artists painting traditional Jersey cows and coastal scenes to those creating abstract interpretations of island life, from potters using local clay to jewelers incorporating Jersey pearls.</p>
+        </div>
+        <div class="col-md-6">
+            <p>By choosing Jersey Artwork, you're not just purchasing art - you're supporting local families, preserving traditional crafts, and helping to maintain Jersey's vibrant creative community. Each piece carries with it the spirit of our island home.</p>
+            <p>Whether you're a Jersey resident looking to decorate your home with local art, or someone from afar wanting a piece of Jersey's beauty, we're here to connect you with the perfect artwork.</p>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center bg-primary text-white rounded p-5">
+            <h2 class="mb-4">Join Our Creative Community</h2>
+            <p class="lead mb-4">Whether you're an artist looking to showcase your work or an art lover seeking unique pieces, we welcome you to Jersey Artwork.</p>
+            <div class="d-grid gap-2 d-md-block">
+                <a href="{% url 'artworks:gallery' %}" class="btn btn-light btn-lg me-2">Browse Gallery</a>
+                <a href="{% url 'accounts:register_artist' %}" class="btn btn-outline-light btn-lg">Become an Artist</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

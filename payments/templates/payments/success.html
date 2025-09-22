@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Payment Successful - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <!-- Success Icon -->
+            <div class="mb-4">
+                <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+            </div>
+            
+            <h2 class="mb-3">Payment Successful!</h2>
+            <p class="lead">Thank you for your order. Your payment has been processed successfully.</p>
+            
+            {% if order %}
+            <!-- Order Details -->
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Order Confirmation</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+                    <p><strong>Total Amount:</strong> £{{ order.total|floatformat:2 }}</p>
+                    
+                    <hr>
+                    
+                    <h6>Delivery Details:</h6>
+                    <p>
+                        {{ order.delivery_first_name }} {{ order.delivery_last_name }}<br>
+                        {{ order.delivery_address_line_1 }}<br>
+                        {% if order.delivery_address_line_2 %}
+                            {{ order.delivery_address_line_2 }}<br>
+                        {% endif %}
+                        {{ order.delivery_parish }}, {{ order.delivery_postcode }}
+                    </p>
+                    
+                    <p><strong>Delivery Method:</strong> {{ order.get_delivery_method_display|default:order.delivery_method|title }}</p>
+                    
+                    <hr>
+                    
+                    <h6>Order Items:</h6>
+                    {% for item in order.items.all %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ item.artwork.title }} x{{ item.quantity }}</span>
+                        <span>£{{ item.total|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5>What happens next?</h5>
+                    <p>A confirmation email has been sent to <strong>{{ order.email }}</strong></p>
+                    <p>Your order will be processed and shipped within 1-2 business days.</p>
+                    <p>You can track your order status in your account.</p>
+                </div>
+            </div>
+            {% else %}
+            <!-- Generic success message if no order -->
+            <div class="alert alert-info mt-4">
+                <p>Your payment has been processed. You should receive a confirmation email shortly.</p>
+            </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="mt-4">
+                {% if user.is_authenticated %}
+                <a href="{% url 'orders:my_orders' %}" class="btn btn-primary">View My Orders</a>
+                {% endif %}
+                <a href="{% url 'artworks:gallery' %}" class="btn btn-outline-primary">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

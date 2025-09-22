@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Jersey Artwork{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom radio button styling */
+    .delivery-method-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .delivery-option {
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .delivery-option:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+    }
+    
+    .delivery-option input[type="radio"] {
+        margin-right: 10px;
+    }
+    
+    .delivery-option.selected {
+        border-color: #007bff;
+        background-color: #e7f3ff;
+    }
+    
+    /* Checkbox styling */
+    .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    
+    /* Card styling */
+    .checkout-card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .checkout-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #007bff;
+        font-weight: 600;
+    }
+    
+    /* Summary card sticky positioning */
+    .order-summary-container {
+        position: sticky;
+        top: 20px;
+    }
+    
+    /* Form validation styling */
+    .invalid-feedback {
+        display: block;
+    }
+    
+    /* Terms checkbox container */
+    .terms-container {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .terms-container input {
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <h2 class="mb-4">Checkout</h2>
+            
+            <form method="post" id="checkout-form" novalidate>
+                {% csrf_token %}
+                
+                <!-- Contact Information -->
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Contact Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name *</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name *</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="invalid-feedback">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address *</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number *</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="invalid-feedback">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delivery Information -->
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Delivery Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Delivery Method -->
+                        <label class="form-label mb-3">Delivery Method *</label>
+                        <div class="delivery-method-group mb-4">
+                            <div class="delivery-option" onclick="selectDeliveryOption(this, 'standard')">
+                                <label for="id_delivery_method_0" style="cursor: pointer; margin: 0;">
+                                    <input type="radio" name="delivery_method" value="standard" id="id_delivery_method_0" checked>
+                                    <strong>Standard Delivery</strong> - £5.00
+                                    <br>
+                                    <small class="text-muted ms-4">Delivery within 3-5 business days</small>
+                                </label>
+                            </div>
+                            <div class="delivery-option" onclick="selectDeliveryOption(this, 'express')">
+                                <label for="id_delivery_method_1" style="cursor: pointer; margin: 0;">
+                                    <input type="radio" name="delivery_method" value="express" id="id_delivery_method_1">
+                                    <strong>Express Delivery</strong> - £15.00
+                                    <br>
+                                    <small class="text-muted ms-4">Next business day delivery</small>
+                                </label>
+                            </div>
+                            <div class="delivery-option" onclick="selectDeliveryOption(this, 'collection')">
+                                <label for="id_delivery_method_2" style="cursor: pointer; margin: 0;">
+                                    <input type="radio" name="delivery_method" value="collection" id="id_delivery_method_2">
+                                    <strong>Collection</strong> - Free
+                                    <br>
+                                    <small class="text-muted ms-4">Collect from our St. Helier location</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Delivery Address -->
+                        <div id="delivery-address-section">
+                            <div class="mb-3">
+                                <label for="{{ form.delivery_address_line_1.id_for_label }}" class="form-label">Address Line 1 *</label>
+                                {{ form.delivery_address_line_1 }}
+                                {% if form.delivery_address_line_1.errors %}
+                                    <div class="invalid-feedback">{{ form.delivery_address_line_1.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.delivery_address_line_2.id_for_label }}" class="form-label">Address Line 2</label>
+                                {{ form.delivery_address_line_2 }}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.delivery_parish.id_for_label }}" class="form-label">Parish *</label>
+                                    {{ form.delivery_parish }}
+                                    {% if form.delivery_parish.errors %}
+                                        <div class="invalid-feedback">{{ form.delivery_parish.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.delivery_postcode.id_for_label }}" class="form-label">Postcode *</label>
+                                    {{ form.delivery_postcode }}
+                                    <small class="form-text text-muted">Format: JE2 3AB</small>
+                                    {% if form.delivery_postcode.errors %}
+                                        <div class="invalid-feedback">{{ form.delivery_postcode.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Billing Information -->
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Billing Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            {{ form.billing_same_as_delivery }}
+                            <label class="form-check-label" for="{{ form.billing_same_as_delivery.id_for_label }}">
+                                Same as delivery address
+                            </label>
+                        </div>
+                        
+                        <div id="billing-fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.billing_first_name.id_for_label }}" class="form-label">First Name</label>
+                                    {{ form.billing_first_name }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.billing_last_name.id_for_label }}" class="form-label">Last Name</label>
+                                    {{ form.billing_last_name }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.billing_address_line_1.id_for_label }}" class="form-label">Address Line 1</label>
+                                {{ form.billing_address_line_1 }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.billing_address_line_2.id_for_label }}" class="form-label">Address Line 2</label>
+                                {{ form.billing_address_line_2 }}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.billing_parish.id_for_label }}" class="form-label">Parish/City</label>
+                                    {{ form.billing_parish }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.billing_postcode.id_for_label }}" class="form-label">Postcode</label>
+                                    {{ form.billing_postcode }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Information -->
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Additional Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.customer_note.id_for_label }}" class="form-label">Order Notes (Optional)</label>
+                            {{ form.customer_note }}
+                        </div>
+                        
+                        {% if not user.is_authenticated %}
+                        <div class="form-check mb-3">
+                            {{ form.marketing_consent }}
+                            <label class="form-check-label" for="{{ form.marketing_consent.id_for_label }}">
+                                {{ form.marketing_consent.label }}
+                            </label>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Terms and Conditions -->
+                <div class="terms-container">
+                    {{ form.accept_terms }}
+                    <label for="{{ form.accept_terms.id_for_label }}">
+                        I agree to the <a href="{% url 'artworks:terms' %}" target="_blank">Terms & Conditions</a> 
+                        and <a href="{% url 'artworks:privacy' %}" target="_blank">Privacy Policy</a> *
+                    </label>
+                </div>
+                
+                <!-- Error Summary -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-lock me-2"></i>Proceed to Payment
+                </button>
+            </form>
+        </div>
+        
+        <!-- Order Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="order-summary-container">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if cart_items %}
+                            {% for item in cart_items %}
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <p class="mb-0">{{ item.artwork.title }}</p>
+                                    <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                </div>
+                                <span>£{{ item.total_price|floatformat:2 }}</span>
+                            </div>
+                            {% endfor %}
+                            
+                            <hr>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>£{{ cart.subtotal|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping:</span>
+                                <span id="shipping-cost">£5.00</span>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="d-flex justify-content-between">
+                                <strong>Total:</strong>
+                                <strong id="order-total">£{{ cart.total|floatformat:2 }}</strong>
+                            </div>
+                        {% else %}
+                            <p>Your cart is empty</p>
+                            <a href="{% url 'artworks:gallery' %}" class="btn btn-primary">Continue Shopping</a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Payment Security -->
+                <div class="card mt-3">
+                    <div class="card-body text-center">
+                        <h6 class="mb-3">Secure Payment</h6>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/SumUp_logo.svg" alt="SumUp" height="30" class="mb-2">
+                        <div>
+                            <i class="fab fa-cc-visa fa-2x me-2 text-muted"></i>
+                            <i class="fab fa-cc-mastercard fa-2x me-2 text-muted"></i>
+                            <i class="fab fa-cc-amex fa-2x text-muted"></i>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-lock"></i> Your payment information is encrypted and secure
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize selected delivery option
+    const checkedRadio = document.querySelector('input[name="delivery_method"]:checked');
+    if (checkedRadio) {
+        const parentOption = checkedRadio.closest('.delivery-option');
+        if (parentOption) {
+            parentOption.classList.add('selected');
+        }
+    }
+    
+    // Billing address toggle
+    const billingSameCheckbox = document.getElementById('billing-same');
+    const billingFields = document.getElementById('billing-fields');
+    
+    if (billingSameCheckbox) {
+        billingSameCheckbox.addEventListener('change', function() {
+            billingFields.style.display = this.checked ? 'none' : 'block';
+            
+            // Toggle required attributes on billing fields
+            const billingInputs = billingFields.querySelectorAll('input[name^="billing_"]');
+            billingInputs.forEach(input => {
+                if (!this.checked && ['billing_first_name', 'billing_last_name', 'billing_address_line_1', 'billing_postcode'].includes(input.name)) {
+                    input.setAttribute('required', 'required');
+                } else {
+                    input.removeAttribute('required');
+                }
+            });
+        });
+    }
+    
+    // Collection mode toggle
+    const deliveryRadios = document.querySelectorAll('input[name="delivery_method"]');
+    const deliveryAddressSection = document.getElementById('delivery-address-section');
+    
+    deliveryRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'collection') {
+                deliveryAddressSection.style.display = 'none';
+                // Remove required from delivery fields
+                deliveryAddressSection.querySelectorAll('[required]').forEach(field => {
+                    field.removeAttribute('required');
+                    field.dataset.wasRequired = 'true';
+                });
+            } else {
+                deliveryAddressSection.style.display = 'block';
+                // Restore required to delivery fields
+                deliveryAddressSection.querySelectorAll('[data-was-required]').forEach(field => {
+                    field.setAttribute('required', 'required');
+                });
+            }
+            updateShipping(this.value);
+        });
+    });
+});
+
+// Select delivery option
+function selectDeliveryOption(element, value) {
+    // Remove selected class from all options
+    document.querySelectorAll('.delivery-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    element.classList.add('selected');
+    
+    // Check the radio button
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) {
+        radio.checked = true;
+        // Trigger change event
+        radio.dispatchEvent(new Event('change'));
+    }
+}
+
+// Update shipping cost
+function updateShipping(method) {
+    const shippingElement = document.getElementById('shipping-cost');
+    const totalElement = document.getElementById('order-total');
+    const subtotal = parseFloat('{{ cart.subtotal|default:0 }}');
+    let shipping = 0;
+    
+    if (method === 'collection') {
+        shipping = 0;
+        shippingElement.textContent = 'Free';
+    } else if (method === 'express') {
+        shipping = 15;
+        shippingElement.textContent = '£15.00';
+    } else { // standard
+        shipping = subtotal >= 100 ? 0 : 5;
+        shippingElement.textContent = subtotal >= 100 ? 'Free' : '£5.00';
+    }
+    
+    const total = subtotal + shipping;
+    totalElement.textContent = '£' + total.toFixed(2);
+}
+</script>
+{% endblock %}

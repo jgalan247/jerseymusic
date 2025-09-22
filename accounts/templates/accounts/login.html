@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Login to Jersey Artwork</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-dark w-100">Login</button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p>Don't have an account?</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'accounts:register_customer' %}" class="btn btn-outline-primary">Register as Customer</a>
+                            <a href="{% url 'accounts:register_artist' %}" class="btn btn-outline-success">Register as Artist</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'accounts:resend_verification' %}">Resend verification email</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

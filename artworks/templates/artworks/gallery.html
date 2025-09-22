@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Gallery{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Art Gallery</h1>
+    <div class="row">
+        {% for artwork in artworks %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <!-- Image display section -->
+                {% if artwork.main_image %}
+                    <img src="{{ artwork.main_image.url }}" 
+                         class="card-img-top" 
+                         alt="{{ artwork.title }}"
+                         style="height: 250px; object-fit: cover;">
+                {% elif artwork.additional_images.exists %}
+                    <img src="{{ artwork.additional_images.first.image.url }}" 
+                         class="card-img-top" 
+                         alt="{{ artwork.title }}"
+                         style="height: 250px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center" 
+                         style="height: 250px;">
+                        <span class="text-muted">No image available</span>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <h5 class="card-title">{{ artwork.title }}</h5>
+                    <p class="card-text">by {{ artwork.artist.get_full_name|default:artwork.artist.email }}</p>
+                    <p class="card-text">
+                        <span class="text-primary fw-bold">£{{ artwork.price }}</span>
+                    </p>
+                    <a href="{% url 'artworks:artwork_detail' artwork.pk %}" class="btn btn-primary">View</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p>No artworks available yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

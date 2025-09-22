@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Refund & Cancellation Policy{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <h1>Refund & Cancellation Policy</h1>
+
+  <p>
+    This website acts as an <strong>Agent</strong> on behalf of independent artists and organisers
+    (“Vendors”). When you purchase an item or ticket through this site, the contract is
+    between <strong>you</strong> and the <strong>Vendor</strong>, not with us directly.
+  </p>
+
+  <h2>Refunds</h2>
+  <ul>
+    <li>Refund requests must be made within 14 days of purchase unless the Vendor states otherwise.</li>
+    <li>Refunds are subject to the Vendor’s individual policy. We provide the platform and tools 
+        (such as the "Request Refund" option in your account) but do not authorise or process refunds directly.</li>
+    <li>If approved by the Vendor, refunds will be returned to the original payment method 
+        within 5–10 business days.</li>
+    <li>Digital products (e.g. tickets, downloads) may be non-refundable once delivered, 
+        unless required by law.</li>
+  </ul>
+
+  <h2>Cancellations</h2>
+  <ul>
+    <li>If you wish to cancel an order before it is fulfilled, you should contact the Vendor immediately.</li>
+    <li>Cancellations are granted at the discretion of the Vendor. We cannot guarantee that cancellation is possible once an order is confirmed.</li>
+    <li>For ticketed events, if the Vendor cancels the event, you will normally be entitled to a full refund. 
+        This will be managed by the Vendor.</li>
+  </ul>
+
+  <h2>Our Role as Agent</h2>
+  <p>
+    We do not set refund or cancellation terms for Vendors. Our role is to act as an Agent, 
+    providing a platform where you and Vendors can interact. Any disputes regarding refunds or 
+    cancellations should be raised directly with the Vendor.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    If you have difficulty reaching a Vendor through the platform, please contact us at
+    <a href="mailto:info@example.com">info@example.com</a> and we will assist in passing your request on.
+  </p>
+
+  <p>Last updated: {{ now|date:"d M Y" }}</p>
+</div>
+{% endblock %}

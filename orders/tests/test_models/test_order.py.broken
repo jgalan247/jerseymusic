@@ -1,0 +1,217 @@
+"""
+Unit tests for Orders models
+"""
+from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from decimal import Decimal
+from datetime import timedelta
+
+from orders.models import Order, OrderItem, OrderStatusHistory, Refund, RefundRequest
+from artworks.models import Artwork
+from accounts.models import ArtistProfile
+
+User = get_user_model()
+
+
+class OrderModelTest(TestCase):
+    """Test the Order model"""
+    
+    def setUp(self):
+        self.customer = User.objects.create_user(
+            username='customer@test.com',
+            email='customer@test.com',
+            password='pass123',
+            user_type='customer',
+            first_name='John',
+            last_name='Doe'
+        )
+        
+        self.artist = User.objects.create_user(
+            username='artist@test.com',
+            email='artist@test.com',
+            password='pass123',
+            user_type='artist'
+        )
+        
+        self.artwork = Artwork.objects.create(
+            title='Test Artwork',
+            slug='test-artwork',
+            artist=self.artist,
+            description='Test description',
+            price=Decimal('150.00'),
+            status='active',
+            stock_quantity=5
+        )
+    
+    def test_create_order(self):
+        """Test creating an order"""
+        order = Order.objects.create(
+            user=self.customer,
+            email='customer@test.com',
+            phone='+44 7700 900000',
+            delivery_first_name='John',
+            delivery_last_name='Doe',
+            delivery_address_line_1='123 Test Street',
+            delivery_parish='st_helier',
+            delivery_postcode='JE2 4UH',
+            status='pending',
+            subtotal=Decimal('150.00'),
+            shipping_cost=Decimal('5.00'),
+            total=Decimal('155.00')
+        )
+        
+        self.assertEqual(order.user, self.customer)
+        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.total, Decimal('155.00'))
+        self.assertIsNotNone(order.order_number)
+        self.assertTrue(order.order_number.startswith('JA-'))
+    
+    def test_order_number_generation(self):
+        """Test that order numbers are unique"""
+        order1 = Order.objects.create(
+            user=self.customer,
+            email='test@test.com',
+            phone='123456',
+            delivery_first_name='Test',
+            delivery_last_name='User',
+            delivery_address_line_1='Test',
+            delivery_parish='st_helier',
+            delivery_postcode='JE1 1AA',
+            subtotal=Decimal('100.00'),
+            shipping_cost=Decimal('5.00'),
+            total=Decimal('105.00')
+        )
+        
+        order2 = Order.objects.create(
+            user=self.customer,
+            email='test@test.com',
+            phone='123456',
+            delivery_first_name='Test',
+            delivery_last_name='User',
+            delivery_address_line_1='Test',
+            delivery_parish='st_helier',
+            delivery_postcode='JE1 1AA',
+            subtotal=Decimal('100.00'),
+            shipping_cost=Decimal('5.00'),
+            total=Decimal('105.00')
+        )
+        
+        self.assertNotEqual(order1.order_number, order2.order_number)
+        self.assertEqual(len(order1.order_number), 11)  # JA- plus 8 chars
+    
+    def test_can_cancel_property(self):
+        """Test can_cancel property"""
+        order = Order.objects.create(
+            user=self.customer,
+            email='test@test.com',
+            phone='123456',
+            delivery_first_name='Test',
+            delivery_last_name='User',
+            delivery_address_line_1='Test',
+            delivery_parish='st_helier',
+            delivery_postcode='JE1 1AA',
+            subtotal=Decimal('100.00'),
+            shipping_cost=Decimal('5.00'),
+            total=Decimal('105.00')
+        )
+        
+        # Test cancellable statuses
+        for status in ['pending', 'processing', 'confirmed']:
+            order.status = status
+            order.save()
+            self.assertTrue(order.can_cancel)
+        
+        # Test non-cancellable statuses
+        for status in ['shipped', 'delivered', 'cancelled', 'refunded']:
+            order.status = status
+            order.save()
+            self.assertFalse(order.can_cancel)
+    
+    def test_full_name_property(self):
+        """Test full_name property"""
+        order = Order.objects.create(
+            user=self.customer,
+            email='test@test.com',
+            phone='123456',
+            delivery_first_name='John',
+            delivery_last_name='Smith',
+            delivery_address_line_1='Test',
+            delivery_parish='st_helier',
+            delivery_postcode='JE1 1AA',
+            subtotal=Decimal('100.00'),
+            shipping_cost=Decimal('5.00'),
+            total=Decimal('105.00')
+        )
+        self.assertEqual(order.full_name, 'John Smith')
+
+
+class OrderItemModelTest(TestCase):
+    """Test the OrderItem model"""
+    
+    def setUp(self):
+        self.customer = User.objects.create_user(
+            username='customer@test.com',
+            email='customer@test.com',
+            password='pass123',
+            user_type='customer'
+        )
+        
+        self.artist = User.objects.create_user(
+            username='artist@test.com',
+            email='artist@test.com',
+            password='pass123',
+            user_type='artist',
+            first_name='Jane',
+            last_name='Artist'
+        )
+        
+        self.artwork = Artwork.objects.create(
+            title='Beautiful Painting',
+            slug='beautiful-painting',
+            artist=self.artist,
+            description='A beautiful painting',
+            price=Decimal('250.00'),
+            status='active',
+            artwork_type='original'
+        )
+        
+        self.order = Order.objects.create(
+            user=self.customer,
+            email='customer@test.com',
+            phone='123456',
+            delivery_first_name='John',
+            delivery_last_name='Doe',
+            delivery_address_line_1='Test',
+            delivery_parish='st_helier',
+            delivery_postcode='JE1 1AA',
+            subtotal=Decimal('250.00'),
+            shipping_cost=Decimal('5.00'),
+            total=Decimal('255.00')
+        )
+    
+    def test_create_order_item(self):
+        """Test creating an order item"""
+        item = OrderItem.objects.create(
+            order=self.order,
+            artwork=self.artwork,
+            quantity=1,
+            price=Decimal('250.00')
+        )
+        
+        self.assertEqual(item.order, self.order)
+        self.assertEqual(item.artwork, self.artwork)
+        self.assertEqual(item.quantity, 1)
+        self.assertEqual(item.price, Decimal('250.00'))
+        self.assertEqual(item.total, Decimal('250.00'))
+    
+    def test_order_item_total_calculation(self):
+        """Test that total is calculated correctly"""
+        item = OrderItem.objects.create(
+            order=self.order,
+            artwork=self.artwork,
+            quantity=3,
+            price=Decimal('100.00')
+        )
+        
+        self.assertEqual(item.total, Decimal('300.00'))

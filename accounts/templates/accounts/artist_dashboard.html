@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Artist Dashboard - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Artist Dashboard</h1>
+    
+    {% if not email_verified %}
+    <div class="alert alert-warning">
+        Please verify your email to access all features. 
+        <a href="{% url 'accounts:resend_verification' %}">Resend verification email</a>
+    </div>
+    {% endif %}
+    
+    {% if not has_subscription %}
+    <div class="alert alert-info">
+        You need an active subscription to start selling. 
+        <a href="#" class="btn btn-primary btn-sm">Choose a Plan</a>
+    </div>
+    {% endif %}
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">My Artworks</h5>
+                    <p class="card-text">Manage your artwork listings</p>
+                    <a href="#" class="btn btn-primary">View Artworks</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Orders</h5>
+                    <p class="card-text">View and manage customer orders</p>
+                    <a href="#" class="btn btn-primary">View Orders</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Profile</h5>
+                    <p class="card-text">Update your artist profile</p>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-primary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

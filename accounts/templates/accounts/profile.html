@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>My Profile</h1>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><strong>Account Type:</strong> {{ user.user_type|title }}</p>
+            <p><strong>Email Verified:</strong> 
+                {% if user.email_verified %}
+                    <span class="badge bg-success">✓ Verified</span>
+                {% else %}
+                    <span class="badge bg-warning">Not Verified</span>
+                    <a href="{% url 'accounts:resend_verification' %}">Resend verification</a>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

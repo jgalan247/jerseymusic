@@ -1,0 +1,29 @@
+# Testing dependencies for Jersey Artwork
+# Core testing
+pytest==8.3.2
+pytest-django==4.8.0
+pytest-cov==5.0.0
+pytest-xdist==3.6.1
+factory-boy==3.3.0
+faker==25.8.0
+
+# Selenium for E2E testing
+selenium==4.23.1
+webdriver-manager==4.0.2
+
+# Testing utilities
+model-bakery==1.19.1
+freezegun==1.5.1
+responses==0.25.3
+
+# Code quality
+coverage==7.6.1
+black==24.8.0
+flake8==7.1.1
+
+# Performance testing
+django-silk==5.1.0
+locust==2.29.1
+
+# Email testing
+django-mail-panel==4.0.4

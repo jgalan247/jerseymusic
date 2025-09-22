@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Artist Dashboard - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="mb-4">Artist Sales Dashboard</h2>
+    
+    <!-- Revenue Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">This Month's Sales</h6>
+                    <h3 class="text-primary">£{{ this_month_revenue|floatformat:2 }}</h3>
+                    <small class="text-muted">After fees: £{{ this_month_earnings|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Last Month's Sales</h6>
+                    <h3>£{{ last_month_revenue|floatformat:2 }}</h3>
+                    {% if last_month_revenue > 0 %}
+                    <small class="text-{% if this_month_revenue > last_month_revenue %}success{% else %}danger{% endif %}">
+                        {% if this_month_revenue > last_month_revenue %}
+                            <i class="fas fa-arrow-up"></i>
+                        {% else %}
+                            <i class="fas fa-arrow-down"></i>
+                        {% endif %}
+                        {{ this_month_revenue|add:"-"|add:last_month_revenue|floatformat:2 }}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Platform Fees (10%)</h6>
+                    <h3>£{{ platform_fees|floatformat:2 }}</h3>
+                    <small class="text-muted">This month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Pending Refunds</h6>
+                    <h3 class="text-warning">{{ pending_refunds }}</h3>
+                    <a href="{% url 'orders:artist_refund_list' %}" class="small">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Recent Orders -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Orders</h5>
+                    <a href="{% url 'orders:artist_list' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Your Revenue</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>
+                                    <a href="{% url 'orders:artist_order_detail' order_number=order.order_number %}">
+                                        {{ order.order_number|truncatechars:12 }}
+                                    </a>
+                                    </td>
+                                    <td>{{ order.created_at|date:"d M" }}</td>
+                                    <td>{{ order.customer_first_name }}</td>
+                                    <td>{{ order.items.count }}</td>
+                                    <td>£{{ order.artist_subtotal|default:0|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ order.status|default:'secondary' }}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No orders yet</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sales Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Sales Trend (Last 30 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Best Sellers & Stats -->
+        <div class="col-lg-4">
+            <!-- Best Selling Artworks -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Best Sellers</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in best_sellers %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>{{ item.artwork__title|truncatechars:25 }}</strong><br>
+                            <small class="text-muted">{{ item.total_sold }} sold</small>
+                        </div>
+                        <div class="text-end">
+                            <strong>£{{ item.revenue|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No sales yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Sales by Type -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Sales by Type</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'artworks:upload' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add New Artwork
+                        </a>
+                        <a href="{% url 'orders:artist_sales_report' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-download me-2"></i>Download Sales Report
+                        </a>
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-user me-2"></i>Update Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Sales Trend Chart
+fetch("{% url 'orders:statistics' %}?period=30")
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const labels = Object.keys(data.daily_sales);
+        const values = Object.values(data.daily_sales).map(d => d.revenue);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Daily Revenue',
+                    data: values,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '£' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+// Sales by Type Chart
+const typeData = {{ sales_by_type|safe }};
+if (typeData && typeData.length > 0) {
+    const ctx2 = document.getElementById('typeChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: typeData.map(d => d.artwork__artwork_type),
+            datasets: [{
+                data: typeData.map(d => d.count),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+</script>
+{% endblock %}

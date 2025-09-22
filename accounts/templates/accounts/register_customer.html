@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Register as Customer - Jersey Artwork{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">🛍️ Customer Registration</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Join Jersey Artwork to discover and purchase unique local art.</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {{ form.as_p }}
+                        
+                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p>Already have an account? <a href="{% url 'accounts:login' %}">Login here</a></p>
+                        <p>Are you an artist? <a href="{% url 'accounts:register_artist' %}">Register as Artist</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

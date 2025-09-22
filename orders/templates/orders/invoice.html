@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - {{ order.order_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-info h1 {
+            margin: 0;
+            color: #333;
+        }
+        .invoice-details {
+            text-align: right;
+        }
+        .invoice-details h2 {
+            margin: 0;
+            color: #666;
+        }
+        .customer-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .customer-info h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .order-items table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .order-items th,
+        .order-items td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .order-items th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .order-items .quantity,
+        .order-items .price,
+        .order-items .total {
+            text-align: right;
+        }
+        .order-summary {
+            float: right;
+            width: 300px;
+            margin-top: 20px;
+        }
+        .order-summary table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-summary td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-summary .total-row {
+            font-weight: bold;
+            border-top: 2px solid #333;
+            background-color: #f8f9fa;
+        }
+        .payment-info {
+            clear: both;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 15px;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-header">
+        <div class="company-info">
+            <h1>{{ company_name }}</h1>
+            <p>{{ company_address }}<br>
+            Email: {{ company_email }}<br>
+            Phone: {{ company_phone }}</p>
+        </div>
+        <div class="invoice-details">
+            <h2>INVOICE</h2>
+            <p><strong>Invoice #:</strong> {{ order.order_number }}<br>
+            <strong>Date:</strong> {{ order.created_at|date:"d M Y" }}<br>
+            <strong>Status:</strong> {{ order.get_status_display }}</p>
+        </div>
+    </div>
+
+    <div class="customer-info">
+        <h3>Bill To:</h3>
+        <p><strong>{{ order.full_name }}</strong><br>
+        {{ order.email }}<br>
+        {% if order.phone %}{{ order.phone }}<br>{% endif %}
+        {{ order.full_address }}</p>
+    </div>
+
+    <div class="order-items">
+        <h3>Order Items:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Artist</th>
+                    <th class="quantity">Qty</th>
+                    <th class="price">Unit Price</th>
+                    <th class="total">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.artwork_title }}</strong>
+                        {% if item.artwork_type %}
+                        <br><small>{{ item.artwork_type|title }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.artwork_artist }}</td>
+                    <td class="quantity">{{ item.quantity }}</td>
+                    <td class="price">£{{ item.price|floatformat:2 }}</td>
+                    <td class="total">£{{ item.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="order-summary">
+        <table>
+            <tr>
+                <td>Subtotal:</td>
+                <td style="text-align: right;">£{{ order.subtotal|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>Shipping:</td>
+                <td style="text-align: right;">£{{ order.shipping_cost|floatformat:2 }}</td>
+            </tr>
+            {% if order.tax_amount > 0 %}
+            <tr>
+                <td>Tax:</td>
+                <td style="text-align: right;">£{{ order.tax_amount|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            <tr class="total-row">
+                <td><strong>Total:</strong></td>
+                <td style="text-align: right;"><strong>£{{ order.total|floatformat:2 }}</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="payment-info">
+        <h3>Payment Information:</h3>
+        <p><strong>Payment Status:</strong> 
+        {% if order.is_paid %}
+            <span style="color: green;">Paid</span>
+            {% if order.paid_at %}on {{ order.paid_at|date:"d M Y H:i" }}{% endif %}
+        {% else %}
+            <span style="color: red;">Pending</span>
+        {% endif %}
+        </p>
+        
+        {% if order.payment_method %}
+        <p><strong>Payment Method:</strong> {{ order.payment_method|title }}</p>
+        {% endif %}
+        
+        {% if order.transaction_id %}
+        <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+        {% endif %}
+        
+        {% if order.delivery_method %}
+        <p><strong>Delivery Method:</strong> {{ order.get_delivery_method_display }}</p>
+        {% endif %}
+        
+        {% if order.tracking_number %}
+        <p><strong>Tracking Number:</strong> {{ order.tracking_number }}</p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <p>Thank you for your business!<br>
+        This invoice was generated on {{ "now"|date:"d M Y H:i" }}</p>
+        
+        <div class="no-print" style="margin-top: 30px;">
+            <button onclick="window.print()" style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                Print Invoice
+            </button>
+        </div>
+    </div>
+</body>
+</html>

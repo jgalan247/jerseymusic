@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Track Your Order</h2>
+<form method="post">
+  {% csrf_token %}
+  <input type="text" name="order_number" placeholder="Order Number">
+  <input type="email" name="email" placeholder="Email">
+  <button type="submit">Track</button>
+</form>
+{% if messages %}
+  {% for message in messages %}
+    <p>{{ message }}</p>
+  {% endfor %}
+{% endif %}
+{% endblock %}
