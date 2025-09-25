@@ -1,34 +1,238 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Resend Verification - Jersey Artwork{% endblock %}
+{% block title %}Resend Verification Email - Jersey Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .resend-hero {
+        background: linear-gradient(135deg, var(--je-info) 0%, var(--je-primary) 100%);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+    }
+
+    .resend-card {
+        background: white;
+        border-radius: var(--je-radius-lg);
+        box-shadow: var(--je-shadow-xl);
+        padding: 3rem;
+        margin-top: -2rem;
+        position: relative;
+        z-index: 10;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .resend-icon {
+        font-size: 4rem;
+        color: var(--je-info);
+        margin-bottom: 2rem;
+    }
+
+    .form-floating > .form-control {
+        border: 2px solid var(--je-gray-200);
+        border-radius: var(--je-radius-lg);
+        padding: 1rem 0.75rem 0.375rem;
+        height: auto;
+        min-height: 3.5rem;
+        transition: var(--je-transition-fast);
+    }
+
+    .form-floating > .form-control:focus {
+        border-color: var(--je-primary);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15);
+        background-color: rgba(37, 99, 235, 0.02);
+    }
+
+    .form-floating > label {
+        color: var(--je-gray-500);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .btn-resend {
+        background: var(--je-gradient-primary);
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 1rem 2rem;
+        border-radius: var(--je-radius-lg);
+        transition: var(--je-transition-smooth);
+        box-shadow: var(--je-shadow-md);
+    }
+
+    .btn-resend:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--je-shadow-lg);
+        background: linear-gradient(135deg, var(--je-primary-dark) 0%, var(--je-primary) 100%);
+        color: white;
+    }
+
+    .help-section {
+        background: var(--je-gray-50);
+        border: 1px solid var(--je-gray-200);
+        border-radius: var(--je-radius-lg);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .rate-limit-notice {
+        background: var(--je-warning-light);
+        border: 1px solid var(--je-warning);
+        border-radius: var(--je-radius-md);
+        padding: 1rem;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+        color: var(--je-warning-dark);
+    }
+
+    @media (max-width: 768px) {
+        .resend-hero {
+            padding: 2rem 0;
+        }
+
+        .resend-card {
+            padding: 2rem;
+            margin: 1rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-header bg-warning">
-                    <h4 class="mb-0">📧 Resend Verification Email</h4>
+<!-- Hero Section -->
+<section class="resend-hero">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-paper-plane me-3"></i>Resend Verification Email
+        </h1>
+        <p class="lead mb-0">
+            Get a new verification link sent to your email
+        </p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container pb-5">
+    <div class="resend-card">
+        <div class="text-center mb-4">
+            <div class="resend-icon">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+
+            <h2 class="fw-bold mb-3">Send New Verification Email</h2>
+            <p class="text-muted">
+                Enter your email address and we'll send you a fresh verification link.
+            </p>
+        </div>
+
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <div class="form-floating">
+                    <input type="email"
+                           class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+                           id="id_email"
+                           name="email"
+                           value="{{ form.email.value|default:'' }}"
+                           placeholder="your@email.com"
+                           required>
+                    <label for="id_email">
+                        <i class="fas fa-envelope me-2"></i>Email Address *
+                    </label>
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.email.errors.0 }}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="card-body">
-                    <p>Enter your email address and we'll send you a new verification link.</p>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {{ form.as_p }}
-                        
-                        <button type="submit" class="btn btn-warning w-100">Send Verification Email</button>
-                    </form>
-                    
-                    <hr class="my-4">
-                    
-                    <div class="text-center">
-                        <a href="{% url 'accounts:login' %}">Back to Login</a>
-                    </div>
-                </div>
+            </div>
+
+            <div class="rate-limit-notice">
+                <i class="fas fa-clock me-2"></i>
+                <strong>Rate Limiting:</strong> You can request a new verification email once every 5 minutes for security reasons.
+            </div>
+
+            <div class="d-grid mb-4">
+                <button type="submit" class="btn btn-resend btn-lg">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Send Verification Email
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center">
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Login
+            </a>
+        </div>
+
+        <!-- Help Section -->
+        <div class="help-section">
+            <h5 class="fw-bold mb-3">
+                <i class="fas fa-question-circle me-2 text-je-info"></i>
+                Need Help?
+            </h5>
+            <div class="small text-muted">
+                <p class="mb-2"><strong>Not receiving emails?</strong></p>
+                <ul class="mb-3">
+                    <li>Check your spam/junk folder</li>
+                    <li>Make sure {{ DEFAULT_FROM_EMAIL|default:"events_contact@coderra.je" }} is not blocked</li>
+                    <li>Wait a few minutes - emails can take time to arrive</li>
+                    <li>Try using a different email address</li>
+                </ul>
+                <p class="mb-0">
+                    <strong>Still having issues?</strong>
+                    Contact us at <a href="mailto:events_contact@coderra.je" class="text-je-primary">events_contact@coderra.je</a>
+                    or call <a href="tel:+441534123456" class="text-je-primary">+44 1534 123456</a>
+                </p>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.needs-validation');
+    const emailInput = document.getElementById('id_email');
+
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Email validation
+    emailInput.addEventListener('blur', function() {
+        if (this.checkValidity()) {
+            this.classList.add('is-valid');
+            this.classList.remove('is-invalid');
+        } else {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+        }
+    });
+
+    emailInput.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid') || this.classList.contains('is-valid')) {
+            if (this.checkValidity()) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

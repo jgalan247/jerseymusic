@@ -1,0 +1,35 @@
+<!-- Reusable Section Component -->
+<section class="{% if background %}{{ background }}{% else %}bg-white{% endif %} section-standard">
+    <div class="container-standard">
+        {% if title or subtitle %}
+            <div class="text-center mb-12">
+                {% if title %}
+                    <h2 class="heading-2 mb-4">
+                        {% if icon %}<i class="{{ icon }} text-blue-600 mr-3"></i>{% endif %}
+                        {{ title }}
+                    </h2>
+                {% endif %}
+                {% if subtitle %}
+                    <p class="text-xl text-gray-600 {% if max_width %}{{ max_width }} mx-auto{% endif %}">{{ subtitle }}</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if grid_layout %}
+            <div class="grid {{ grid_layout }} gap-8">
+                {% block section_content %}{% endblock %}
+            </div>
+        {% else %}
+            {% block section_content %}{% endblock %}
+        {% endif %}
+
+        {% if cta_button %}
+            <div class="text-center mt-12">
+                <a href="{{ cta_button.url }}" class="{% if cta_button.primary %}btn-primary{% else %}btn-secondary{% endif %}">
+                    {% if cta_button.icon %}<i class="{{ cta_button.icon }} mr-2"></i>{% endif %}
+                    {{ cta_button.text }}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>

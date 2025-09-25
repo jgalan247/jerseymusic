@@ -6,6 +6,7 @@ app_name = 'orders'
 urlpatterns = [
     # Customer views
     path('my-orders/', views.CustomerOrderListView.as_view(), name='my_orders'),  # Changed name to 'my_orders'
+    path('confirmation/<int:pk>/', views.OrderConfirmationView.as_view(), name='confirmation'),
     path('order/<str:order_number>/', views.OrderDetailView.as_view(), name='detail'),
     path('track/', views.GuestOrderTrackingView.as_view(), name='track'),
     path('order/<str:order_number>/refund/', views.RequestRefundView.as_view(), name='request_refund'),

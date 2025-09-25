@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from accounts.models import User
-from artworks.models import Artwork
+from events.models import Event
 from decimal import Decimal
 
 
@@ -67,7 +67,7 @@ class Cart(models.Model):
     def merge_with(self, other_cart):
         """Merge another cart into this one (useful after login)."""
         for item in other_cart.items.all():
-            existing_item = self.items.filter(artwork=item.artwork).first()
+            existing_item = self.items.filter(event=item.event).first()
             if existing_item:
                 existing_item.quantity += item.quantity
                 existing_item.save()
@@ -84,8 +84,8 @@ class CartItem(models.Model):
         on_delete=models.CASCADE,
         related_name='items'
     )
-    artwork = models.ForeignKey(
-        Artwork,
+    event = models.ForeignKey(
+        Event,
         on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(default=1)
@@ -99,15 +99,15 @@ class CartItem(models.Model):
 
     class Meta:
         ordering = ['-added_at']
-        unique_together = ['cart', 'artwork']
+        unique_together = ['cart', 'event']
 
     def __str__(self):
-        return f"{self.quantity}x {self.artwork.title}"
+        return f"{self.quantity}x {self.event.title}"
 
     def save(self, *args, **kwargs):
         # Set price when item is first added
         if not self.pk and not self.price_at_time:
-            self.price_at_time = self.artwork.price
+            self.price_at_time = self.event.ticket_price
         super().save(*args, **kwargs)
 
     @property
@@ -117,11 +117,9 @@ class CartItem(models.Model):
 
     @property
     def is_available(self):
-        """Check if artwork is still available."""
-        if self.artwork.artwork_type == 'original':
-            return self.artwork.is_available and self.artwork.stock_quantity > 0
-        else:  # Prints can have multiple quantity
-            return self.artwork.is_available and self.artwork.stock_quantity >= self.quantity
+        """Check if event tickets are still available."""
+        return (self.event.status == 'published' and
+                self.event.tickets_available >= self.quantity)
 
 
 class SavedItem(models.Model):
@@ -131,8 +129,8 @@ class SavedItem(models.Model):
         on_delete=models.CASCADE,
         related_name='saved_items'
     )
-    artwork = models.ForeignKey(
-        Artwork,
+    event = models.ForeignKey(
+        Event,
         on_delete=models.CASCADE
     )
     added_at = models.DateTimeField(auto_now_add=True)
@@ -140,7 +138,7 @@ class SavedItem(models.Model):
 
     class Meta:
         ordering = ['-added_at']
-        unique_together = ['user', 'artwork']
+        unique_together = ['user', 'event']
 
     def __str__(self):
-        return f"{self.user.username} saved {self.artwork.title}"
+        return f"{self.user.username} saved {self.event.title}"

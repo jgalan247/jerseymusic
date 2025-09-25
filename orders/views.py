@@ -23,8 +23,10 @@ from .models import Order, OrderItem, OrderStatusHistory, RefundRequest
 from .forms import CheckoutForm, PaymentMethodForm, OrderStatusForm, RefundRequestForm
 from cart.models import Cart
 from accounts.models import User
-from artworks.models import Artwork
+from events.models import Event, Ticket
 from payments.models import SumUpCheckout
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 import csv
 # Any other app imports you might need
 from datetime import datetime, timedelta
@@ -34,6 +36,77 @@ from django.http import HttpResponse
 # from weasyprint.text.fonts import FontConfiguration
 import tempfile
 import os
+
+class OrderConfirmationView(DetailView):
+    """Display order confirmation after successful payment."""
+    model = Order
+    template_name = 'orders/confirmation.html'
+    context_object_name = 'order'
+
+    def get_object(self):
+        return get_object_or_404(Order, pk=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get tickets for this order
+        context['tickets'] = Ticket.objects.filter(order=self.object)
+
+        # Get order items with event details
+        context['order_items'] = self.object.items.select_related('event')
+
+        # Send confirmation email if not already sent
+        if self.object.status == 'confirmed' and not hasattr(self, 'email_sent'):
+            self.send_confirmation_email()
+            self.email_sent = True
+
+        return context
+
+    def send_confirmation_email(self):
+        """Send order confirmation email with tickets."""
+        order = self.object
+        tickets = Ticket.objects.filter(order=order)
+
+        # Prepare email context
+        context = {
+            'order': order,
+            'tickets': tickets,
+            'order_items': order.items.select_related('event'),
+            'site_url': self.request.build_absolute_uri('/')[:-1]
+        }
+
+        # Render email templates
+        subject = f'Order Confirmation - Jersey Events #{order.order_number}'
+        html_content = render_to_string('orders/emails/confirmation.html', context)
+        text_content = render_to_string('orders/emails/confirmation.txt', context)
+
+        # Create email
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[order.email]
+        )
+        email.attach_alternative(html_content, "text/html")
+
+        # Attach ticket PDFs if available
+        for ticket in tickets:
+            if ticket.qr_code:
+                # Attach QR code image
+                email.attach(
+                    f'ticket_{ticket.ticket_number}.png',
+                    ticket.qr_code.read(),
+                    'image/png'
+                )
+
+        # Send email
+        try:
+            email.send(fail_silently=False)
+            messages.success(self.request, "Confirmation email sent successfully!")
+        except Exception as e:
+            logger.error(f"Failed to send confirmation email: {e}")
+            messages.warning(self.request, "Confirmation email could not be sent. Please save your ticket information.")
+
 
 @login_required
 def my_orders(request):
@@ -400,7 +473,7 @@ class ArtistDashboardView(LoginRequiredMixin, TemplateView):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.user_type == 'artist':
             messages.error(request, "This page is only for artists.")
-            return redirect('artworks:home')
+            return redirect('events:home')
         return super().dispatch(request, *args, **kwargs)
     
     def get_context_data(self, **kwargs):
@@ -488,7 +561,7 @@ class ArtistOrderDetailView(LoginRequiredMixin, DetailView):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.user_type == 'artist':
             messages.error(request, "This page is only for artists.")
-            return redirect('artworks:home')
+            return redirect('events:home')
         return super().dispatch(request, *args, **kwargs)
     
     def get_object(self):
@@ -539,7 +612,7 @@ class ArtistRefundListView(LoginRequiredMixin, ListView):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.user_type == 'artist':
             messages.error(request, "This page is only for artists.")
-            return redirect('artworks:home')
+            return redirect('events:home')
         return super().dispatch(request, *args, **kwargs)
     
     def get_queryset(self):
@@ -568,7 +641,7 @@ class ArtistHandleRefundView(LoginRequiredMixin, FormView):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.user_type == 'artist':
             messages.error(request, "This page is only for artists.")
-            return redirect('artworks:home')
+            return redirect('events:home')
         
         self.refund_request = get_object_or_404(
             RefundRequest,
@@ -638,7 +711,7 @@ class ArtistSalesReportView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.user_type == 'artist':
             messages.error(request, "This page is only for artists.")
-            return redirect('artworks:home')
+            return redirect('events:home')
         return super().dispatch(request, *args, **kwargs)
     
     def get(self, request):

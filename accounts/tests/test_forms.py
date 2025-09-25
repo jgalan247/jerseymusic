@@ -101,7 +101,7 @@ def test_artist_login_redirect(self):
         'password': 'testpass123'
     })
     
-    self.assertRedirects(response, reverse('artworks:my_artworks'))
+    self.assertRedirects(response, reverse('events:my_artworks'))
 
 
 # FIX 5: Artist verification redirect - just check it redirects somewhere

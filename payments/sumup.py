@@ -92,3 +92,99 @@ def get_checkout(artist_sumup, checkout_id):
     )
     r.raise_for_status()
     return r.json()
+
+def create_checkout_simple(amount, currency, reference, description, return_url, redirect_url=None):
+    """Create checkout using platform's merchant code (no OAuth)."""
+    headers = {
+        "Authorization": f"Bearer {settings.SUMUP_ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "checkout_reference": reference,
+        "amount": float(amount),
+        "currency": currency,
+        "description": description,
+        "merchant_code": settings.SUMUP_MERCHANT_CODE,
+        "return_url": return_url
+    }
+
+    if redirect_url:
+        payload["redirect_url"] = redirect_url
+
+    r = requests.post(
+        f"{settings.SUMUP_API_URL}/checkouts",
+        headers=headers,
+        json=payload,
+        timeout=20
+    )
+    r.raise_for_status()
+    return r.json()
+
+def get_checkout_status(checkout_id):
+    """Get checkout status using platform credentials."""
+    headers = {
+        "Authorization": f"Bearer {settings.SUMUP_ACCESS_TOKEN}"
+    }
+
+    r = requests.get(
+        f"{settings.SUMUP_API_URL}/checkouts/{checkout_id}",
+        headers=headers,
+        timeout=20
+    )
+    r.raise_for_status()
+    return r.json()
+
+def list_transactions(limit=50, order="desc"):
+    """List recent transactions."""
+    headers = {
+        "Authorization": f"Bearer {settings.SUMUP_ACCESS_TOKEN}"
+    }
+
+    params = {
+        "limit": limit,
+        "order": order
+    }
+
+    r = requests.get(
+        f"{settings.SUMUP_API_URL}/me/transactions/history",
+        headers=headers,
+        params=params,
+        timeout=20
+    )
+    r.raise_for_status()
+    return r.json()
+
+def get_transaction(transaction_id):
+    """Get specific transaction details."""
+    headers = {
+        "Authorization": f"Bearer {settings.SUMUP_ACCESS_TOKEN}"
+    }
+
+    r = requests.get(
+        f"{settings.SUMUP_API_URL}/me/transactions/{transaction_id}",
+        headers=headers,
+        timeout=20
+    )
+    r.raise_for_status()
+    return r.json()
+
+def process_refund(transaction_id, amount=None):
+    """Process a refund for a transaction."""
+    headers = {
+        "Authorization": f"Bearer {settings.SUMUP_ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {}
+    if amount:
+        payload["amount"] = float(amount)
+
+    r = requests.post(
+        f"{settings.SUMUP_API_URL}/me/transactions/{transaction_id}/refund",
+        headers=headers,
+        json=payload if payload else None,
+        timeout=20
+    )
+    r.raise_for_status()
+    return r.json()

@@ -9,5 +9,5 @@ urlpatterns = [
     path("orders/", include(("orders.urls", "orders"), namespace="orders")),
     path("payments/", include(("payments.urls", "payments"), namespace="payments")),
     path("subscriptions/", include(("subscriptions.urls", "subscriptions"), namespace="subscriptions")),
-    path("", include(("artworks.urls", "artworks"), namespace="artworks")),  # 👈 app at root
+    path("", include(("events.urls", "events"), namespace="events")),  # 👈 app at root
 ]

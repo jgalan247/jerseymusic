@@ -1,354 +1,730 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Checkout - Jersey Artwork{% endblock %}
+{% block title %}Checkout - Jersey Events{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Custom radio button styling */
-    .delivery-method-group {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+    /* Professional checkout form styling */
+    .checkout-form {
+        background: var(--je-gray-50);
+        min-height: 100vh;
+        padding: 2rem 0;
     }
-    
-    .delivery-option {
-        border: 2px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .delivery-option:hover {
-        border-color: #007bff;
-        background-color: #f8f9fa;
-    }
-    
-    .delivery-option input[type="radio"] {
-        margin-right: 10px;
-    }
-    
-    .delivery-option.selected {
-        border-color: #007bff;
-        background-color: #e7f3ff;
-    }
-    
-    /* Checkbox styling */
-    .form-check-input {
-        width: 1.2em;
-        height: 1.2em;
-        margin-right: 10px;
-        cursor: pointer;
-    }
-    
-    /* Card styling */
+
     .checkout-card {
         border: none;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+        border-radius: var(--je-radius-lg);
+        box-shadow: var(--je-shadow-lg);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        background: white;
     }
-    
+
     .checkout-card .card-header {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #007bff;
+        background: var(--je-gradient-primary);
+        color: white;
+        border: none;
+        padding: 1.5rem 2rem;
         font-weight: 600;
+        font-size: 1.1rem;
     }
-    
-    /* Summary card sticky positioning */
-    .order-summary-container {
+
+    .checkout-card .card-body {
+        padding: 2rem;
+    }
+
+    /* Ticket type selection styling */
+    .ticket-option {
+        border: 2px solid var(--je-gray-200);
+        border-radius: var(--je-radius-lg);
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: var(--je-transition-normal);
+        background: white;
+        margin-bottom: 1rem;
+    }
+
+    .ticket-option:hover {
+        border-color: var(--je-primary);
+        background: rgba(37, 99, 235, 0.05);
+        transform: translateY(-2px);
+        box-shadow: var(--je-shadow-md);
+    }
+
+    .ticket-option.selected {
+        border-color: var(--je-primary);
+        background: rgba(37, 99, 235, 0.1);
+        box-shadow: var(--je-shadow-md);
+    }
+
+    /* Event info card styling */
+    .event-info-card {
+        background: linear-gradient(135deg, var(--je-gray-50) 0%, white 100%);
+        border: 1px solid var(--je-gray-200);
+        border-radius: var(--je-radius-lg);
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    /* Order summary styling */
+    .order-summary {
         position: sticky;
-        top: 20px;
+        top: 2rem;
+        border-radius: var(--je-radius-xl);
+        box-shadow: var(--je-shadow-xl);
+        overflow: hidden;
+        background: white;
     }
-    
-    /* Form validation styling */
-    .invalid-feedback {
-        display: block;
+
+    .order-summary-header {
+        background: var(--je-gradient-primary);
+        color: white;
+        padding: 1.5rem 2rem;
+        font-weight: 600;
+        font-size: 1.1rem;
     }
-    
-    /* Terms checkbox container */
-    .terms-container {
+
+    .order-summary-body {
+        padding: 2rem;
+    }
+
+    /* Trust signals styling */
+    .trust-signals {
+        background: linear-gradient(135deg, var(--je-gray-50) 0%, white 100%);
+        border: 1px solid var(--je-gray-200);
+        border-radius: var(--je-radius-lg);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .security-badges {
         display: flex;
-        align-items: flex-start;
-        margin-bottom: 20px;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+        flex-wrap: wrap;
     }
-    
-    .terms-container input {
-        margin-top: 5px;
+
+    .payment-methods {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+        opacity: 0.7;
+        transition: var(--je-transition-normal);
+    }
+
+    .payment-methods:hover {
+        opacity: 1;
+    }
+
+    /* Professional button styling */
+    .btn-checkout {
+        background: var(--je-gradient-primary);
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 1rem 2rem;
+        border-radius: var(--je-radius-lg);
+        transition: var(--je-transition-normal);
+        box-shadow: var(--je-shadow-md);
+        text-transform: none;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-checkout:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--je-shadow-lg);
+        background: linear-gradient(135deg, var(--je-primary-dark) 0%, var(--je-primary) 100%);
+    }
+
+    /* Form floating labels enhancement */
+    .form-professional .form-floating > .form-control {
+        border: 2px solid var(--je-gray-200);
+        border-radius: var(--je-radius-lg);
+        padding: 1rem 0.75rem 0.375rem;
+        height: auto;
+        min-height: 3.5rem;
+        transition: var(--je-transition-fast);
+    }
+
+    .form-professional .form-floating > .form-control:focus {
+        border-color: var(--je-primary);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15);
+        background-color: rgba(37, 99, 235, 0.02);
+    }
+
+    .form-professional .form-floating > label {
+        color: var(--je-gray-500);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .form-professional .form-control.is-invalid {
+        border-color: var(--je-danger);
+        box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.15);
+    }
+
+    .form-professional .form-control.is-valid {
+        border-color: var(--je-success);
+        box-shadow: 0 0 0 0.25rem rgba(5, 150, 105, 0.15);
+    }
+
+    /* Terms and conditions styling */
+    .terms-section {
+        background: var(--je-gray-50);
+        border: 1px solid var(--je-gray-200);
+        border-radius: var(--je-radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .checkout-form {
+            padding: 1rem 0;
+        }
+
+        .checkout-card .card-body,
+        .order-summary-body {
+            padding: 1.5rem;
+        }
+
+        .order-summary {
+            position: static;
+            margin-top: 2rem;
+        }
+
+        .payment-methods {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-checkout {
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+        }
+
+        .security-badges {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .ticket-option {
+            padding: 1rem;
+        }
+
+        .event-info-card {
+            padding: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .checkout-card .card-header {
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .checkout-card .card-body,
+        .order-summary-body {
+            padding: 1rem;
+        }
+
+        .order-summary-header {
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .icon-circle {
+            width: 45px !important;
+            height: 45px !important;
+        }
+
+        .trust-signals {
+            padding: 1rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-lg-8">
-            <h2 class="mb-4">Checkout</h2>
+<div class="checkout-form">
+    <div class="container">
+        <!-- Header with Security Badge -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-6 fw-bold text-je-primary mb-2">Secure Checkout</h1>
+                <div class="d-flex justify-content-center align-items-center gap-3 mb-3">
+                    <span class="badge badge-professional badge-success">
+                        <i class="fas fa-shield-alt me-2"></i>256-bit SSL Encryption
+                    </span>
+                    <span class="badge badge-professional badge-primary">
+                        <i class="fas fa-lock me-2"></i>PCI Compliant
+                    </span>
+                </div>
+                <hr class="divider-professional">
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="form-professional">
             
-            <form method="post" id="checkout-form" novalidate>
-                {% csrf_token %}
-                
-                <!-- Contact Information -->
-                <div class="card checkout-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Contact Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name *</label>
-                                {{ form.first_name }}
-                                {% if form.first_name.errors %}
-                                    <div class="invalid-feedback">{{ form.first_name.errors.0 }}</div>
-                                {% endif %}
+                    <form method="post" id="checkout-form" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Contact Information Card -->
+                        <div class="card checkout-card">
+                            <div class="card-header">
+                                <i class="fas fa-user me-2"></i>Contact Information
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name *</label>
-                                {{ form.last_name }}
-                                {% if form.last_name.errors %}
-                                    <div class="invalid-feedback">{{ form.last_name.errors.0 }}</div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control{% if form.first_name.errors %} is-invalid{% endif %}"
+                                                   id="{{ form.first_name.id_for_label }}" name="first_name"
+                                                   value="{{ form.first_name.value|default:'' }}"
+                                                   placeholder="First Name" required>
+                                            <label for="{{ form.first_name.id_for_label }}">First Name *</label>
+                                            {% if form.first_name.errors %}
+                                                <div class="invalid-feedback">{{ form.first_name.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control{% if form.last_name.errors %} is-invalid{% endif %}"
+                                                   id="{{ form.last_name.id_for_label }}" name="last_name"
+                                                   value="{{ form.last_name.value|default:'' }}"
+                                                   placeholder="Last Name" required>
+                                            <label for="{{ form.last_name.id_for_label }}">Last Name *</label>
+                                            {% if form.last_name.errors %}
+                                                <div class="invalid-feedback">{{ form.last_name.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="email" class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+                                                   id="{{ form.email.id_for_label }}" name="email"
+                                                   value="{{ form.email.value|default:'' }}"
+                                                   placeholder="name@example.com" required>
+                                            <label for="{{ form.email.id_for_label }}">Email Address *</label>
+                                            {% if form.email.errors %}
+                                                <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="tel" class="form-control{% if form.phone.errors %} is-invalid{% endif %}"
+                                                   id="{{ form.phone.id_for_label }}" name="phone"
+                                                   value="{{ form.phone.value|default:'' }}"
+                                                   placeholder="Phone Number" required>
+                                            <label for="{{ form.phone.id_for_label }}">Phone Number *</label>
+                                            {% if form.phone.errors %}
+                                                <div class="invalid-feedback">{{ form.phone.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Event Information Card -->
+                        <div class="card checkout-card">
+                            <div class="card-header">
+                                <i class="fas fa-calendar-alt me-2"></i>Event Information
+                            </div>
+                            <div class="card-body">
+                                <!-- Ticket Type Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-je-primary mb-3">
+                                        <i class="fas fa-ticket-alt me-2"></i>Select Ticket Type *
+                                    </label>
+                                    <div class="ticket-option selected" onclick="selectTicketType(this, 'standard')">
+                                        <label for="id_ticket_type_0" class="d-flex align-items-center cursor-pointer mb-0">
+                                            <input type="radio" name="ticket_type" value="standard" id="id_ticket_type_0"
+                                                   checked class="form-check-input me-3 mt-0">
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold text-je-primary fs-5">Standard Ticket</div>
+                                                <div class="text-muted small">General admission to the event</div>
+                                            </div>
+                                            <div class="text-end">
+                                                {% if cart_items %}
+                                                    <div class="fw-bold text-je-primary fs-4">£{{ cart_items.0.price_at_time }}</div>
+                                                    <div class="text-muted small">per ticket</div>
+                                                {% endif %}
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Event Details Card -->
+                                <div class="event-info-card">
+                                    <div class="d-flex align-items-start">
+                                        <div class="icon-circle icon-primary me-3">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            {% if cart_items %}
+                                                {% with first_event=cart_items.0.event %}
+                                                    <h4 class="fw-bold text-je-primary mb-3">{{ first_event.title }}</h4>
+                                                    <div class="row g-3">
+                                                        <div class="col-md-6">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-calendar text-je-success me-2"></i>
+                                                                <span class="small">{{ first_event.event_date|date:"l, F j, Y" }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-clock text-je-warning me-2"></i>
+                                                                <span class="small">{{ first_event.event_time|time:"g:i A" }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-map-marker-alt text-je-danger me-2"></i>
+                                                                <span class="small">{{ first_event.venue_name }}</span>
+                                                            </div>
+                                                        </div>
+                                                        {% if first_event.venue_address %}
+                                                        <div class="col-12">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-location-arrow text-muted me-2"></i>
+                                                                <span class="small text-muted">{{ first_event.venue_address }}</span>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                        {% if first_event.category %}
+                                                        <div class="col-12">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-tag text-je-info me-2"></i>
+                                                                <span class="badge bg-je-light text-je-primary">{{ first_event.category }}</span>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                <div class="text-center text-muted">
+                                                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                                                    <p>No event information available</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Billing Information Card -->
+                        <div class="card checkout-card">
+                            <div class="card-header">
+                                <i class="fas fa-credit-card me-2"></i>Billing Information
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="billing-same" name="billing_same_as_delivery" checked>
+                                    <label class="form-check-label fw-medium" for="billing-same">
+                                        <i class="fas fa-check-circle text-je-success me-2"></i>
+                                        Same as contact information
+                                    </label>
+                                </div>
+
+                                <div id="billing-fields" class="d-none">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="{{ form.billing_first_name.id_for_label }}"
+                                                       name="billing_first_name" placeholder="First Name">
+                                                <label for="{{ form.billing_first_name.id_for_label }}">First Name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="{{ form.billing_last_name.id_for_label }}"
+                                                       name="billing_last_name" placeholder="Last Name">
+                                                <label for="{{ form.billing_last_name.id_for_label }}">Last Name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="{{ form.billing_address_line_1.id_for_label }}"
+                                                       name="billing_address_line_1" placeholder="Address Line 1">
+                                                <label for="{{ form.billing_address_line_1.id_for_label }}">Address Line 1</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="{{ form.billing_address_line_2.id_for_label }}"
+                                                       name="billing_address_line_2" placeholder="Address Line 2 (Optional)">
+                                                <label for="{{ form.billing_address_line_2.id_for_label }}">Address Line 2 (Optional)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="{{ form.billing_parish.id_for_label }}"
+                                                       name="billing_parish" placeholder="Parish/City">
+                                                <label for="{{ form.billing_parish.id_for_label }}">Parish/City</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="{{ form.billing_postcode.id_for_label }}"
+                                                       name="billing_postcode" placeholder="Postcode">
+                                                <label for="{{ form.billing_postcode.id_for_label }}">Postcode</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Additional Information Card -->
+                        <div class="card checkout-card">
+                            <div class="card-header">
+                                <i class="fas fa-sticky-note me-2"></i>Additional Information
+                            </div>
+                            <div class="card-body">
+                                <div class="form-floating mb-4">
+                                    <textarea class="form-control" id="{{ form.customer_note.id_for_label }}"
+                                              name="customer_note" placeholder="Order Notes" style="height: 100px"></textarea>
+                                    <label for="{{ form.customer_note.id_for_label }}">Order Notes (Optional)</label>
+                                    <div class="form-text">Any special requests or information about your order</div>
+                                </div>
+
+                                {% if not user.is_authenticated %}
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="{{ form.marketing_consent.id_for_label }}"
+                                           name="marketing_consent">
+                                    <label class="form-check-label" for="{{ form.marketing_consent.id_for_label }}">
+                                        <i class="fas fa-envelope me-2 text-je-info"></i>
+                                        {{ form.marketing_consent.label }}
+                                    </label>
+                                </div>
+
+                                <!-- Account Creation Option -->
+                                <div class="card border-je-info mb-4">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-je-primary mb-3">
+                                            <i class="fas fa-user-plus me-2"></i>Save Time on Future Purchases
+                                        </h6>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="{{ form.create_account.id_for_label }}"
+                                                   name="create_account">
+                                            <label class="form-check-label fw-medium" for="{{ form.create_account.id_for_label }}">
+                                                <i class="fas fa-star me-2 text-je-warning"></i>
+                                                {{ form.create_account.label }}
+                                            </label>
+                                        </div>
+
+                                        <div id="account-fields" class="d-none">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control account-field{% if form.password1.errors %} is-invalid{% endif %}"
+                                                               id="{{ form.password1.id_for_label }}" name="password1"
+                                                               placeholder="Choose a password">
+                                                        <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                                                        {% if form.password1.errors %}
+                                                            <div class="invalid-feedback">{{ form.password1.errors.0 }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-floating">
+                                                        <input type="password" class="form-control account-field{% if form.password2.errors %} is-invalid{% endif %}"
+                                                               id="{{ form.password2.id_for_label }}" name="password2"
+                                                               placeholder="Confirm password">
+                                                        <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                                                        {% if form.password2.errors %}
+                                                            <div class="invalid-feedback">{{ form.password2.errors.0 }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <div class="alert alert-info small">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    <strong>Benefits of creating an account:</strong>
+                                                    <ul class="mb-0 mt-2">
+                                                        <li>Faster checkout on future purchases</li>
+                                                        <li>View your order history and tickets</li>
+                                                        <li>Receive exclusive event notifications</li>
+                                                        <li>Save tickets to wishlist</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address *</label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number *</label>
-                                {{ form.phone }}
-                                {% if form.phone.errors %}
-                                    <div class="invalid-feedback">{{ form.phone.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Delivery Information -->
-                <div class="card checkout-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Delivery Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Delivery Method -->
-                        <label class="form-label mb-3">Delivery Method *</label>
-                        <div class="delivery-method-group mb-4">
-                            <div class="delivery-option" onclick="selectDeliveryOption(this, 'standard')">
-                                <label for="id_delivery_method_0" style="cursor: pointer; margin: 0;">
-                                    <input type="radio" name="delivery_method" value="standard" id="id_delivery_method_0" checked>
-                                    <strong>Standard Delivery</strong> - £5.00
-                                    <br>
-                                    <small class="text-muted ms-4">Delivery within 3-5 business days</small>
+
+                        <!-- Terms and Conditions -->
+                        <div class="terms-section">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="{{ form.accept_terms.id_for_label }}"
+                                       name="accept_terms" required>
+                                <label class="form-check-label fw-medium" for="{{ form.accept_terms.id_for_label }}">
+                                    <i class="fas fa-shield-alt text-je-success me-2"></i>
+                                    I agree to the
+                                    <a href="{% url 'events:terms' %}" target="_blank" class="text-je-primary text-decoration-none fw-bold">
+                                        Terms & Conditions
+                                    </a>
+                                    and
+                                    <a href="{% url 'events:privacy' %}" target="_blank" class="text-je-primary text-decoration-none fw-bold">
+                                        Privacy Policy
+                                    </a>
+                                    *
                                 </label>
                             </div>
-                            <div class="delivery-option" onclick="selectDeliveryOption(this, 'express')">
-                                <label for="id_delivery_method_1" style="cursor: pointer; margin: 0;">
-                                    <input type="radio" name="delivery_method" value="express" id="id_delivery_method_1">
-                                    <strong>Express Delivery</strong> - £15.00
-                                    <br>
-                                    <small class="text-muted ms-4">Next business day delivery</small>
-                                </label>
-                            </div>
-                            <div class="delivery-option" onclick="selectDeliveryOption(this, 'collection')">
-                                <label for="id_delivery_method_2" style="cursor: pointer; margin: 0;">
-                                    <input type="radio" name="delivery_method" value="collection" id="id_delivery_method_2">
-                                    <strong>Collection</strong> - Free
-                                    <br>
-                                    <small class="text-muted ms-4">Collect from our St. Helier location</small>
-                                </label>
-                            </div>
                         </div>
-                        
-                        <!-- Delivery Address -->
-                        <div id="delivery-address-section">
-                            <div class="mb-3">
-                                <label for="{{ form.delivery_address_line_1.id_for_label }}" class="form-label">Address Line 1 *</label>
-                                {{ form.delivery_address_line_1 }}
-                                {% if form.delivery_address_line_1.errors %}
-                                    <div class="invalid-feedback">{{ form.delivery_address_line_1.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="{{ form.delivery_address_line_2.id_for_label }}" class="form-label">Address Line 2</label>
-                                {{ form.delivery_address_line_2 }}
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.delivery_parish.id_for_label }}" class="form-label">Parish *</label>
-                                    {{ form.delivery_parish }}
-                                    {% if form.delivery_parish.errors %}
-                                        <div class="invalid-feedback">{{ form.delivery_parish.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.delivery_postcode.id_for_label }}" class="form-label">Postcode *</label>
-                                    {{ form.delivery_postcode }}
-                                    <small class="form-text text-muted">Format: JE2 3AB</small>
-                                    {% if form.delivery_postcode.errors %}
-                                        <div class="invalid-feedback">{{ form.delivery_postcode.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Billing Information -->
-                <div class="card checkout-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Billing Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-check mb-3">
-                            {{ form.billing_same_as_delivery }}
-                            <label class="form-check-label" for="{{ form.billing_same_as_delivery.id_for_label }}">
-                                Same as delivery address
-                            </label>
-                        </div>
-                        
-                        <div id="billing-fields" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.billing_first_name.id_for_label }}" class="form-label">First Name</label>
-                                    {{ form.billing_first_name }}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.billing_last_name.id_for_label }}" class="form-label">Last Name</label>
-                                    {{ form.billing_last_name }}
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="{{ form.billing_address_line_1.id_for_label }}" class="form-label">Address Line 1</label>
-                                {{ form.billing_address_line_1 }}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="{{ form.billing_address_line_2.id_for_label }}" class="form-label">Address Line 2</label>
-                                {{ form.billing_address_line_2 }}
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.billing_parish.id_for_label }}" class="form-label">Parish/City</label>
-                                    {{ form.billing_parish }}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.billing_postcode.id_for_label }}" class="form-label">Postcode</label>
-                                    {{ form.billing_postcode }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Additional Information -->
-                <div class="card checkout-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Additional Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="{{ form.customer_note.id_for_label }}" class="form-label">Order Notes (Optional)</label>
-                            {{ form.customer_note }}
-                        </div>
-                        
-                        {% if not user.is_authenticated %}
-                        <div class="form-check mb-3">
-                            {{ form.marketing_consent }}
-                            <label class="form-check-label" for="{{ form.marketing_consent.id_for_label }}">
-                                {{ form.marketing_consent.label }}
-                            </label>
+
+                        <!-- Error Summary -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger d-flex align-items-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <div>{{ form.non_field_errors }}</div>
                         </div>
                         {% endif %}
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-checkout btn-lg">
+                                <i class="fas fa-lock me-2"></i>
+                                <span class="fw-bold">Proceed to Secure Payment</span>
+                                <div class="small opacity-75 mt-1">256-bit SSL Encryption</div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Order Summary Sidebar -->
+            <div class="col-lg-4">
+                <div class="order-summary">
+                    <div class="order-summary-header">
+                        <i class="fas fa-shopping-cart me-2"></i>Order Summary
                     </div>
-                </div>
-                
-                <!-- Terms and Conditions -->
-                <div class="terms-container">
-                    {{ form.accept_terms }}
-                    <label for="{{ form.accept_terms.id_for_label }}">
-                        I agree to the <a href="{% url 'artworks:terms' %}" target="_blank">Terms & Conditions</a> 
-                        and <a href="{% url 'artworks:privacy' %}" target="_blank">Privacy Policy</a> *
-                    </label>
-                </div>
-                
-                <!-- Error Summary -->
-                {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {{ form.non_field_errors }}
-                </div>
-                {% endif %}
-                
-                <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary btn-lg w-100">
-                    <i class="fas fa-lock me-2"></i>Proceed to Payment
-                </button>
-            </form>
-        </div>
-        
-        <!-- Order Summary Sidebar -->
-        <div class="col-lg-4">
-            <div class="order-summary-container">
-                <div class="card">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Order Summary</h5>
-                    </div>
-                    <div class="card-body">
+                    <div class="order-summary-body">
                         {% if cart_items %}
+                            <!-- Cart Items -->
                             {% for item in cart_items %}
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <p class="mb-0">{{ item.artwork.title }}</p>
-                                    <small class="text-muted">Qty: {{ item.quantity }}</small>
+                            <div class="d-flex align-items-start mb-4 p-3 bg-light rounded">
+                                <div class="icon-circle icon-primary me-3" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-ticket-alt"></i>
                                 </div>
-                                <span>£{{ item.total_price|floatformat:2 }}</span>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold text-je-primary mb-1">{{ item.event.title|truncatechars:40 }}</h6>
+                                    <div class="small text-muted">
+                                        <div><i class="fas fa-calendar me-1"></i>{{ item.event.event_date|date:"M j, Y" }}</div>
+                                        <div><i class="fas fa-clock me-1"></i>{{ item.event.event_time|time:"g:i A" }}</div>
+                                        <div class="text-je-primary"><strong>Qty: {{ item.quantity }}</strong></div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold text-je-primary">£{{ item.total_price }}</div>
+                                    {% if item.quantity > 1 %}
+                                        <div class="small text-muted">£{{ item.price_at_time }} each</div>
+                                    {% endif %}
+                                </div>
                             </div>
                             {% endfor %}
-                            
-                            <hr>
-                            
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Subtotal:</span>
-                                <span>£{{ cart.subtotal|floatformat:2 }}</span>
+
+                            <!-- Pricing Breakdown -->
+                            <div class="border-top pt-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>£{{ cart.subtotal }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Processing Fee:</span>
+                                    <span id="processing-fee">£0.50</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 text-muted small">
+                                    <span><i class="fas fa-shield-alt me-1"></i>Insurance & Security:</span>
+                                    <span>Included</span>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Shipping:</span>
-                                <span id="shipping-cost">£5.00</span>
-                            </div>
-                            
-                            <hr>
-                            
-                            <div class="d-flex justify-content-between">
-                                <strong>Total:</strong>
-                                <strong id="order-total">£{{ cart.total|floatformat:2 }}</strong>
+
+                            <div class="border-top pt-3 mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fs-5 fw-bold">Total:</span>
+                                    <span class="fs-4 fw-bold text-je-primary" id="order-total">£{{ cart.subtotal|add:0.50 }}</span>
+                                </div>
                             </div>
                         {% else %}
-                            <p>Your cart is empty</p>
-                            <a href="{% url 'artworks:gallery' %}" class="btn btn-primary">Continue Shopping</a>
+                            <div class="text-center py-4">
+                                <i class="fas fa-exclamation-circle fa-3x text-muted mb-3"></i>
+                                <p class="text-muted mb-3">No event selected</p>
+                                <a href="{% url 'events:events_list' %}" class="btn btn-je-primary">
+                                    <i class="fas fa-calendar-alt me-2"></i>Browse Events
+                                </a>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
-                
-                <!-- Payment Security -->
-                <div class="card mt-3">
-                    <div class="card-body text-center">
-                        <h6 class="mb-3">Secure Payment</h6>
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/SumUp_logo.svg" alt="SumUp" height="30" class="mb-2">
-                        <div>
-                            <i class="fab fa-cc-visa fa-2x me-2 text-muted"></i>
-                            <i class="fab fa-cc-mastercard fa-2x me-2 text-muted"></i>
-                            <i class="fab fa-cc-amex fa-2x text-muted"></i>
+
+                <!-- Trust Signals & Payment Security -->
+                <div class="trust-signals mt-4">
+                    <h5 class="fw-bold text-je-primary mb-3 text-center">
+                        <i class="fas fa-shield-alt me-2"></i>Secure Payment
+                    </h5>
+
+                    <!-- Payment Provider -->
+                    <div class="text-center mb-3">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/SumUp_logo.svg"
+                             alt="SumUp Secure Payment Processing" class="img-fluid mb-2" style="height: 30px;">
+                        <div class="small text-muted">Trusted Payment Processing</div>
+                    </div>
+
+                    <!-- Security Badges -->
+                    <div class="security-badges">
+                        <span class="badge badge-professional badge-success">
+                            <i class="fas fa-shield-alt me-1"></i>SSL
+                        </span>
+                        <span class="badge badge-professional badge-primary">
+                            <i class="fas fa-lock me-1"></i>PCI DSS
+                        </span>
+                        <span class="badge badge-professional badge-warning">
+                            <i class="fas fa-certificate me-1"></i>Verified
+                        </span>
+                    </div>
+
+                    <!-- Accepted Payment Methods -->
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa fa-2x text-primary"></i>
+                        <i class="fab fa-cc-mastercard fa-2x text-warning"></i>
+                        <i class="fab fa-cc-amex fa-2x text-info"></i>
+                        <i class="fas fa-credit-card fa-2x text-muted"></i>
+                    </div>
+
+                    <div class="text-center">
+                        <small class="text-muted d-block mb-2">
+                            <i class="fas fa-lock text-je-success me-1"></i>
+                            Your payment information is encrypted with 256-bit SSL
+                        </small>
+                        <small class="text-muted d-block">
+                            <i class="fas fa-shield-check text-je-success me-1"></i>
+                            Industry-standard security measures
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Money-back Guarantee -->
+                <div class="trust-signals mt-3">
+                    <div class="text-center">
+                        <div class="icon-circle icon-success mx-auto mb-2" style="width: 50px; height: 50px;">
+                            <i class="fas fa-undo-alt"></i>
                         </div>
-                        <small class="text-muted d-block mt-2">
-                            <i class="fas fa-lock"></i> Your payment information is encrypted and secure
+                        <h6 class="fw-bold text-je-primary mb-2">Money-Back Guarantee</h6>
+                        <small class="text-muted">
+                            Full refund available up to 24 hours before the event
                         </small>
                     </div>
                 </div>
@@ -361,99 +737,169 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize selected delivery option
-    const checkedRadio = document.querySelector('input[name="delivery_method"]:checked');
-    if (checkedRadio) {
-        const parentOption = checkedRadio.closest('.delivery-option');
-        if (parentOption) {
-            parentOption.classList.add('selected');
-        }
-    }
-    
+    // Initialize form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
     // Billing address toggle
     const billingSameCheckbox = document.getElementById('billing-same');
     const billingFields = document.getElementById('billing-fields');
-    
+
     if (billingSameCheckbox) {
         billingSameCheckbox.addEventListener('change', function() {
-            billingFields.style.display = this.checked ? 'none' : 'block';
-            
+            if (this.checked) {
+                billingFields.classList.add('d-none');
+                billingFields.classList.remove('d-block');
+            } else {
+                billingFields.classList.remove('d-none');
+                billingFields.classList.add('d-block');
+            }
+
             // Toggle required attributes on billing fields
             const billingInputs = billingFields.querySelectorAll('input[name^="billing_"]');
             billingInputs.forEach(input => {
                 if (!this.checked && ['billing_first_name', 'billing_last_name', 'billing_address_line_1', 'billing_postcode'].includes(input.name)) {
                     input.setAttribute('required', 'required');
+                    input.classList.add('required');
                 } else {
                     input.removeAttribute('required');
+                    input.classList.remove('required');
                 }
             });
         });
     }
-    
-    // Collection mode toggle
-    const deliveryRadios = document.querySelectorAll('input[name="delivery_method"]');
-    const deliveryAddressSection = document.getElementById('delivery-address-section');
-    
-    deliveryRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'collection') {
-                deliveryAddressSection.style.display = 'none';
-                // Remove required from delivery fields
-                deliveryAddressSection.querySelectorAll('[required]').forEach(field => {
-                    field.removeAttribute('required');
-                    field.dataset.wasRequired = 'true';
+
+    // Account creation toggle
+    const createAccountCheckbox = document.getElementById('create-account');
+    const accountFields = document.getElementById('account-fields');
+
+    if (createAccountCheckbox) {
+        createAccountCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                accountFields.classList.remove('d-none');
+                accountFields.classList.add('d-block');
+
+                // Make password fields required
+                const passwordInputs = accountFields.querySelectorAll('input[type="password"]');
+                passwordInputs.forEach(input => {
+                    input.setAttribute('required', 'required');
                 });
             } else {
-                deliveryAddressSection.style.display = 'block';
-                // Restore required to delivery fields
-                deliveryAddressSection.querySelectorAll('[data-was-required]').forEach(field => {
-                    field.setAttribute('required', 'required');
+                accountFields.classList.add('d-none');
+                accountFields.classList.remove('d-block');
+
+                // Remove required from password fields
+                const passwordInputs = accountFields.querySelectorAll('input[type="password"]');
+                passwordInputs.forEach(input => {
+                    input.removeAttribute('required');
+                    input.classList.remove('is-invalid', 'is-valid');
                 });
             }
-            updateShipping(this.value);
+        });
+    }
+
+    // Form validation feedback
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.checkValidity()) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            }
+        });
+
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid') || this.classList.contains('is-valid')) {
+                if (this.checkValidity()) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                } else {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                }
+            }
         });
     });
+
+    // Smooth scroll to first error
+    const form = document.getElementById('checkout-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                e.preventDefault();
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        });
+    }
 });
 
-// Select delivery option
-function selectDeliveryOption(element, value) {
+// Select ticket type with visual feedback
+function selectTicketType(element, value) {
     // Remove selected class from all options
-    document.querySelectorAll('.delivery-option').forEach(opt => {
+    document.querySelectorAll('.ticket-option').forEach(opt => {
         opt.classList.remove('selected');
     });
-    
+
     // Add selected class to clicked option
     element.classList.add('selected');
-    
+
     // Check the radio button
     const radio = element.querySelector('input[type="radio"]');
     if (radio) {
         radio.checked = true;
-        // Trigger change event
         radio.dispatchEvent(new Event('change'));
     }
+
+    // Visual feedback
+    element.style.transform = 'scale(0.98)';
+    setTimeout(() => {
+        element.style.transform = 'scale(1)';
+    }, 150);
 }
 
-// Update shipping cost
-function updateShipping(method) {
-    const shippingElement = document.getElementById('shipping-cost');
+// Update processing fee calculation
+function updateProcessingFee() {
+    const processingElement = document.getElementById('processing-fee');
     const totalElement = document.getElementById('order-total');
-    const subtotal = parseFloat('{{ cart.subtotal|default:0 }}');
-    let shipping = 0;
-    
-    if (method === 'collection') {
-        shipping = 0;
-        shippingElement.textContent = 'Free';
-    } else if (method === 'express') {
-        shipping = 15;
-        shippingElement.textContent = '£15.00';
-    } else { // standard
-        shipping = subtotal >= 100 ? 0 : 5;
-        shippingElement.textContent = subtotal >= 100 ? 'Free' : '£5.00';
-    }
-    
-    const total = subtotal + shipping;
+    const ticketPrice = parseFloat('{{ cart.subtotal|default:0 }}');
+    const processingFee = 0.50;
+
+    const total = ticketPrice + processingFee;
     totalElement.textContent = '£' + total.toFixed(2);
+
+    // Add animation to total
+    totalElement.style.transform = 'scale(1.1)';
+    totalElement.style.color = 'var(--je-success)';
+    setTimeout(() => {
+        totalElement.style.transform = 'scale(1)';
+        totalElement.style.color = '';
+    }, 300);
 }
+
+// Security indicator animation
+setInterval(() => {
+    const lockIcons = document.querySelectorAll('.fa-lock, .fa-shield-alt');
+    lockIcons.forEach((icon, index) => {
+        setTimeout(() => {
+            icon.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                icon.style.transform = 'scale(1)';
+            }, 200);
+        }, index * 100);
+    });
+}, 5000);
 </script>
 {% endblock %}

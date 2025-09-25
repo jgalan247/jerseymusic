@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - Jersey Events{% endblock %}
+
+{% block meta_description %}Contact Jersey Events for inquiries about tickets, events, or general support. Get in touch with our team in Jersey.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Contact page specific styles */
+    .contact-hero {
+        background: linear-gradient(135deg, var(--je-primary) 0%, var(--je-primary-dark) 100%);
+        color: white;
+        padding: 4rem 0 3rem;
+    }
+
+    .contact-card {
+        background: white;
+        border-radius: var(--je-radius-lg);
+        box-shadow: var(--je-shadow-lg);
+        overflow: hidden;
+        margin-top: -3rem;
+        position: relative;
+        z-index: 10;
+    }
+
+    .contact-info-item {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--je-gray-100);
+        transition: var(--je-transition-smooth);
+    }
+
+    .contact-info-item:last-child {
+        border-bottom: none;
+    }
+
+    .contact-info-item:hover {
+        background: var(--je-gray-50);
+    }
+
+    .contact-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--je-primary) 0%, var(--je-primary-light) 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .form-section {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--je-radius-lg);
+        box-shadow: var(--je-shadow);
+    }
+
+    .form-floating > .form-control {
+        border: 2px solid var(--je-gray-200);
+        border-radius: var(--je-radius-md);
+        transition: var(--je-transition-smooth);
+    }
+
+    .form-floating > .form-control:focus {
+        border-color: var(--je-primary);
+        box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15);
+    }
+
+    .form-floating > label {
+        color: var(--je-gray-600);
+        font-weight: 500;
+    }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        color: var(--je-primary);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--je-primary) 0%, var(--je-primary-dark) 100%);
+        border: none;
+        color: white;
+        padding: 0.875rem 2rem;
+        border-radius: var(--je-radius-md);
+        font-weight: 600;
+        transition: var(--je-transition-smooth);
+        width: 100%;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(135deg, var(--je-primary-dark) 0%, var(--je-primary-900) 100%);
+        transform: var(--je-hover-lift);
+        box-shadow: var(--je-shadow-md);
+        color: white;
+    }
+
+    .btn-submit:disabled {
+        background: var(--je-gray-400);
+        transform: none;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+
+    .contact-feature {
+        text-align: center;
+        padding: 2rem 1rem;
+        border-radius: var(--je-radius-lg);
+        background: var(--je-gray-50);
+        height: 100%;
+    }
+
+    .contact-feature-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--je-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .contact-hero {
+            padding: 3rem 0 2rem;
+            text-align: center;
+        }
+
+        .contact-card {
+            margin-top: -2rem;
+        }
+
+        .form-section {
+            margin-top: 2rem;
+        }
+
+        .contact-feature {
+            margin-bottom: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="contact-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-3">Contact Us</h1>
+                <p class="lead mb-0">
+                    Have a question about events, tickets, or want to partner with us?<br>
+                    We'd love to hear from you!
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="py-5">
+    <div class="container">
+        <div class="contact-card">
+            <div class="row g-0">
+                <!-- Contact Form -->
+                <div class="col-lg-8">
+                    <div class="form-section">
+                        <h3 class="fw-bold mb-4">
+                            <i class="fas fa-envelope text-je-primary me-2"></i>
+                            Send us a Message
+                        </h3>
+
+                        <form method="post" id="contactForm">
+                            {% csrf_token %}
+
+                            <div class="row g-3">
+                                <!-- Full Name -->
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form.full_name }}
+                                        <label for="{{ form.full_name.id_for_label }}">
+                                            <i class="fas fa-user me-2"></i>{{ form.full_name.label }}
+                                        </label>
+                                        {% if form.full_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.full_name.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Email Address -->
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form.email }}
+                                        <label for="{{ form.email.id_for_label }}">
+                                            <i class="fas fa-envelope me-2"></i>{{ form.email.label }}
+                                        </label>
+                                        {% if form.email.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.email.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Subject -->
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        {{ form.subject }}
+                                        <label for="{{ form.subject.id_for_label }}">
+                                            <i class="fas fa-tag me-2"></i>{{ form.subject.label }}
+                                        </label>
+                                        {% if form.subject.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.subject.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Message -->
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        {{ form.message }}
+                                        <label for="{{ form.message.id_for_label }}">
+                                            <i class="fas fa-comment me-2"></i>{{ form.message.label }}
+                                        </label>
+                                        {% if form.message.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.message.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="col-12">
+                                    <button type="submit" class="btn-submit" id="submitBtn">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Message
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="col-lg-4">
+                    <div class="h-100 d-flex flex-column">
+                        <div class="p-4 bg-je-primary text-white">
+                            <h4 class="fw-bold mb-3">Get in Touch</h4>
+                            <p class="mb-0">
+                                We're here to help with any questions about events, tickets, or partnerships.
+                            </p>
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <!-- Email -->
+                            <div class="contact-info-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Email</h6>
+                                    <a href="mailto:{{ contact_email }}" class="text-decoration-none">
+                                        {{ contact_email }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="contact-info-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Phone</h6>
+                                    <a href="tel:{{ contact_phone }}" class="text-decoration-none">
+                                        {{ contact_phone }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="contact-info-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Location</h6>
+                                    <span>{{ contact_address }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Response Time -->
+                            <div class="contact-info-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Response Time</h6>
+                                    <span>Within 24 hours</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="contact-feature">
+                    <div class="contact-feature-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Event Tickets</h5>
+                    <p class="text-muted mb-0">
+                        Questions about purchasing tickets, refunds, or event details? We're here to help.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="contact-feature">
+                    <div class="contact-feature-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Partnerships</h5>
+                    <p class="text-muted mb-0">
+                        Interested in partnering with us or hosting an event? Let's discuss opportunities.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="contact-feature">
+                    <div class="contact-feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Support</h5>
+                    <p class="text-muted mb-0">
+                        Technical issues, account problems, or general support - we're ready to assist.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnText = submitBtn.innerHTML;
+
+    form.addEventListener('submit', function() {
+        // Disable button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+
+        // Re-enable after 3 seconds as fallback
+        setTimeout(function() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }, 3000);
+    });
+
+    // Client-side validation feedback
+    const inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach(function(input) {
+        input.addEventListener('blur', function() {
+            if (this.hasAttribute('required') && !this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+                if (this.value.trim()) {
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+
+        // Remove validation classes on focus
+        input.addEventListener('focus', function() {
+            this.classList.remove('is-invalid', 'is-valid');
+        });
+    });
+
+    // Email validation
+    const emailField = document.querySelector('input[type="email"]');
+    if (emailField) {
+        emailField.addEventListener('blur', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                this.classList.add('is-invalid');
+            } else if (this.value) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

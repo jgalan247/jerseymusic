@@ -1,0 +1,607 @@
+{% extends 'base.html' %}
+{% block title %}About Us - Jersey Events{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* About page specific enhancements */
+    .min-vh-50 {
+        min-height: 50vh;
+    }
+
+    .hero-content h1 {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .heritage-content {
+        font-size: 1.1rem;
+        line-height: 1.7;
+    }
+
+    .story-content p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .card-professional {
+        transition: all 0.4s ease;
+    }
+
+    .card-professional:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--je-shadow-2xl);
+    }
+
+    .trust-badge {
+        padding: 1rem;
+        border-radius: var(--je-radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        transition: var(--je-transition-normal);
+    }
+
+    .trust-badge:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-3px);
+    }
+
+    /* Enhanced animations */
+    .fade-in {
+        animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 2.5rem;
+        }
+
+        .card-professional {
+            margin-bottom: 1rem;
+        }
+
+        .trust-badge {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-je bg-gradient-hero py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-6">
+                <div class="hero-content text-white">
+                    <h1 class="display-3 fw-bold mb-4 fade-in">About Jersey Events</h1>
+                    <p class="lead mb-4 opacity-90">
+                        Your trusted gateway to Jersey's vibrant event community.
+                        Connecting passionate organizers with eager attendees since 2024.
+                    </p>
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <a href="{% url 'events:events_list' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-calendar-alt me-2"></i>Browse Events
+                        </a>
+                        <a href="#our-story" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-arrow-down me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="position-relative">
+                    <div class="icon-circle icon-primary mx-auto" style="width: 120px; height: 120px; font-size: 3rem;">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="position-absolute top-50 start-50 translate-middle">
+                        <div class="badge bg-je-warning fs-6 px-3 py-2 mt-5">
+                            <i class="fas fa-star me-2"></i>Trusted Platform
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Story Section -->
+<section id="our-story" class="py-5 bg-white">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="story-content">
+                    <h2 class="display-5 fw-bold text-je-primary mb-4 heading-professional">
+                        <i class="fas fa-heart text-je-island-blue me-3"></i>Our Story
+                    </h2>
+                    <p class="lead text-muted mb-4">
+                        Jersey Events was born from a simple belief: every event tells the story of our vibrant island community.
+                    </p>
+                    <p class="mb-4">
+                        From intimate acoustic sessions in St. Helier's cozy cafes to grand festivals celebrating Jersey's rich heritage,
+                        we showcase the incredible diversity of entertainment and cultural experiences our beautiful island offers.
+                    </p>
+                    <p class="mb-4">
+                        Our platform connects passionate event organizers with eager attendees, making it easier than ever to discover,
+                        book, and enjoy the best events Jersey has to offer. We're not just selling tickets - we're building memories
+                        and bringing people together.
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle icon-success me-3">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-je-primary">Community First</div>
+                            <small class="text-muted">Supporting local organizers and event-goers</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="position-relative">
+                    <div class="card border-0 shadow-je-xl overflow-hidden">
+                        <div class="pattern-dots position-absolute w-100 h-100"></div>
+                        <div class="card-body p-5 text-center position-relative">
+                            <div class="icon-circle icon-primary mx-auto mb-4" style="width: 80px; height: 80px;">
+                                <i class="fas fa-island-tropical"></i>
+                            </div>
+                            <h4 class="text-je-primary fw-bold mb-3">Jersey's Event Hub</h4>
+                            <p class="text-muted mb-4">Celebrating island life through memorable experiences</p>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold text-je-primary fs-4">500+</div>
+                                    <small class="text-muted">Events</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-je-success fs-4">50+</div>
+                                    <small class="text-muted">Organizers</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-je-info fs-4">12</div>
+                                    <small class="text-muted">Parishes</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Event Categories Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-semibold mb-4 heading-professional">
+                <i class="fas fa-star text-je-warning me-3"></i>Discover Amazing Events
+            </h2>
+            <p class="lead text-muted">From concerts to workshops, food festivals to fitness classes - find your perfect event</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-primary mx-auto mb-3">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-je-primary mb-3">Music & Concerts</h4>
+                        <p class="card-text text-muted">Live performances from local bands, acoustic nights, and touring artists bringing music to Jersey.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-success mx-auto mb-3">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-je-primary mb-3">Workshops & Learning</h4>
+                        <p class="card-text text-muted">Skill-building workshops, educational talks, and hands-on learning experiences for all ages.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-warning mx-auto mb-3">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-je-primary mb-3">Food & Drink</h4>
+                        <p class="card-text text-muted">Culinary experiences, wine tastings, food festivals celebrating Jersey's local produce.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-info mx-auto mb-3">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-je-primary mb-3">Arts & Culture</h4>
+                        <p class="card-text text-muted">Gallery exhibitions, cultural celebrations, and artistic performances showcasing local talent.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-danger mx-auto mb-3">
+                            <i class="fas fa-running"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-je-primary mb-3">Sports & Fitness</h4>
+                        <p class="card-text text-muted">Fitness classes, sporting events, outdoor adventures, and wellness activities.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="rounded-circle bg-je-secondary d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-briefcase fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title fw-bold text-je-primary mb-3">Business & Networking</h4>
+                        <p class="card-text text-muted">Professional networking events, business seminars, and entrepreneur meetups.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- For Organizers & Event-Goers -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-je-primary mb-3 heading-professional">
+                <i class="fas fa-handshake text-je-island-blue me-3"></i>Built for Everyone
+            </h2>
+            <p class="lead text-muted">Whether you're organizing events or attending them, we've got you covered</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- For Organizers -->
+            <div class="col-lg-6">
+                <div class="card card-professional h-100 border-je-primary">
+                    <div class="card-header bg-je-primary text-white text-center py-4">
+                        <div class="icon-circle" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; margin: 0 auto 1rem;">
+                            <i class="fas fa-rocket fa-2x text-white"></i>
+                        </div>
+                        <h3 class="h4 mb-0 fw-bold">For Event Organizers</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-unstyled">
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-primary">Easy Event Creation</strong>
+                                    <div class="small text-muted">Simple tools to create and manage your events with professional results</div>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-primary">Keep 90% of Sales</strong>
+                                    <div class="small text-muted">Fair revenue sharing with secure, instant payments via SumUp</div>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-primary">Digital Tickets</strong>
+                                    <div class="small text-muted">Automatic QR code generation and instant delivery to attendees</div>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-primary">Analytics Dashboard</strong>
+                                    <div class="small text-muted">Real-time tracking of sales, attendance, and event performance</div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="text-center mt-4">
+                            <a href="{% url 'accounts:register_organiser' %}" class="btn btn-je-primary btn-lg">
+                                <i class="fas fa-rocket me-2"></i>Become an Organizer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- For Event-Goers -->
+            <div class="col-lg-6">
+                <div class="card card-professional h-100 border-je-success">
+                    <div class="card-header bg-je-success text-white text-center py-4">
+                        <div class="icon-circle" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; margin: 0 auto 1rem;">
+                            <i class="fas fa-ticket-alt fa-2x text-white"></i>
+                        </div>
+                        <h3 class="h4 mb-0 fw-bold">For Event-Goers</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-unstyled">
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-success">Instant Booking</strong>
+                                    <div class="small text-muted">Quick and secure ticket purchasing with immediate confirmation</div>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-success">Mobile Tickets</strong>
+                                    <div class="small text-muted">QR code tickets delivered instantly to your phone - no printing needed</div>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-success">Discover Local Events</strong>
+                                    <div class="small text-muted">Find amazing events happening right in your neighborhood</div>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start mb-3">
+                                <i class="fas fa-check-circle text-je-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong class="text-je-success">Support Community</strong>
+                                    <div class="small text-muted">Every ticket purchase directly supports local event organizers</div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="text-center mt-4">
+                            <a href="{% url 'accounts:register_customer' %}" class="btn btn-je-success btn-lg">
+                                <i class="fas fa-ticket-alt me-2"></i>Join as Event-Goer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-je-primary mb-3 heading-professional">
+                <i class="fas fa-compass text-je-island-blue me-3"></i>Our Mission & Vision
+            </h2>
+            <p class="lead text-muted">Building Jersey's event community one experience at a time</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card card-professional h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="icon-circle icon-primary mx-auto mb-4">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h3 class="h4 fw-bold text-je-primary mb-3">Our Mission</h3>
+                        <p class="text-muted">To connect Jersey's vibrant community through unforgettable events and experiences, making it easier for organizers to reach their audience and for event-goers to discover amazing local experiences.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-professional h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="icon-circle icon-info mx-auto mb-4">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h3 class="h4 fw-bold text-je-primary mb-3">Our Vision</h3>
+                        <p class="text-muted">To be Jersey's premier event platform, celebrating our island's unique culture while fostering a thriving community where local talent and entrepreneurs can flourish.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Jersey Heritage & Culture Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-je-primary mb-3 heading-professional">
+                <i class="fas fa-landmark text-je-island-sand me-3"></i>Jersey's Rich Cultural Heritage
+            </h2>
+            <p class="lead text-muted">From ancient traditions to modern entertainment, Jersey has always been a hub of cultural activity</p>
+        </div>
+
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6">
+                <div class="heritage-content">
+                    <p class="mb-4">
+                        Jersey's event scene reflects our island's unique blend of British and French influences, seaside charm, and tight-knit community spirit. From traditional festivals celebrating our agricultural heritage to cutting-edge music events featuring international artists, our events calendar is as diverse as our landscape.
+                    </p>
+                    <p class="mb-4">
+                        Our platform celebrates this diversity - from intimate poetry readings in St. Helier's hidden corners to large-scale festivals on our beautiful beaches, from business conferences in modern venues to traditional folk festivals in our historic parishes.
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle icon-warning me-3">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-je-primary">Community Impact</div>
+                            <small class="text-muted">Every event strengthens our island community</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="heritage-content">
+                    <p class="mb-4">
+                        By booking through Jersey Events, you're not just buying a ticket - you're supporting local entrepreneurs, preserving our cultural traditions, and helping to maintain Jersey's reputation as a destination for memorable experiences.
+                    </p>
+                    <p class="mb-4">
+                        Whether you're a Jersey resident looking for your next great night out, or a visitor wanting to experience authentic island culture, we're here to connect you with the perfect event.
+                    </p>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="stat-highlight">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Parishes</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-highlight">
+                                <div class="stat-number">365</div>
+                                <div class="stat-label">Days of Events</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-highlight">
+                                <div class="stat-number">100%</div>
+                                <div class="stat-label">Jersey Made</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Information Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-je-primary mb-3 heading-professional">
+                <i class="fas fa-phone text-je-island-green me-3"></i>Get In Touch
+            </h2>
+            <p class="lead text-muted">Have questions? We're here to help you make your event experience amazing</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-4 col-md-6">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-primary mx-auto mb-3">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-2">Email Support</h5>
+                        <p class="text-muted mb-3">Get help with bookings, events, or general inquiries</p>
+                        <a href="mailto:support@jerseyevents.je" class="btn btn-je-outline-primary">
+                            support@jerseyevents.je
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-success mx-auto mb-3">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-2">Phone Support</h5>
+                        <p class="text-muted mb-3">Speak directly with our friendly support team</p>
+                        <a href="tel:+441534123456" class="btn btn-je-outline-success">
+                            +44 1534 123456
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card card-professional h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="icon-circle icon-info mx-auto mb-3">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-2">Jersey Location</h5>
+                        <p class="text-muted mb-3">Proudly based in the heart of the Channel Islands</p>
+                        <span class="text-je-primary fw-medium">
+                            Jersey, Channel Islands
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Hours -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-je-primary">
+                    <div class="card-body text-center py-4">
+                        <h6 class="fw-bold text-je-primary mb-2">Support Hours</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-2 text-je-primary"></i>
+                                    Monday - Friday: 9:00 AM - 6:00 PM
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-2 text-je-primary"></i>
+                                    Saturday - Sunday: 10:00 AM - 4:00 PM
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section">
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="display-4 fw-bold mb-4">Join Our Event Community</h2>
+                <p class="lead mb-5 opacity-90">
+                    Whether you're organizing the next big event or looking for your next great experience,
+                    we welcome you to Jersey Events.
+                </p>
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="{% url 'events:events_list' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-calendar-alt me-2"></i>Browse Events
+                    </a>
+                    <a href="{% url 'accounts:register_organiser' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Start Organizing
+                    </a>
+                </div>
+
+                <!-- Trust Indicators -->
+                <div class="row mt-5 text-center">
+                    <div class="col-md-4">
+                        <div class="trust-badge">
+                            <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                            <div class="small">Secure Platform</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="trust-badge">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <div class="small">Community Driven</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="trust-badge">
+                            <i class="fas fa-heart fa-2x mb-2"></i>
+                            <div class="small">Locally Made</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

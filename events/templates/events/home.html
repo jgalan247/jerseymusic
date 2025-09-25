@@ -1,0 +1,843 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Jersey Events - Discover Amazing Events in Jersey{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced Home Page Styling */
+    .hero-enhanced {
+        background: var(--je-gradient-hero);
+        color: white;
+        padding: 6rem 0 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23ffffff" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+        animation: drift 20s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    @keyframes drift {
+        0% { transform: translateX(-20px) translateY(-20px); }
+        100% { transform: translateX(20px) translateY(20px); }
+    }
+
+    .hero-enhanced h1 {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        font-size: 3.5rem;
+        line-height: 1.2;
+    }
+
+    .hero-enhanced .lead {
+        font-size: 1.3rem;
+        opacity: 0.95;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-visual {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-icon {
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* Enhanced Stats Cards */
+    .stats-card-enhanced {
+        background: white;
+        border-radius: var(--je-radius-xl);
+        padding: 2rem 1.5rem;
+        text-align: center;
+        box-shadow: var(--je-shadow-lg);
+        border: none;
+        transition: var(--je-transition-normal);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-card-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--je-gradient-primary);
+    }
+
+    .stats-card-enhanced:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--je-shadow-2xl);
+    }
+
+    .stats-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: var(--je-gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Enhanced Category Cards */
+    .category-card-enhanced {
+        border: none;
+        border-radius: var(--je-radius-xl);
+        overflow: hidden;
+        background: white;
+        box-shadow: var(--je-shadow-lg);
+        transition: var(--je-transition-normal);
+        height: 100%;
+        position: relative;
+    }
+
+    .category-card-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%);
+        opacity: 0;
+        transition: var(--je-transition-normal);
+    }
+
+    .category-card-enhanced:hover::before {
+        opacity: 1;
+    }
+
+    .category-card-enhanced:hover {
+        transform: translateY(-12px);
+        box-shadow: var(--je-shadow-2xl);
+    }
+
+    .category-icon-enhanced {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        transition: var(--je-transition-normal);
+    }
+
+    .category-card-enhanced:hover .category-icon-enhanced {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .category-card-body {
+        padding: 2.5rem 2rem;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Trust Indicators Enhancement */
+    .trust-section {
+        background: linear-gradient(135deg, var(--je-gray-50) 0%, white 100%);
+        padding: 4rem 0;
+        position: relative;
+    }
+
+    .section-title-enhanced {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .section-title-enhanced h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: var(--je-gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+
+    .section-title-enhanced .lead {
+        font-size: 1.2rem;
+        color: var(--je-gray-600);
+    }
+
+    /* Enhanced Featured Events Section */
+    .featured-section {
+        background: linear-gradient(135deg, white 0%, var(--je-gray-50) 100%);
+        padding: 5rem 0;
+        position: relative;
+    }
+
+    .featured-events-grid .event-card {
+        border: none;
+        border-radius: var(--je-radius-xl);
+        overflow: hidden;
+        box-shadow: var(--je-shadow-lg);
+        transition: var(--je-transition-normal);
+        background: white;
+    }
+
+    .featured-events-grid .event-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--je-shadow-2xl);
+    }
+
+    .event-card .card-img-top {
+        transition: var(--je-transition-normal);
+    }
+
+    .event-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+
+    /* Trust Badges Enhancement */
+    .trust-badges-section {
+        background: var(--je-gradient-primary);
+        color: white;
+        padding: 3rem 0;
+        text-align: center;
+    }
+
+    .trust-badge-item {
+        padding: 1rem;
+        border-radius: var(--je-radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: var(--je-transition-normal);
+        height: 100%;
+    }
+
+    .trust-badge-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-5px);
+    }
+
+    .trust-badge-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        .hero-enhanced {
+            padding: 4rem 0 3rem;
+        }
+
+        .hero-enhanced h1 {
+            font-size: 2.5rem;
+        }
+
+        .hero-enhanced .lead {
+            font-size: 1.1rem;
+        }
+
+        .hero-icon {
+            width: 120px;
+            height: 120px;
+        }
+
+        .stats-card-enhanced {
+            margin-bottom: 2rem;
+        }
+
+        .category-card-enhanced {
+            margin-bottom: 2rem;
+        }
+
+        .trust-section,
+        .featured-section {
+            padding: 3rem 0;
+        }
+
+        .section-title-enhanced h2 {
+            font-size: 2rem;
+        }
+
+        .trust-badges-section {
+            padding: 2rem 0;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-enhanced h1 {
+            font-size: 2rem;
+        }
+
+        .category-card-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .stats-card-enhanced {
+            padding: 1.5rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Enhanced Hero Section -->
+<section class="hero-enhanced">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="fw-bold mb-4">Discover Jersey's
+                        <span class="d-block">Best Events</span>
+                    </h1>
+                    <p class="lead mb-5">From live music to cultural workshops, food festivals to business networking - find unforgettable experiences in the heart of Jersey's vibrant community.</p>
+                    <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                        <a href="{% url 'events:events_list' %}" class="btn btn-light btn-lg px-4 py-3">
+                            <i class="fas fa-calendar-alt me-2"></i>Browse All Events
+                        </a>
+                        <a href="#featured" class="btn btn-outline-light btn-lg px-4 py-3">
+                            <i class="fas fa-star me-2"></i>Featured Events
+                        </a>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="trust-indicator me-4">
+                            <i class="fas fa-shield-alt icon"></i>
+                            <span>100% Secure</span>
+                        </div>
+                        <div class="trust-indicator">
+                            <i class="fas fa-ticket-alt icon"></i>
+                            <span>Instant Tickets</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-visual text-center">
+                    <div class="hero-icon">
+                        <i class="fas fa-calendar-alt fa-4x text-white"></i>
+                    </div>
+                    <div class="mt-4">
+                        <span class="badge bg-je-warning text-dark fs-6 px-4 py-2">
+                            <i class="fas fa-fire me-2"></i>{{ featured_events.count }}+ Live Events
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Trust Indicators -->
+<section class="trust-section">
+    <div class="container">
+        <div class="section-title-enhanced">
+            <h2>Why Choose Jersey Events?</h2>
+            <p class="lead">The trusted platform for Jersey's event community</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card-enhanced">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, var(--je-primary) 0%, var(--je-primary-dark) 100%);">
+                        <i class="fas fa-calendar-check fa-2x text-white"></i>
+                    </div>
+                    <div class="stats-number">{{ featured_events.count }}+</div>
+                    <h6 class="fw-bold text-je-primary mb-2">Upcoming Events</h6>
+                    <p class="text-muted small mb-0">Discover amazing experiences happening across Jersey</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card-enhanced">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, var(--je-success) 0%, #047857 100%);">
+                        <i class="fas fa-users fa-2x text-white"></i>
+                    </div>
+                    <div class="stats-number">{{ featured_organisers.count }}+</div>
+                    <h6 class="fw-bold text-je-primary mb-2">Trusted Organizers</h6>
+                    <p class="text-muted small mb-0">Local event professionals creating memorable experiences</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card-enhanced">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, var(--je-info) 0%, #0c7489 100%);">
+                        <i class="fas fa-map-marker-alt fa-2x text-white"></i>
+                    </div>
+                    <div class="stats-number">12</div>
+                    <h6 class="fw-bold text-je-primary mb-2">Jersey Parishes</h6>
+                    <p class="text-muted small mb-0">Events happening across all of Jersey's parishes</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card-enhanced">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, var(--je-warning) 0%, #b45309 100%);">
+                        <i class="fas fa-shield-alt fa-2x text-white"></i>
+                    </div>
+                    <div class="stats-number">100%</div>
+                    <h6 class="fw-bold text-je-primary mb-2">Secure Booking</h6>
+                    <p class="text-muted small mb-0">SSL-encrypted payments with instant confirmation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Category Cards -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="section-title-enhanced">
+            <h2>Browse By Category</h2>
+            <p class="lead">Find events that perfectly match your interests</p>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-6 col-lg-4">
+                <div class="category-card-enhanced">
+                    <div class="category-card-body">
+                        <div class="category-icon-enhanced" style="background: linear-gradient(135deg, var(--je-primary) 0%, var(--je-primary-dark) 100%);">
+                            <i class="fas fa-music fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-3">Music & Concerts</h5>
+                        <p class="text-muted mb-4">Live performances, acoustic nights, and touring artists bringing music to Jersey</p>
+                        <a href="{% url 'events:events_list' %}?category=music" class="btn btn-je-primary px-4">
+                            <i class="fas fa-music me-2"></i>Explore Music
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="category-card-enhanced">
+                    <div class="category-card-body">
+                        <div class="category-icon-enhanced" style="background: linear-gradient(135deg, var(--je-success) 0%, #047857 100%);">
+                            <i class="fas fa-tools fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-3">Workshops & Learning</h5>
+                        <p class="text-muted mb-4">Skill-building workshops and educational experiences for personal growth</p>
+                        <a href="{% url 'events:events_list' %}?category=workshop" class="btn btn-je-success px-4">
+                            <i class="fas fa-graduation-cap me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="category-card-enhanced">
+                    <div class="category-card-body">
+                        <div class="category-icon-enhanced" style="background: linear-gradient(135deg, var(--je-warning) 0%, #b45309 100%);">
+                            <i class="fas fa-utensils fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-3">Food & Drink</h5>
+                        <p class="text-muted mb-4">Culinary experiences celebrating Jersey's incredible local produce and cuisine</p>
+                        <a href="{% url 'events:events_list' %}?category=food" class="btn btn-je-warning px-4">
+                            <i class="fas fa-utensils me-2"></i>Taste Jersey
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="category-card-enhanced">
+                    <div class="category-card-body">
+                        <div class="category-icon-enhanced" style="background: linear-gradient(135deg, var(--je-info) 0%, #0c7489 100%);">
+                            <i class="fas fa-palette fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-3">Arts & Culture</h5>
+                        <p class="text-muted mb-4">Gallery exhibitions and cultural celebrations showcasing local artistic talent</p>
+                        <a href="{% url 'events:events_list' %}?category=arts" class="btn btn-je-info px-4">
+                            <i class="fas fa-palette me-2"></i>Get Creative
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="category-card-enhanced">
+                    <div class="category-card-body">
+                        <div class="category-icon-enhanced" style="background: linear-gradient(135deg, var(--je-danger) 0%, #b91c1c 100%);">
+                            <i class="fas fa-running fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-3">Sports & Fitness</h5>
+                        <p class="text-muted mb-4">Fitness classes, sporting events, and outdoor adventures for active lifestyles</p>
+                        <a href="{% url 'events:events_list' %}?category=sports" class="btn btn-je-danger px-4">
+                            <i class="fas fa-running me-2"></i>Get Active
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="category-card-enhanced">
+                    <div class="category-card-body">
+                        <div class="category-icon-enhanced" style="background: linear-gradient(135deg, var(--je-secondary) 0%, var(--je-secondary-dark) 100%);">
+                            <i class="fas fa-briefcase fa-2x text-white"></i>
+                        </div>
+                        <h5 class="fw-bold text-je-primary mb-3">Business & Networking</h5>
+                        <p class="text-muted mb-4">Professional networking events and business seminars for career growth</p>
+                        <a href="{% url 'events:events_list' %}?category=business" class="btn btn-je-secondary px-4">
+                            <i class="fas fa-handshake me-2"></i>Network
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View All Categories CTA -->
+        <div class="text-center">
+            <a href="{% url 'events:events_list' %}" class="btn btn-je-outline-primary btn-lg px-5">
+                <i class="fas fa-th-large me-2"></i>View All Events
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Events -->
+<section id="featured" class="featured-section">
+    <div class="container">
+        <div class="section-title-enhanced">
+            <h2>Featured Events</h2>
+            <p class="lead">Don't miss these popular events happening soon in Jersey</p>
+        </div>
+        <div class="row g-4 featured-events-grid">
+            {% for event in featured_events %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card event-card h-100 border-0 shadow-je">
+                    <div class="position-relative">
+                        {% if event.main_image %}
+                        <img src="{{ event.main_image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                        {% elif event.additional_images.exists %}
+                        <img src="{{ event.additional_images.first.image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-calendar-alt fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+
+                        <!-- Date Badge -->
+                        <div class="position-absolute top-0 start-0 m-3">
+                            <span class="badge bg-je-warning text-dark fw-bold">
+                                {{ event.event_date|date:"M d" }}
+                            </span>
+                        </div>
+
+                        <!-- Availability Badge -->
+                        <div class="position-absolute top-0 end-0 m-3">
+                            {% if event.tickets_available > 10 %}
+                                <span class="badge event-status-available">Available</span>
+                            {% elif event.tickets_available > 0 %}
+                                <span class="badge event-status-limited">{{ event.tickets_available }} left</span>
+                            {% else %}
+                                <span class="badge event-status-sold-out">Sold Out</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold mb-2">{{ event.title }}</h5>
+                        <p class="card-text text-muted small mb-2">
+                            <i class="fas fa-user me-1"></i>by {{ event.organiser.get_full_name|default:event.organiser.username }}
+                        </p>
+                        <p class="card-text text-muted small mb-3">
+                            <i class="fas fa-clock me-1"></i>{{ event.event_time|time:"H:i" }} •
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ event.venue_name }}
+                        </p>
+
+                        {% if event.category %}
+                        <span class="badge bg-light text-muted mb-3 align-self-start">{{ event.category.name }}</span>
+                        {% endif %}
+
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="h5 text-je-primary fw-bold">£{{ event.ticket_price }}</span>
+                                <small class="text-muted d-block">per ticket</small>
+                            </div>
+                            {% if event.status == 'published' and event.tickets_available > 0 %}
+                            <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-je-primary btn-sm">
+                                <i class="fas fa-ticket-alt me-1"></i>Buy Tickets
+                            </a>
+                            {% else %}
+                            <span class="btn btn-secondary btn-sm disabled">
+                                {% if event.tickets_available <= 0 %}
+                                    Sold Out
+                                {% else %}
+                                    Unavailable
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No featured events at the moment</h4>
+                <p class="text-muted">Check back soon for upcoming events!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if featured_events %}
+        <div class="text-center mt-5">
+            <a href="{% url 'events:events_list' %}" class="btn btn-je-primary btn-lg">
+                View All Events <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-semibold mb-3">Why Choose Jersey Events?</h2>
+            <p class="lead text-muted">The trusted platform for Jersey's event community</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-je text-center">
+                    <div class="card-body p-4">
+                        <div class="rounded-circle bg-je-island-blue d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-shield-alt fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title">Secure Booking</h5>
+                        <p class="card-text text-muted">Industry-standard security with encrypted payments and instant confirmation</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-je text-center">
+                    <div class="card-body p-4">
+                        <div class="rounded-circle bg-je-island-green d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-qrcode fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title">Digital Tickets</h5>
+                        <p class="card-text text-muted">QR code tickets delivered instantly to your phone - no printing required</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-je text-center">
+                    <div class="card-body p-4">
+                        <div class="rounded-circle bg-je-island-sand d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-handshake fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title">Local Community</h5>
+                        <p class="card-text text-muted">Supporting Jersey's event organisers and bringing our community together</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-semibold mb-3 heading-professional">What Our Community Says</h2>
+            <p class="lead text-muted">Trusted by event-goers and organizers across Jersey</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-je h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                        <p class="mb-4">"Jersey Events made booking tickets so easy! The digital tickets and QR codes worked perfectly at the venue. Highly recommend!"</p>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="rounded-circle bg-je-primary d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Sarah M.</h6>
+                                <small class="text-muted">Regular Event-goer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-je h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                        <p class="mb-4">"As an event organizer, the platform is fantastic. The analytics dashboard helps me track sales and the support team is always helpful."</p>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="rounded-circle bg-je-success d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-calendar-alt text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">James T.</h6>
+                                <small class="text-muted">Event Organizer</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-je h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                        <p class="mb-4">"Love discovering new events in Jersey through this platform. The payment process is secure and tickets arrive instantly!"</p>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="rounded-circle bg-je-info d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-ticket-alt text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Emma R.</h6>
+                                <small class="text-muted">Local Resident</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Metrics Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3 col-6">
+                <div class="stat-highlight">
+                    <div class="stat-number">99.8%</div>
+                    <div class="stat-label">Customer Satisfaction</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-highlight">
+                    <div class="stat-number">£2.5M+</div>
+                    <div class="stat-label">Tickets Sold Safely</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-highlight">
+                    <div class="stat-number">10,000+</div>
+                    <div class="stat-label">Happy Customers</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-highlight">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Customer Support</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final Trust Badges Section -->
+<section class="trust-badges-section">
+    <div class="container">
+        <div class="row g-4 mb-5">
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-badge-item">
+                    <div class="trust-badge-icon">
+                        <i class="fas fa-shield-alt fa-2x text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">SSL Secured</h6>
+                    <p class="small opacity-90 mb-0">256-bit encryption protects your data</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-badge-item">
+                    <div class="trust-badge-icon">
+                        <i class="fas fa-credit-card fa-2x text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Secure Payments</h6>
+                    <p class="small opacity-90 mb-0">PCI compliant payment processing</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-badge-item">
+                    <div class="trust-badge-icon">
+                        <i class="fas fa-qrcode fa-2x text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Digital Tickets</h6>
+                    <p class="small opacity-90 mb-0">Instant delivery to your phone</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="trust-badge-item">
+                    <div class="trust-badge-icon">
+                        <i class="fas fa-headset fa-2x text-white"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">24/7 Support</h6>
+                    <p class="small opacity-90 mb-0">Always here to help you</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h3 class="fw-bold mb-3">Ready to Experience Jersey?</h3>
+            <p class="lead mb-4 opacity-90">Join thousands who have discovered amazing experiences through our trusted platform</p>
+            <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                <a href="{% url 'events:events_list' %}" class="btn btn-light btn-lg px-5">
+                    <i class="fas fa-calendar-alt me-2"></i>Browse All Events
+                </a>
+                <a href="{% url 'accounts:register_customer' %}" class="btn btn-outline-light btn-lg px-5">
+                    <i class="fas fa-user-plus me-2"></i>Join Today
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

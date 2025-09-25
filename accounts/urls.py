@@ -7,10 +7,10 @@ app_name = 'accounts'
 urlpatterns = [
     # Registration
     path('register/customer/', views.register_customer, name='register_customer'),
-    path('register/artist/', views.register_artist, name='register_artist'),
+    path('register/organiser/', views.register_organiser, name='register_organiser'),
     
     # Email verification
-    path('verify/<uidb64>/<token>/', views.verify_email, name='verify_email'),
+    path('verify/<uuid:token>/', views.verify_email, name='verify_email'),
     path('resend-verification/', views.resend_verification, name='resend_verification'),
     
     # Authentication
@@ -19,7 +19,7 @@ urlpatterns = [
     
     # Profile
     path('profile/', views.profile_view, name='profile'),
-    path('artist-dashboard/', views.artist_dashboard, name='artist_dashboard'),
+    path('organiser-dashboard/', views.organiser_dashboard, name='organiser_dashboard'),
 
     # Password reset
     path('password-reset/', 

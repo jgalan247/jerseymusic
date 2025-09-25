@@ -1,0 +1,24 @@
+<!-- Reusable Hero Section Component -->
+<section class="bg-gray-100 section-standard">
+    <div class="container-standard">
+        <div class="text-center">
+            {% if icon %}
+                <i class="{{ icon }} text-6xl text-blue-600 mb-6"></i>
+            {% endif %}
+            <h1 class="heading-1 mb-6">{{ title }}</h1>
+            {% if subtitle %}
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">{{ subtitle }}</p>
+            {% endif %}
+            {% if cta_buttons %}
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                    {% for button in cta_buttons %}
+                        <a href="{{ button.url }}" class="{% if button.primary %}btn-primary{% else %}btn-secondary{% endif %}">
+                            {% if button.icon %}<i class="{{ button.icon }} mr-2"></i>{% endif %}
+                            {{ button.text }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>

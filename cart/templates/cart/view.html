@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Shopping Cart - Jersey Artwork{% endblock %}
+{% block title %}Shopping Cart - Jersey Events{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -17,7 +17,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Artwork</th>
+                                    <th>Event</th>
                                     <th>Price</th>
                                     <th>Quantity</th>
                                     <th>Total</th>
@@ -29,27 +29,28 @@
                                 <tr id="cart-item-{{ item.id }}" {% if not item.available %}class="table-warning"{% endif %}>
                                     <td>
                                         <div class="d-flex">
-                                            {% if item.artwork.main_image %}
-                                            <img src="{{ item.artwork.main_image.url }}" 
-                                                 alt="{{ item.artwork.title }}"
+                                            {% if item.event.main_image %}
+                                            <img src="{{ item.event.main_image.url }}"
+                                                 alt="{{ item.event.title }}"
                                                  class="img-thumbnail me-3"
                                                  style="width: 100px; height: 100px; object-fit: cover;">
                                             {% endif %}
                                             <div>
                                                 <h6 class="mb-1">
-                                                    <a href="{% url 'artworks:artwork_detail' pk=item.artwork.id %}" 
+                                                    <a href="{% url 'events:event_detail' pk=item.event.id %}"
                                                        class="text-decoration-none">
-                                                        {{ item.artwork.title }}
+                                                        {{ item.event.title }}
                                                     </a>
                                                 </h6>
                                                 <p class="text-muted small mb-1">
-                                                    by {{ item.artwork.artist.get_full_name }}
+                                                    by {{ item.event.organiser.get_full_name }}
                                                 </p>
-                                                {% if item.artwork.artwork_type %}
                                                 <p class="text-muted small mb-0">
-                                                    Type: {{ item.artwork.get_artwork_type_display }}
+                                                    Date: {{ item.event.event_date }} at {{ item.event.event_time }}
                                                 </p>
-                                                {% endif %}
+                                                <p class="text-muted small mb-0">
+                                                    Venue: {{ item.event.venue_name }}
+                                                </p>
                                                 {% if not item.available %}
                                                 <p class="text-danger small mb-0">
                                                     <i class="fas fa-exclamation-triangle"></i>
@@ -57,7 +58,7 @@
                                                 </p>
                                                 {% endif %}
                                                 {% if user.is_authenticated %}
-                                                <form method="post" action="{% url 'cart:save' item.artwork.id %}" 
+                                                <form method="post" action="{% url 'cart:save' item.event.id %}"
                                                       class="d-inline save-form">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-link btn-sm p-0 text-muted">
@@ -77,7 +78,7 @@
                                                    name="quantity" 
                                                    value="{{ item.quantity }}"
                                                    min="1" 
-                                                   max="{{ item.artwork.stock_quantity }}"
+                                                   max="{{ item.event.tickets_available }}"
                                                    class="form-control form-control-sm me-2">
                                             <button type="submit" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-sync"></i>
@@ -102,7 +103,7 @@
                     
                     <!-- Cart Actions -->
                     <div class="d-flex justify-content-between mt-3">
-                        <a href="{% url 'artworks:gallery' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'events:events_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Continue Shopping
                         </a>
                         <form method="post" action="{% url 'cart:clear' %}" 
@@ -127,18 +128,18 @@
                         {% for saved in saved_items %}
                         <div class="col-md-6 mb-3">
                             <div class="d-flex">
-                                {% if saved.artwork.main_image %}
-                                <img src="{{ saved.artwork.main_image.url }}" 
-                                     alt="{{ saved.artwork.title }}"
+                                {% if saved.event.main_image %}
+                                <img src="{{ saved.event.main_image.url }}"
+                                     alt="{{ saved.event.title }}"
                                      class="img-thumbnail me-3"
                                      style="width: 80px; height: 80px; object-fit: cover;">
                                 {% endif %}
                                 <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ saved.artwork.title }}</h6>
+                                    <h6 class="mb-1">{{ saved.event.title }}</h6>
                                     <p class="text-muted small mb-1">
-                                        £{{ saved.artwork.price|floatformat:2 }}
+                                        £{{ saved.event.ticket_price|floatformat:2 }}
                                     </p>
-                                    {% if saved.artwork.is_available %}
+                                    {% if saved.event.status == 'published' %}
                                     <form method="post" action="{% url 'cart:move_to_cart' saved.id %}">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-primary">
@@ -170,12 +171,12 @@
                         <span id="cart-subtotal">£{{ cart.subtotal|floatformat:2 }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Estimated Shipping:</span>
+                        <span>Service Fee:</span>
                         <span>£{{ cart.shipping_cost|floatformat:2 }}</span>
                     </div>
                     <small class="text-muted d-block mb-3">
-                        * Free shipping on orders over £100<br>
-                        * Final shipping calculated at checkout
+                        * Digital tickets delivered instantly<br>
+                        * No additional shipping required
                     </small>
                     <hr>
                     <div class="d-flex justify-content-between mb-4">
@@ -184,7 +185,7 @@
                     </div>
                     
                     <a href="{% url 'payments:checkout' %}" class="btn btn-primary btn-lg btn-block w-100">
-                        <i class="fas fa-lock me-2"></i>Proceed to Checkout
+                        <i class="fas fa-ticket-alt me-2"></i>Buy Tickets Now
                     </a>
                     
                     <!-- Payment Methods -->
@@ -196,7 +197,8 @@
                             <i class="fab fa-cc-amex fa-2x text-muted"></i>
                         </div>
                         <p class="small text-muted mt-2">
-                            Secured by SumUp
+                            <i class="fas fa-shield-alt"></i> Secure ticket purchase<br>
+                            <i class="fas fa-mobile-alt"></i> Instant QR code delivery
                         </p>
                     </div>
                 </div>
@@ -207,11 +209,11 @@
     {% else %}
     <!-- Empty Cart -->
     <div class="text-center py-5">
-        <i class="fas fa-shopping-cart text-muted" style="font-size: 5rem;"></i>
-        <h3 class="mt-4">Your cart is empty</h3>
-        <p class="text-muted">Looks like you haven't added any artworks yet.</p>
-        <a href="{% url 'artworks:gallery' %}" class="btn btn-primary mt-3">
-            <i class="fas fa-palette me-2"></i>Browse Artworks
+        <i class="fas fa-ticket-alt text-muted" style="font-size: 5rem;"></i>
+        <h3 class="mt-4">No tickets in your cart</h3>
+        <p class="text-muted">Looks like you haven't added any event tickets yet.</p>
+        <a href="{% url 'events:events_list' %}" class="btn btn-primary mt-3">
+            <i class="fas fa-ticket-alt me-2"></i>Browse Events
         </a>
     </div>
     {% endif %}

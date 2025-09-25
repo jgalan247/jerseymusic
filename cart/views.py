@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from decimal import Decimal
 
 from .models import Cart, CartItem, SavedItem
-from artworks.models import Artwork
+from events.models import Event
 
 
 class CartView(TemplateView):
@@ -41,27 +41,27 @@ class CartView(TemplateView):
         context = super().get_context_data(**kwargs)
         cart = self.get_cart()
         
-        # Get cart items with related artwork data
+        # Get cart items with related event data
         cart_items = cart.items.select_related(
-            'artwork', 
-            'artwork__artist'
+            'event',
+            'event__organiser'
         ).order_by('-added_at')
         
         # Check availability for each item - IMPORTANT: Check this happens every time
         has_unavailable = False
         for item in cart_items:
-            # Check both is_available flag and stock quantity
-            if not item.artwork.is_available or item.artwork.stock_quantity == 0:
+            # Check if event is published and has available tickets
+            if item.event.status != 'published' or item.event.is_sold_out:
                 messages.warning(
                     self.request, 
-                    f"{item.artwork.title} is no longer available"
+                    f"{item.event.title} is no longer available"
                 )
                 item.available = False
                 has_unavailable = True
-            elif item.quantity > item.artwork.stock_quantity:
+            elif item.quantity > item.event.tickets_available:
                 messages.warning(
                     self.request, 
-                    f"{item.artwork.title} is no longer available in the requested quantity."
+                    f"{item.event.title} is no longer available in the requested quantity."
                 )
                 item.available = False
                 has_unavailable = True
@@ -76,33 +76,33 @@ class CartView(TemplateView):
         if self.request.user.is_authenticated:
             context['saved_items'] = SavedItem.objects.filter(
                 user=self.request.user
-            ).select_related('artwork')
+            ).select_related('event')
         
         return context
 
 
 class AddToCartView(View):
-    """Add artwork to cart."""
+    """Add event to cart."""
     
-    def post(self, request, artwork_id):
-        artwork = get_object_or_404(Artwork, id=artwork_id, status='active')
+    def post(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id, status='published')
         quantity = int(request.POST.get('quantity', 1))
         
         # Validate quantity
         if quantity < 1:
             messages.error(request, "Invalid quantity.")
-            return redirect('artworks:artwork_detail', pk=artwork.id)
+            return redirect('events:event_detail', pk=event.id)
         
         # Check availability
-        # Check if artwork is available at all
-        if not artwork.is_available:
-            messages.error(request, "This artwork is not available.")
-            return redirect('artworks:artwork_detail', pk=artwork.id)
+        # Check if event is published
+        if event.status != 'published':
+            messages.error(request, "This event is not available.")
+            return redirect('events:event_detail', pk=event.id)
 
-        # Check stock quantity
-        if quantity > artwork.stock_quantity:
-            messages.error(request, f"Only {artwork.stock_quantity} available.")
-            return redirect('artworks:artwork_detail', pk=artwork.id)
+        # Check ticket availability
+        if quantity > event.tickets_available:
+            messages.error(request, f"Only {event.tickets_available} tickets available.")
+            return redirect('events:event_detail', pk=event.id)
         # Get or create cart
         if request.user.is_authenticated:
             cart, created = Cart.objects.get_or_create(
@@ -123,10 +123,10 @@ class AddToCartView(View):
         # Add or update cart item
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
-            artwork=artwork,
+            event=event,
             defaults={
                 'quantity': quantity,
-                'price_at_time': artwork.price
+                'price_at_time': event.ticket_price
             }
         )
         
@@ -137,17 +137,17 @@ class AddToCartView(View):
             cart_item.refresh_from_db()
             
             # Check if updated quantity is available
-            if cart_item.quantity > artwork.stock_quantity:
-                cart_item.quantity = artwork.stock_quantity
+            if cart_item.quantity > event.tickets_available:
+                cart_item.quantity = event.tickets_available
                 cart_item.save()
                 messages.warning(
-                    request, 
-                    f"Quantity adjusted to {artwork.stock_quantity} (maximum available)."
+                    request,
+                    f"Quantity adjusted to {event.tickets_available} (maximum available)."
                 )
             else:
                 messages.success(request, f"Updated quantity to {cart_item.quantity}.")
         else:
-            messages.success(request, f"Added {artwork.title} to cart.")
+            messages.success(request, f"Added {event.title} to cart.")
         
         # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -192,8 +192,8 @@ class UpdateCartItemView(View):
             messages.success(request, "Item removed from cart.")
         else:
             # Check availability and adjust if needed
-            if quantity > cart_item.artwork.stock_quantity:
-                quantity = cart_item.artwork.stock_quantity
+            if quantity > cart_item.event.stock_quantity:
+                quantity = cart_item.event.stock_quantity
                 cart_item.quantity = quantity
                 cart_item.save()
                 messages.warning(
@@ -241,10 +241,10 @@ class RemoveFromCartView(View):
         
         # Remove item
         cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
-        artwork_title = cart_item.artwork.title
+        event_title = cart_item.event.title
         cart_item.delete()
         
-        messages.success(request, f"Removed {artwork_title} from cart.")
+        messages.success(request, f"Removed {event_title} from cart.")
         
         # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -286,21 +286,21 @@ class ClearCartView(View):
 class SaveForLaterView(View):
     """Save item for later (wishlist)."""
     
-    def post(self, request, artwork_id):
-        artwork = get_object_or_404(Artwork, id=artwork_id)
+    def post(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id)
         
         saved_item, created = SavedItem.objects.get_or_create(
             user=request.user,
-            artwork=artwork
+            event=event
         )
         
         if created:
-            messages.success(request, f"Saved {artwork.title} for later.")
+            messages.success(request, f"Saved {event.title} for later.")
             
             # Remove from cart if it exists
             cart = Cart.objects.filter(user=request.user, is_active=True).first()
             if cart:
-                CartItem.objects.filter(cart=cart, artwork=artwork).delete()
+                CartItem.objects.filter(cart=cart, event=event).delete()
         else:
             messages.info(request, "Item already saved.")
         
@@ -320,11 +320,11 @@ class MoveToCartView(View):
     
     def post(self, request, item_id):
         saved_item = get_object_or_404(SavedItem, id=item_id, user=request.user)
-        artwork = saved_item.artwork
+        event = saved_item.event
         
         # Check availability
-        if not artwork.is_available:
-            messages.error(request, f"{artwork.title} is no longer available.")
+        if event.status != 'published':
+            messages.error(request, f"{event.title} is no longer available.")
             return redirect('cart:view')
         
         # Get or create cart
@@ -336,10 +336,10 @@ class MoveToCartView(View):
         # Add to cart
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
-            artwork=artwork,
+            event=event,
             defaults={
                 'quantity': 1,
-                'price_at_time': artwork.price
+                'price_at_time': event.ticket_price
             }
         )
         
@@ -350,6 +350,6 @@ class MoveToCartView(View):
         # Remove from saved items
         saved_item.delete()
         
-        messages.success(request, f"Moved {artwork.title} to cart.")
+        messages.success(request, f"Moved {event.title} to cart.")
         
         return redirect('cart:view')

@@ -7,9 +7,15 @@ urlpatterns = [
     # Checkout flow
     path('checkout/', views.CheckoutView.as_view(), name='checkout'),
     path('select-method/', views.SelectPaymentMethodView.as_view(), name='select_method'),
+    path('sumup/checkout/<int:order_id>/', views.SumUpCheckoutView.as_view(), name='sumup_checkout'),
+
+    # SumUp callbacks and webhooks
+    path('sumup/callback/', views.SumUpCallbackView.as_view(), name='sumup_callback'),
+    path('sumup/success/', views.SumUpSuccessView.as_view(), name='sumup_success'),
+    path('sumup/webhook/', views.SumUpWebhookView.as_view(), name='sumup_webhook'),
+
+    # Legacy compatibility
     path('process/sumup/', views.ProcessSumUpPaymentView.as_view(), name='process_sumup'),
-    
-    # Payment callbacks
     path('callback/', views.SumUpCallbackView.as_view(), name='callback'),
     path('success/', views.PaymentSuccessView.as_view(), name='success'),
     path('failed/', views.PaymentFailedView.as_view(), name='failed'),

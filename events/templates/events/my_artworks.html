@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Events - Jersey Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .event-card {
+        transition: all 0.3s;
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .event-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .status-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        border: none;
+    }
+
+    .create-event-card {
+        border: 2px dashed #dee2e6;
+        background: #f8f9fa;
+        transition: all 0.3s;
+        border-radius: 12px;
+    }
+
+    .create-event-card:hover {
+        border-color: #007bff;
+        background: #e7f1ff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-calendar-check text-primary me-3"></i>My Events</h1>
+            <p class="text-muted">Manage your events and track their performance</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'events:create_event' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Create New Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    {% if events %}
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="stats-card card">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                    <h4>{{ events.count }}</h4>
+                    <p class="mb-0">Total Events</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card card">
+                <div class="card-body text-center">
+                    <i class="fas fa-ticket-alt fa-2x mb-2"></i>
+                    <h4>{{ total_tickets_sold|default:0 }}</h4>
+                    <p class="mb-0">Tickets Sold</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card card">
+                <div class="card-body text-center">
+                    <i class="fas fa-pound-sign fa-2x mb-2"></i>
+                    <h4>£{{ total_revenue|default:0|floatformat:0 }}</h4>
+                    <p class="mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card card">
+                <div class="card-body text-center">
+                    <i class="fas fa-eye fa-2x mb-2"></i>
+                    <h4>{{ total_views|default:0 }}</h4>
+                    <p class="mb-0">Total Views</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Events Grid -->
+    {% if events %}
+    <div class="row">
+        {% for event in events %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="event-card card">
+                <div class="position-relative">
+                    {% if event.main_image %}
+                    <img src="{{ event.main_image.url }}"
+                         class="card-img-top"
+                         alt="{{ event.title }}"
+                         style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center"
+                         style="height: 200px;">
+                        <i class="fas fa-calendar-alt fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Status Badge -->
+                    {% if event.status == 'published' %}
+                    <span class="status-badge bg-success text-white">Published</span>
+                    {% elif event.status == 'draft' %}
+                    <span class="status-badge bg-warning text-dark">Draft</span>
+                    {% else %}
+                    <span class="status-badge bg-secondary text-white">{{ event.status|title }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-calendar-check"></i> {{ event.event_date|date:"M j, Y" }} at {{ event.event_time|time:"H:i" }}
+                    </p>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-map-marker-alt"></i> {{ event.venue_name }}
+                    </p>
+
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="fw-bold text-primary">{{ event.tickets_sold }}</div>
+                            <small class="text-muted">Sold</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-success">{{ event.tickets_available }}</div>
+                            <small class="text-muted">Available</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-info">£{{ event.ticket_price }}</div>
+                            <small class="text-muted">Price</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'events:edit_event' event.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        {% if event.status == 'published' %}
+                        <span class="badge bg-success fs-6">Active</span>
+                        {% else %}
+                        <span class="badge bg-warning fs-6">{{ event.status|title }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Create New Event Card -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="create-event-card card h-100">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                    <i class="fas fa-plus-circle fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted mb-3">Create New Event</h5>
+                    <p class="text-muted mb-4">Start organizing your next amazing event</p>
+                    <a href="{% url 'events:create_event' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Event
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Events pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- No Events State -->
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-plus text-muted" style="font-size: 5rem;"></i>
+        <h3 class="mt-4">No events yet</h3>
+        <p class="text-muted mb-4">Create your first event and start selling tickets!</p>
+        <a href="{% url 'events:create_event' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Create Your First Event
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

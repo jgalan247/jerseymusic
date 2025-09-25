@@ -182,9 +182,39 @@ class CheckoutForm(forms.Form):
         widget=forms.CheckboxInput(attrs={
             'class': 'form-check-input'
         }),
-        label='I would like to receive updates about new artworks and artists'
+        label='I would like to receive updates about new events and artists'
     )
-    
+
+    # Account creation for guests
+    create_account = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'id': 'create-account'
+        }),
+        label='Save my details for future purchases (create account)'
+    )
+
+    password1 = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control account-field',
+            'placeholder': 'Choose a password',
+            'id': 'password1'
+        }),
+        label='Password'
+    )
+
+    password2 = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control account-field',
+            'placeholder': 'Confirm password',
+            'id': 'password2'
+        }),
+        label='Confirm Password'
+    )
+
     # Terms acceptance
     accept_terms = forms.BooleanField(
         required=True,
@@ -197,7 +227,10 @@ class CheckoutForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         billing_same = cleaned_data.get('billing_same_as_delivery')
-        
+        create_account = cleaned_data.get('create_account')
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+
         if not billing_same:
             # Validate billing fields if different from delivery
             required_billing = [
@@ -207,7 +240,18 @@ class CheckoutForm(forms.Form):
             for field in required_billing:
                 if not cleaned_data.get(field):
                     self.add_error(field, 'This field is required.')
-        
+
+        # Validate account creation fields
+        if create_account:
+            if not password1:
+                self.add_error('password1', 'Password is required when creating an account.')
+            if not password2:
+                self.add_error('password2', 'Please confirm your password.')
+            if password1 and password2 and password1 != password2:
+                self.add_error('password2', 'Passwords do not match.')
+            if password1 and len(password1) < 8:
+                self.add_error('password1', 'Password must be at least 8 characters long.')
+
         return cleaned_data
 
 

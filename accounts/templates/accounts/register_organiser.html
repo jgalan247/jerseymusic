@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}Become an Event Organiser - Jersey Events{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <i class="fas fa-calendar-alt fa-4x text-je-primary mb-3"></i>
+                <h1 class="h2 mb-3">Become an Event Organiser</h1>
+                <p class="lead text-muted">Start creating and managing amazing events in Jersey</p>
+            </div>
+
+            <div class="card shadow-je-lg border-0">
+                <!-- Benefits Banner -->
+                <div class="card-je-feature">
+                    <div class="card-body">
+                        <h3 class="card-title h5 mb-4">
+                            <i class="fas fa-star me-2"></i>Why organize events with us?
+                        </h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-percentage text-je-island-sand me-3 fa-lg"></i>
+                                    <span>Keep 90% of ticket sales</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-credit-card text-je-island-sand me-3 fa-lg"></i>
+                                    <span>Direct payments via SumUp</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-chart-line text-je-island-sand me-3 fa-lg"></i>
+                                    <span>Real-time analytics dashboard</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-qrcode text-je-island-sand me-3 fa-lg"></i>
+                                    <span>Automatic QR code tickets</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Personal Information -->
+                        <div class="mb-4">
+                            <h4 class="h5 mb-3 text-je-primary">
+                                <i class="fas fa-user me-2"></i>Personal Information
+                            </h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text"
+                                               class="form-control"
+                                               id="id_username"
+                                               name="username"
+                                               placeholder="Username"
+                                               required>
+                                        <label for="id_username">Username</label>
+                                        {% if form.username.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="email"
+                                               class="form-control"
+                                               id="id_email"
+                                               name="email"
+                                               placeholder="name@example.com"
+                                               required>
+                                        <label for="id_email">Email address</label>
+                                        {% if form.email.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text"
+                                               class="form-control"
+                                               id="id_first_name"
+                                               name="first_name"
+                                               placeholder="First name">
+                                        <label for="id_first_name">First Name</label>
+                                        {% if form.first_name.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text"
+                                               class="form-control"
+                                               id="id_last_name"
+                                               name="last_name"
+                                               placeholder="Last name">
+                                        <label for="id_last_name">Last Name</label>
+                                        {% if form.last_name.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organiser Profile -->
+                        <div class="mb-4">
+                            <h4 class="h5 mb-3 text-je-primary">
+                                <i class="fas fa-clipboard-list me-2"></i>Organiser Profile
+                            </h4>
+                            <div class="mb-3">
+                                <label for="id_bio" class="form-label">Organiser Bio</label>
+                                <textarea class="form-control"
+                                          id="id_bio"
+                                          name="bio"
+                                          rows="4"
+                                          placeholder="Tell us about your experience organizing events..."></textarea>
+                                <div class="form-text">Brief description of your event organizing experience</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_event_categories" class="form-label">Event Categories</label>
+                                <select class="form-select"
+                                        id="id_event_categories"
+                                        name="event_categories"
+                                        multiple
+                                        aria-label="Event categories">
+                                    <option value="music">Music & Concerts</option>
+                                    <option value="workshop">Workshops & Learning</option>
+                                    <option value="food">Food & Drink</option>
+                                    <option value="arts">Arts & Culture</option>
+                                    <option value="sports">Sports & Fitness</option>
+                                    <option value="business">Business & Networking</option>
+                                </select>
+                                <div class="form-text">Hold Ctrl/Cmd to select multiple categories</div>
+                            </div>
+
+                            <div class="form-floating">
+                                <input type="text"
+                                       class="form-control"
+                                       id="id_organization"
+                                       name="organization"
+                                       placeholder="Organization name">
+                                <label for="id_organization">Organization/Company (Optional)</label>
+                            </div>
+                        </div>
+
+                        <!-- Security -->
+                        <div class="mb-4">
+                            <h4 class="h5 mb-3 text-je-primary">
+                                <i class="fas fa-shield-alt me-2"></i>Security
+                            </h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="password"
+                                               class="form-control"
+                                               id="id_password1"
+                                               name="password1"
+                                               placeholder="Password"
+                                               required>
+                                        <label for="id_password1">Password</label>
+                                        {% if form.password1.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.password1.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="password"
+                                               class="form-control"
+                                               id="id_password2"
+                                               name="password2"
+                                               placeholder="Confirm password"
+                                               required>
+                                        <label for="id_password2">Confirm Password</label>
+                                        {% if form.password2.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.password2.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-je-primary w-100 btn-lg">
+                            <i class="fas fa-rocket me-2"></i>Create Organiser Account
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center mb-3">
+                        <p class="text-muted mb-3">Already have an account?</p>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-je-outline-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign in here
+                        </a>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="text-muted mb-3">Just want to buy tickets?</p>
+                        <a href="{% url 'accounts:register_customer' %}" class="btn btn-je-secondary">
+                            <i class="fas fa-ticket-alt me-2"></i>Register as Customer
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Subscription Info -->
+                <div class="card-footer bg-light">
+                    <h5 class="mb-3 text-je-primary">
+                        <i class="fas fa-crown me-2"></i>Subscription Plans
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card h-100 border-je-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Basic</h6>
+                                    <p class="card-text small text-muted">Perfect for getting started</p>
+                                    <h4 class="text-je-primary">£10<small class="text-muted">/month</small></h4>
+                                    <ul class="list-unstyled small text-start">
+                                        <li><i class="fas fa-check text-success me-2"></i>Up to 5 events per month</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Basic analytics</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-je-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Pro</h6>
+                                    <p class="card-text small text-muted">For regular organisers</p>
+                                    <h4 class="text-je-primary">£25<small class="text-muted">/month</small></h4>
+                                    <ul class="list-unstyled small text-start">
+                                        <li><i class="fas fa-check text-success me-2"></i>Unlimited events</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Advanced analytics</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Priority support</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border-je-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Enterprise</h6>
+                                    <p class="card-text small text-muted">For large organisations</p>
+                                    <h4 class="text-je-primary">£50<small class="text-muted">/month</small></h4>
+                                    <ul class="list-unstyled small text-start">
+                                        <li><i class="fas fa-check text-success me-2"></i>Everything in Pro</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Custom branding</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Dedicated support</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

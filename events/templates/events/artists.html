@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Event Organisers - Jersey Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .organiser-card {
+        transition: all 0.3s;
+        border-radius: 15px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .organiser-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .organiser-avatar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .stats-grid {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 50px 0;
+        margin-bottom: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="hero-section text-center">
+        <div class="container">
+            <i class="fas fa-users fa-4x mb-4"></i>
+            <h1 class="display-4 fw-bold mb-3">Event Organisers</h1>
+            <p class="lead mb-0">Meet the creative minds behind Jersey's amazing events</p>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mb-5 text-center">
+        <div class="col-md-4">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body">
+                    <i class="fas fa-user-friends fa-3x mb-3"></i>
+                    <h3>{{ organisers.count }}</h3>
+                    <p class="mb-0">Active Organisers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body">
+                    <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                    <h3>{{ total_events|default:0 }}</h3>
+                    <p class="mb-0">Events Created</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-info text-white">
+                <div class="card-body">
+                    <i class="fas fa-ticket-alt fa-3x mb-3"></i>
+                    <h3>{{ total_tickets|default:0 }}</h3>
+                    <p class="mb-0">Tickets Sold</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organisers Grid -->
+    <div class="row">
+        {% for organiser in organisers %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="organiser-card card">
+                <div class="card-body text-center">
+                    <!-- Avatar -->
+                    <div class="organiser-avatar">
+                        {% if organiser.get_full_name %}
+                            {{ organiser.first_name.0|upper }}{{ organiser.last_name.0|upper }}
+                        {% else %}
+                            {{ organiser.username.0|upper }}
+                        {% endif %}
+                    </div>
+
+                    <!-- Name -->
+                    <h5 class="fw-bold mb-2">{{ organiser.get_full_name|default:organiser.username }}</h5>
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-calendar-plus"></i> Organising since {{ organiser.date_joined|date:"Y" }}
+                    </p>
+
+                    <!-- Stats -->
+                    <div class="stats-grid">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="fw-bold text-primary">{{ organiser.events.count|default:0 }}</div>
+                                <small class="text-muted">Events</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="fw-bold text-success">{{ organiser.total_tickets_sold|default:0 }}</div>
+                                <small class="text-muted">Tickets Sold</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="mt-3">
+                        <a href="{% url 'events:events_list' %}?organiser={{ organiser.id }}"
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-calendar-alt"></i> View Events
+                        </a>
+                        {% if organiser.email %}
+                        <a href="mailto:{{ organiser.email }}"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-envelope"></i> Contact
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Categories/Specialties -->
+                    {% if organiser.event_categories %}
+                    <div class="mt-3">
+                        {% for category in organiser.event_categories %}
+                        <span class="badge bg-secondary me-1">{{ category }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-user-plus text-muted" style="font-size: 4rem;"></i>
+            <h3 class="mt-4 text-muted">No organisers yet</h3>
+            <p class="text-muted">Event organisers will appear here once they start creating events.</p>
+            <a href="{% url 'accounts:register_organiser' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus"></i> Become an Organiser
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Call to Action -->
+    {% if organisers %}
+    <div class="text-center mt-5 pt-5 border-top">
+        <h3 class="mb-3">Want to organize events?</h3>
+        <p class="text-muted mb-4">Join our community of event organisers and bring your ideas to life</p>
+        <a href="{% url 'accounts:register_organiser' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket"></i> Start Organising Events
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Organisers pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

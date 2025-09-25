@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - Jersey Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .event-hero {
+        background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4));
+        color: white;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .event-status-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 10px 15px;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .badge-available {
+        background: #28a745;
+        color: white;
+    }
+
+    .badge-limited {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .badge-sold-out {
+        background: #dc3545;
+        color: white;
+    }
+
+    .event-details-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: none;
+    }
+
+    .ticket-purchase-card {
+        position: sticky;
+        top: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: none;
+    }
+
+    .venue-map {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+    }
+
+    .organiser-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+    }
+
+    .qty-input {
+        width: 80px;
+        text-align: center;
+    }
+
+    .btn-ticket {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+    .btn-ticket:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Event Hero Section -->
+    <div class="event-hero position-relative">
+        {% if event.main_image %}
+        <img src="{{ event.main_image.url }}"
+             class="w-100"
+             alt="{{ event.title }}"
+             style="height: 400px; object-fit: cover;">
+        {% elif event.additional_images.exists %}
+        <img src="{{ event.additional_images.first.image.url }}"
+             class="w-100"
+             alt="{{ event.title }}"
+             style="height: 400px; object-fit: cover;">
+        {% else %}
+        <div class="bg-secondary d-flex align-items-center justify-content-center text-white"
+             style="height: 400px;">
+            <div class="text-center">
+                <i class="fas fa-calendar-alt fa-5x mb-3"></i>
+                <h3>{{ event.title }}</h3>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Status Badge -->
+        {% if event.tickets_available > 10 %}
+        <div class="event-status-badge badge-available">
+            <i class="fas fa-check-circle"></i> Tickets Available
+        </div>
+        {% elif event.tickets_available > 0 %}
+        <div class="event-status-badge badge-limited">
+            <i class="fas fa-exclamation-triangle"></i> {{ event.tickets_available }} left
+        </div>
+        {% else %}
+        <div class="event-status-badge badge-sold-out">
+            <i class="fas fa-times-circle"></i> Sold Out
+        </div>
+        {% endif %}
+
+        <!-- Event Title Overlay -->
+        <div class="position-absolute bottom-0 start-0 p-4 w-100"
+             style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+            <h1 class="display-4 fw-bold mb-2">{{ event.title }}</h1>
+            <p class="lead mb-0">
+                <i class="fas fa-calendar-check"></i> {{ event.event_date|date:"l, F j, Y" }} at {{ event.event_time|time:"H:i" }}
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Event Details -->
+        <div class="col-lg-8">
+            <!-- Event Information Card -->
+            <div class="event-details-card card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-info-circle"></i> Event Details</h4>
+                </div>
+                <div class="card-body">
+                    {% if event.description %}
+                    <div class="mb-4">
+                        <h5>About This Event</h5>
+                        <p class="text-muted">{{ event.description|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar-alt text-primary"></i> When</h6>
+                            <p class="mb-3">
+                                <strong>{{ event.event_date|date:"l, F j, Y" }}</strong><br>
+                                {{ event.event_time|time:"H:i" }}
+                            </p>
+
+                            <h6><i class="fas fa-map-marker-alt text-primary"></i> Where</h6>
+                            <p class="mb-3">
+                                <strong>{{ event.venue_name }}</strong><br>
+                                {{ event.venue_address|linebreaks }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-users text-primary"></i> Capacity</h6>
+                            <p class="mb-3">
+                                {{ event.capacity }} people<br>
+                                <span class="text-muted">{{ event.tickets_sold }} tickets sold</span>
+                            </p>
+
+                            {% if event.category %}
+                            <h6><i class="fas fa-tag text-primary"></i> Category</h6>
+                            <p class="mb-3">
+                                <span class="badge bg-secondary fs-6">{{ event.category.name }}</span>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organiser Information -->
+            <div class="organiser-info mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Event Organiser</h5>
+                        <h4 class="mb-0">{{ event.organiser.get_full_name|default:event.organiser.username }}</h4>
+                        {% if event.organiser.email %}
+                        <small class="opacity-75">
+                            <i class="fas fa-envelope"></i> {{ event.organiser.email }}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Images -->
+            {% if event.additional_images.exists %}
+            <div class="event-details-card card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-images"></i> Event Gallery</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for image in event.additional_images.all %}
+                        <div class="col-md-4 mb-3">
+                            <img src="{{ image.image.url }}"
+                                 class="img-fluid rounded"
+                                 alt="Event image"
+                                 style="height: 200px; object-fit: cover; width: 100%;">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Ticket Purchase Card -->
+        <div class="col-lg-4">
+            <div class="ticket-purchase-card card">
+                <div class="card-header bg-dark text-white text-center">
+                    <h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Get Your Tickets</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="display-4 text-primary fw-bold mb-2">
+                            £{{ event.ticket_price }}
+                        </div>
+                        <p class="text-muted mb-0">per ticket</p>
+                    </div>
+
+                    {% if event.status == 'published' and event.tickets_available > 0 %}
+                    <form method="post" action="{% url 'cart:add' event.id %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="quantity" class="form-label fw-bold">Number of tickets:</label>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <button type="button" class="btn btn-outline-secondary" onclick="decreaseQty()">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number"
+                                       name="quantity"
+                                       id="quantity"
+                                       value="1"
+                                       min="1"
+                                       max="{{ event.tickets_available }}"
+                                       class="form-control mx-2 qty-input">
+                                <button type="button" class="btn btn-outline-secondary" onclick="increaseQty()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Max {{ event.tickets_available }} tickets</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <span id="subtotal" class="fw-bold">£{{ event.ticket_price }}</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-ticket btn-primary btn-lg w-100 mb-3">
+                            <i class="fas fa-shopping-cart"></i> Buy Tickets
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt"></i> Secure payment<br>
+                            <i class="fas fa-mobile-alt"></i> Instant digital tickets
+                        </small>
+                    </div>
+
+                    {% elif event.tickets_available <= 0 %}
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-times-circle fa-2x mb-2"></i>
+                        <h5>Sold Out</h5>
+                        <p class="mb-0">All tickets for this event have been sold.</p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-pause-circle fa-2x mb-2"></i>
+                        <h5>Currently Unavailable</h5>
+                        <p class="mb-0">This event is not currently available for booking.</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Event Stats -->
+                    <div class="border-top pt-3 mt-3">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="fw-bold text-primary">{{ event.tickets_sold }}</div>
+                                <small class="text-muted">Sold</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="fw-bold text-success">{{ event.tickets_available }}</div>
+                                <small class="text-muted">Available</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share Event -->
+            <div class="card mt-4">
+                <div class="card-body text-center">
+                    <h6 class="mb-3">Share This Event</h6>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-info btn-sm">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-success btn-sm">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-link"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quantity Control Scripts -->
+<script>
+function updateSubtotal() {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const price = {{ event.ticket_price }};
+    const subtotal = quantity * price;
+    document.getElementById('subtotal').textContent = '£' + subtotal.toFixed(2);
+}
+
+function decreaseQty() {
+    const qtyInput = document.getElementById('quantity');
+    const currentValue = parseInt(qtyInput.value);
+    if (currentValue > 1) {
+        qtyInput.value = currentValue - 1;
+        updateSubtotal();
+    }
+}
+
+function increaseQty() {
+    const qtyInput = document.getElementById('quantity');
+    const currentValue = parseInt(qtyInput.value);
+    const maxValue = parseInt(qtyInput.max);
+    if (currentValue < maxValue) {
+        qtyInput.value = currentValue + 1;
+        updateSubtotal();
+    }
+}
+
+document.getElementById('quantity').addEventListener('input', updateSubtotal);
+</script>
+{% endblock %}

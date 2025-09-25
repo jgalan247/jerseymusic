@@ -61,13 +61,13 @@ class TestCompletePurchaseFlow(TransactionTestCase):
         """Test complete flow: browse → add to cart → register → checkout → payment."""
         
         # 1. Browse artwork as guest
-        response = self.client.get(reverse('artworks:gallery'))
+        response = self.client.get(reverse('events:gallery'))
         assert response.status_code == 200
         assert self.artwork.title in response.content.decode()
         
         # 2. View artwork detail
         response = self.client.get(
-            reverse('artworks:artwork_detail', kwargs={'pk': self.artwork.pk})
+            reverse('events:artwork_detail', kwargs={'pk': self.artwork.pk})
         )
         assert response.status_code == 200
         

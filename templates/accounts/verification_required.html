@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Verification Required - Jersey Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-hero {
+        background: linear-gradient(135deg, var(--je-warning) 0%, #f97316 100%);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+    }
+
+    .verification-card {
+        background: white;
+        border-radius: var(--je-radius-lg);
+        box-shadow: var(--je-shadow-xl);
+        padding: 3rem;
+        margin-top: -2rem;
+        position: relative;
+        z-index: 10;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .verification-icon {
+        font-size: 4rem;
+        color: var(--je-warning);
+        margin-bottom: 2rem;
+    }
+
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+
+    .benefit-card {
+        text-align: center;
+        padding: 2rem;
+        background: var(--je-gray-50);
+        border-radius: var(--je-radius-lg);
+        border: 2px solid transparent;
+        transition: var(--je-transition-smooth);
+    }
+
+    .benefit-card:hover {
+        border-color: var(--je-primary);
+        transform: translateY(-4px);
+        box-shadow: var(--je-shadow-lg);
+    }
+
+    .benefit-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--je-primary);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 2rem 0;
+    }
+
+    .btn-verify {
+        background: var(--je-gradient-primary);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--je-radius-lg);
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: var(--je-transition-smooth);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-verify:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--je-shadow-lg);
+        color: white;
+        text-decoration: none;
+    }
+
+    .security-notice {
+        background: var(--je-gray-50);
+        border-left: 4px solid var(--je-info);
+        padding: 1.5rem;
+        border-radius: var(--je-radius-md);
+        margin: 2rem 0;
+    }
+
+    @media (max-width: 768px) {
+        .verification-hero {
+            padding: 2rem 0;
+        }
+
+        .verification-card {
+            padding: 2rem;
+            margin: 1rem;
+        }
+
+        .benefits-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-verify {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="verification-hero">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-envelope-open-text me-3"></i>Email Verification Required
+        </h1>
+        <p class="lead mb-0">
+            Verify your email to unlock all Jersey Events features
+        </p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container pb-5">
+    <div class="verification-card">
+        <div class="text-center">
+            <div class="verification-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+
+            <h2 class="fw-bold mb-3">Secure Your Account</h2>
+
+            <p class="text-muted mb-4">
+                To protect your account and enable all features, we need to verify that
+                <strong>{{ user.email }}</strong> is your email address.
+            </p>
+
+            <div class="action-buttons">
+                <a href="{% url 'accounts:resend_verification' %}" class="btn-verify">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Verification Email
+                </a>
+
+                <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="security-notice">
+            <h6 class="fw-bold mb-2">
+                <i class="fas fa-info-circle me-2 text-je-info"></i>
+                Why do we require email verification?
+            </h6>
+            <ul class="mb-0 small">
+                <li>Protect your account from unauthorized access</li>
+                <li>Enable order confirmations and ticket delivery</li>
+                <li>Ensure you receive important event updates</li>
+                <li>Comply with security and data protection standards</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Benefits Section -->
+    {% if user.user_type == 'artist' %}
+    <div class="benefits-grid">
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="fas fa-calendar-plus"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Create Events</h5>
+            <p class="text-muted mb-0">Set up and manage your events with our powerful tools</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Track Performance</h5>
+            <p class="text-muted mb-0">Monitor ticket sales and event analytics in real-time</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Manage Attendees</h5>
+            <p class="text-muted mb-0">Handle ticket sales, refunds, and customer communications</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="benefits-grid">
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Buy Tickets</h5>
+            <p class="text-muted mb-0">Purchase tickets instantly with secure checkout</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Save Favorites</h5>
+            <p class="text-muted mb-0">Build your wishlist and get notified about new events</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="fas fa-history"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Order History</h5>
+            <p class="text-muted mb-0">View your tickets and manage your event attendance</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh page every 30 seconds to check for verification
+    setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+
+    // Add subtle animation to cards
+    const cards = document.querySelectorAll('.benefit-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 200);
+    });
+});
+</script>
+{% endblock %}

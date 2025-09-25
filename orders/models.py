@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from accounts.models import User
-from artworks.models import Artwork
+from events.models import Event
 from decimal import Decimal
 import uuid
 
@@ -117,7 +117,7 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_number:
             # Generate unique order number
-            prefix = "JA"  # Jersey Artwork
+            prefix = "JE"  # Jersey Events
             unique_id = str(uuid.uuid4().hex)[:8].upper()
             self.order_number = f"{prefix}-{unique_id}"
         super().save(*args, **kwargs)
@@ -167,16 +167,17 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
         related_name='items'
     )
-    artwork = models.ForeignKey(
-        Artwork,
+    event = models.ForeignKey(
+        Event,
         on_delete=models.SET_NULL,
         null=True
     )
     
-    # Store artwork details at time of order
-    artwork_title = models.CharField(max_length=200)
-    artwork_artist = models.CharField(max_length=100)
-    artwork_type = models.CharField(max_length=20)
+    # Store event details at time of order
+    event_title = models.CharField(max_length=200)
+    event_organiser = models.CharField(max_length=100)
+    event_date = models.DateField(null=True)
+    venue_name = models.CharField(max_length=200)
     
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -195,17 +196,18 @@ class OrderItem(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f"{self.quantity}x {self.artwork_title}"
+        return f"{self.quantity}x {self.event_title}"
 
     def save(self, *args, **kwargs):
         # Calculate total
         self.total = Decimal(str(self.quantity)) * self.price
         
         # Store artwork details for historical record
-        if self.artwork and not self.artwork_title:
-            self.artwork_title = self.artwork.title
-            self.artwork_artist = self.artwork.artist.get_full_name()
-            self.artwork_type = self.artwork.artwork_type
+        if self.event and not self.event_title:
+            self.event_title = self.event.title
+            self.event_organiser = self.event.organiser.get_full_name()
+            self.event_date = self.event.event_date
+            self.venue_name = self.event.venue_name
             
         super().save(*args, **kwargs)
 

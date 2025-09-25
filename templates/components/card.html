@@ -1,0 +1,62 @@
+<!-- Reusable Card Component -->
+<div class="card-standard {% if extra_classes %}{{ extra_classes }}{% endif %}">
+    {% if image %}
+        <div class="relative mb-4">
+            <img src="{{ image.url }}" alt="{{ image.alt|default:title }}" class="w-full h-48 object-cover rounded-lg">
+            {% if badges %}
+                {% for badge in badges %}
+                    <span class="absolute {{ badge.position|default:'top-3 right-3' }} {{ badge.classes }}">
+                        {{ badge.text }}
+                    </span>
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if title %}
+        <h3 class="heading-4 mb-2">{{ title }}</h3>
+    {% endif %}
+
+    {% if subtitle %}
+        <p class="text-sm text-gray-600 mb-2">{{ subtitle }}</p>
+    {% endif %}
+
+    {% if description %}
+        <p class="text-standard mb-4">{{ description }}</p>
+    {% endif %}
+
+    {% if meta_info %}
+        <div class="text-sm text-gray-600 mb-4 space-y-1">
+            {% for info in meta_info %}
+                <p><i class="{{ info.icon }} mr-2"></i>{{ info.text }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if tags %}
+        <div class="flex flex-wrap gap-2 mb-4">
+            {% for tag in tags %}
+                <span class="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full">{{ tag }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if actions %}
+        <div class="flex justify-between items-center">
+            {% if price %}
+                <div>
+                    <span class="text-xl font-semibold text-blue-600">{{ price }}</span>
+                    {% if price_subtitle %}<small class="text-gray-500 block text-xs">{{ price_subtitle }}</small>{% endif %}
+                </div>
+            {% endif %}
+            <div class="flex gap-2">
+                {% for action in actions %}
+                    <a href="{{ action.url }}" class="{% if action.primary %}btn-primary{% else %}btn-secondary{% endif %} text-sm">
+                        {% if action.icon %}<i class="{{ action.icon }} mr-1"></i>{% endif %}
+                        {{ action.text }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>

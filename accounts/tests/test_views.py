@@ -149,7 +149,7 @@ class LoginViewTest(TestCase):
         })
         
         # Check redirect (customer goes to gallery)
-        self.assertRedirects(response, reverse('artworks:gallery'))
+        self.assertRedirects(response, reverse('events:gallery'))
         
         # Check user is logged in
         self.assertTrue(response.wsgi_request.user.is_authenticated)
@@ -188,7 +188,7 @@ class LoginViewTest(TestCase):
             'password': 'testpass123'
         })
     
-        self.assertRedirects(response, reverse('artworks:my_artworks'))
+        self.assertRedirects(response, reverse('events:my_artworks'))
     
     def test_next_parameter_redirect(self):
         """Test redirect to 'next' parameter after login."""

@@ -1,0 +1,37 @@
+
+{% comment %}
+Button Component
+Usage: {% include 'components/button.html' with variant='primary' text='Click Me' size='md' %}
+Variants: primary, secondary, outline, danger
+Sizes: sm, md, lg
+{% endcomment %}
+
+{% load widget_tweaks %}
+
+{% if size == 'sm' %}
+  {% with size_classes='px-3 py-1.5 text-sm' %}
+{% elif size == 'lg' %}
+  {% with size_classes='px-6 py-3 text-lg' %}
+{% else %}
+  {% with size_classes='px-5 py-2.5 text-base' %}
+{% endif %}
+
+{% if variant == 'primary' %}
+  <button class="{{ size_classes }} bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ extra_classes }}" {{ attrs|safe }}>
+    {{ text }}
+  </button>
+{% elif variant == 'secondary' %}
+  <button class="{{ size_classes }} bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition-colors duration-150 {{ extra_classes }}" {{ attrs|safe }}>
+    {{ text }}
+  </button>
+{% elif variant == 'outline' %}
+  <button class="{{ size_classes }} border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-medium rounded-md transition-colors duration-150 {{ extra_classes }}" {{ attrs|safe }}>
+    {{ text }}
+  </button>
+{% elif variant == 'danger' %}
+  <button class="{{ size_classes }} bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors duration-150 {{ extra_classes }}" {{ attrs|safe }}>
+    {{ text }}
+  </button>
+{% endif %}
+
+{% endwith %}

@@ -1,0 +1,45 @@
+JERSEY EVENTS - Welcome! Your Account is Verified
+================================================
+
+Hi {{ user.first_name|default:user.username }},
+
+✅ EMAIL VERIFIED SUCCESSFULLY!
+
+Congratulations! Your email has been verified and your Jersey Events account is now fully activated. You're all set to {% if user.user_type == 'artist' %}start creating incredible events{% else %}discover amazing experiences{% endif %} in the beautiful Channel Islands.
+
+{% if user.user_type == 'artist' %}
+NEXT STEPS FOR EVENT ORGANISERS:
+--------------------------------
+🎯 Access Your Dashboard: {{ dashboard_url }}
+
+WHAT YOU CAN NOW DO:
+📅 Create Events - Start creating and managing your events with our easy-to-use tools
+💳 Sell Tickets - Set up secure ticket sales with instant payment processing
+📊 Track Analytics - Monitor your event performance with detailed reports
+
+{% else %}
+NEXT STEPS FOR EVENT-GOERS:
+---------------------------
+🎟️ Browse Events: {{ browse_events_url }}
+
+WHAT YOU CAN NOW DO:
+🎫 Buy Tickets - Purchase tickets instantly with secure payment processing
+❤️ Save Favorites - Create your wishlist and never miss events you're interested in
+🔔 Get Notified - Receive updates about new events and exclusive offers
+
+{% endif %}
+NEED HELP?
+----------
+If you have any questions or need help getting started, don't hesitate to reach out to our support team at events_contact@coderra.je.
+
+Welcome to the community, and thank you for choosing Jersey Events!
+
+Best regards,
+The Jersey Events Team
+
+---
+Jersey Events - Connecting Jersey's Vibrant Community
+Email: events_contact@coderra.je | Phone: +44 1534 123456
+Jersey, Channel Islands
+
+© 2025 Jersey Events. All rights reserved.

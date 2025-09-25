@@ -19,43 +19,16 @@ from django.db.models import Sum, Q, F, DecimalField, ExpressionWrapper
 
 from .forms import (
     CustomerRegistrationForm, ArtistRegistrationForm, ResendVerificationForm,
-    CustomUserCreationForm, LoginForm, CustomerProfileForm, 
+    CustomUserCreationForm, LoginForm, CustomerProfileForm,
     ArtistProfileForm, UserUpdateForm
 )
-from .models import User, CustomerProfile, ArtistProfile
-from .tokens import email_verification_token
+from .models import User, CustomerProfile, ArtistProfile, EmailVerificationToken
+from .email_utils import send_verification_email, send_welcome_email, resend_verification_email
 
 from django.conf import settings
 
 
-def send_verification_email(request, user):
-    """Helper function to send verification email"""
-    current_site = get_current_site(request)
-    subject = 'Verify your email - Jersey Artwork'
-    
-    # Generate token and uid
-    token = email_verification_token.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    
-    # Create verification link
-    verification_link = f"http://{current_site.domain}{reverse('accounts:verify_email', kwargs={'uidb64': uid, 'token': token})}"
-    
-    # Render email content
-    message = render_to_string('accounts/email/verification_email.html', {
-        'user': user,
-        'domain': current_site.domain,
-        'verification_link': verification_link,
-    })
-    
-    # Send email
-    send_mail(
-        subject,
-        message,
-        'noreply@jerseyartwork.je',
-        [user.email],
-        html_message=message,
-        fail_silently=False,
-    )
+# Note: send_verification_email function now imported from email_utils
 
 
 def register_customer(request):
@@ -82,35 +55,35 @@ def register_customer(request):
     return render(request, 'accounts/register_customer.html', {'form': form})
 
 
-def register_artist(request):
-    """Artist registration view"""
+def register_organiser(request):
+    """Event organiser registration view"""
     if request.user.is_authenticated:
         return redirect('/')
-    
+
     if request.method == 'POST':
         form = ArtistRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            
+
             # Send verification email
             send_verification_email(request, user)
-            
+
             messages.success(
-                request, 
+                request,
                 'Registration successful! Please check your email to verify your account. '
-                'After verification, you can choose a subscription plan to start selling.'
+                'After verification, you can choose a subscription plan to start creating events.'
             )
             return redirect('accounts:login')
     else:
         form = ArtistRegistrationForm()
-    
-    return render(request, 'accounts/register_artist.html', {'form': form})
+
+    return render(request, 'accounts/register_organiser.html', {'form': form})
 
 
 def login_view(request):
     """User login view"""
     if request.user.is_authenticated:
-        return redirect('artworks:gallery')
+        return redirect('events:gallery')
     
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -140,8 +113,8 @@ def login_view(request):
             
             # Redirect based on user type
             if user.user_type == 'artist':
-                return redirect('artworks:my_artworks')
-            return redirect('artworks:gallery')
+                return redirect('events:my_events')
+            return redirect('events:events_list')
         else:
             messages.error(request, 'Invalid email or password.')
     
@@ -199,39 +172,56 @@ def profile_view(request):
     return render(request, 'accounts/profile.html', context)
 
 
-def verify_email(request, uidb64, token):
+def verify_email(request, token):
     """Verify email address using token from email link"""
     try:
-        # Decode the user id
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-    
-    if user is not None and email_verification_token.check_token(user, token):
+        # Get the token object
+        verification_token = EmailVerificationToken.objects.get(token=token)
+
+        if not verification_token.is_valid:
+            if verification_token.is_expired:
+                messages.error(
+                    request,
+                    'Verification link has expired. Please request a new one.'
+                )
+            else:
+                messages.error(
+                    request,
+                    'This verification link has already been used.'
+                )
+            return redirect('accounts:resend_verification')
+
         # Token is valid, verify the email
+        user = verification_token.user
         user.email_verified = True
         user.save()
-        
+
+        # Mark token as used
+        verification_token.mark_as_used()
+
+        # Send welcome email
+        send_welcome_email(user, request)
+
         messages.success(
-            request, 
-            'Your email has been verified successfully! You can now log in.'
+            request,
+            'Your email has been verified successfully! Welcome to Jersey Events.'
         )
-        
+
         # Log the user in automatically
         login(request, user)
-        
+
         # Redirect based on user type
         if user.user_type == 'artist':
-            # Check if artist has subscription
+            # Check if organiser has subscription
             if not hasattr(user, 'subscription') or not user.subscription.is_active:
                 return redirect('subscriptions:plans')
-            return redirect('accounts:artist_dashboard')
+            return redirect('accounts:organiser_dashboard')
         else:
-            return redirect('/')
-    else:
+            return redirect('events:events_list')
+
+    except EmailVerificationToken.DoesNotExist:
         messages.error(
-            request, 
+            request,
             'Invalid verification link. The link may have expired or been used already.'
         )
         return redirect('accounts:resend_verification')
@@ -243,48 +233,63 @@ def resend_verification(request):
         form = ResendVerificationForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            user = User.objects.get(email=email)
-            
-            # Send new verification email
-            send_verification_email(request, user)
-            
-            messages.success(
-                request,
-                f'Verification email sent to {email}. Please check your inbox.'
-            )
-            return redirect('accounts:login')
+            try:
+                user = User.objects.get(email=email)
+
+                if user.email_verified:
+                    messages.info(
+                        request,
+                        'This email address is already verified. You can log in normally.'
+                    )
+                    return redirect('accounts:login')
+
+                # Use new resend function with rate limiting
+                success, message = resend_verification_email(user, request)
+
+                if success:
+                    messages.success(request, message)
+                    return redirect('accounts:login')
+                else:
+                    messages.error(request, message)
+
+            except User.DoesNotExist:
+                # Don't reveal if email exists or not
+                messages.error(
+                    request,
+                    'If an account with this email exists, a verification email has been sent.'
+                )
     else:
         form = ResendVerificationForm()
-    
+
     return render(request, 'accounts/resend_verification.html', {'form': form})
 
 
 
 @login_required
-def artist_dashboard(request):
-    """Artist dashboard with subscription info."""
+def organiser_dashboard(request):
+    """Event organiser dashboard with subscription info."""
     if request.user.user_type != 'artist':
-        messages.error(request, 'Access denied. Artists only.')
+        messages.error(request, 'Access denied. Event organisers only.')
         return redirect('/')
-    
+
     # Check subscription status
     subscription = getattr(request.user, 'subscription', None)
-    
+
     context = {
         'user': request.user,
         'subscription': subscription,
         'subscription_price': settings.SUBSCRIPTION_CONFIG['MONTHLY_PRICE'],
-        'can_upload': subscription and subscription.can_upload_artwork if subscription else False,
-        'artwork_count': request.user.artworks.filter(status='active').count(),
-        'max_artworks': settings.SUBSCRIPTION_CONFIG['FEATURES']['MAX_ARTWORKS'],
+        'can_create_events': subscription and subscription.can_upload_artwork if subscription else False,
+        'event_count': request.user.events.filter(status='published').count(),
+        'max_events': settings.SUBSCRIPTION_CONFIG['FEATURES']['MAX_ARTWORKS'],
         'recent_orders': Order.objects.filter(
-            items__artwork__artist=request.user
+            items__event__organiser=request.user
         ).distinct().order_by('-created_at')[:10]
     }
-    
+
     # No commission calculation needed - subscription model
-    
-    return render(request, 'accounts/artist_dashboard.html', context)
+
+    return render(request, 'accounts/organiser_dashboard.html', context)
 
 class ArtistProfileDetailView(DetailView):
     """Public artist profile view"""

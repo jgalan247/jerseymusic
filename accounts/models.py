@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
+import uuid
+from django.utils import timezone
+from datetime import timedelta
 
 class User(AbstractUser):
     """Extended user model following Django conventions."""
@@ -87,11 +90,68 @@ class ArtistProfile(Profile):
         return reverse('accounts:artist_profile', kwargs={'pk': self.pk})
     
     @property
-    def total_artworks(self):
-        """Return total number of artworks by this artist."""
-        return self.user.artworks.count()
+    def total_events(self):
+        """Return total number of events by this organiser."""
+        return self.user.events.count()
     
     @property
-    def active_artworks(self):
-        """Return number of active artworks."""
-        return self.user.artworks.filter(status='active').count()
+    def active_events(self):
+        """Return number of published events."""
+        return self.user.events.filter(status='published').count()
+
+
+class EmailVerificationToken(models.Model):
+    """Token model for email verification."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='verification_tokens'
+    )
+    token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['expires_at']),
+        ]
+
+    def __str__(self):
+        return f"Verification token for {self.user.email}"
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            # Set expiration to 24 hours from creation
+            self.expires_at = timezone.now() + timedelta(hours=24)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        """Check if token has expired."""
+        return timezone.now() > self.expires_at
+
+    @property
+    def is_valid(self):
+        """Check if token is valid (not used and not expired)."""
+        return not self.is_used and not self.is_expired
+
+    def mark_as_used(self):
+        """Mark token as used and save."""
+        self.is_used = True
+        self.save()
+
+    @classmethod
+    def create_for_user(cls, user):
+        """Create a new verification token for user and invalidate old ones."""
+        # Invalidate existing tokens for this user
+        cls.objects.filter(user=user, is_used=False).update(is_used=True)
+
+        # Create new token
+        return cls.objects.create(user=user)
