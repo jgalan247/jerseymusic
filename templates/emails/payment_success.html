@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Jersey Events</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+        <!-- Success Header -->
+        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px 20px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 28px;">
+                ✅ Payment Successful!
+            </h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
+                Your tickets are confirmed
+            </p>
+        </div>
+
+        <p>Hello {{ order.delivery_first_name }},</p>
+
+        <p>Thank you for your payment! Your order has been confirmed and your tickets are ready.</p>
+
+        <!-- Order Summary -->
+        <div style="background-color: #fff; padding: 20px; border-radius: 5px; margin: 20px 0; border: 1px solid #dee2e6;">
+            <h2 style="margin-top: 0; color: #28a745; font-size: 20px;">Order Summary</h2>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 10px 0; color: #666;">Order Number:</td>
+                    <td style="padding: 10px 0; text-align: right; font-weight: bold;">{{ order.order_number }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 10px 0; color: #666;">Order Date:</td>
+                    <td style="padding: 10px 0; text-align: right;">{{ order.created_at|date:"F j, Y" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 10px 0; color: #666;">Payment Method:</td>
+                    <td style="padding: 10px 0; text-align: right;">{{ order.payment_method|default:"Card Payment" }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 10px 0; color: #666;">Transaction ID:</td>
+                    <td style="padding: 10px 0; text-align: right; font-family: monospace; font-size: 12px;">{{ order.transaction_id|default:"N/A" }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 0; color: #666; font-size: 18px; font-weight: bold;">Total Paid:</td>
+                    <td style="padding: 10px 0; text-align: right; font-size: 20px; font-weight: bold; color: #28a745;">£{{ order.total }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Order Items with Tier Information -->
+        {% if order.items.all %}
+        <div style="background-color: #fff; padding: 20px; border-radius: 5px; margin: 20px 0; border: 1px solid #dee2e6;">
+            <h3 style="margin-top: 0; color: #0066cc; font-size: 18px;">Your Tickets</h3>
+
+            {% for item in order.items.all %}
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #28a745;">
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">
+                    {{ item.event.title }}
+                </div>
+
+                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                    📅 {{ item.event.event_date|date:"l, F j, Y" }} at {{ item.event.event_time|time:"g:i A" }}<br>
+                    📍 {{ item.event.venue_name }}<br>
+                    📌 {{ item.event.venue_address }}
+                </div>
+
+                <table style="width: 100%; font-size: 14px; margin-top: 10px;">
+                    <tr>
+                        <td style="padding: 5px 0; color: #666;">Quantity:</td>
+                        <td style="padding: 5px 0; text-align: right;">{{ item.quantity }} ticket{{ item.quantity|pluralize }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #666;">Price per ticket:</td>
+                        <td style="padding: 5px 0; text-align: right;">£{{ item.price }}</td>
+                    </tr>
+                    {% if item.ticket_tier %}
+                    <tr>
+                        <td style="padding: 5px 0; color: #666;">Ticket Type:</td>
+                        <td style="padding: 5px 0; text-align: right;">
+                            <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                                {{ item.ticket_tier.get_tier_type_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    <tr style="border-top: 1px solid #dee2e6;">
+                        <td style="padding: 8px 0; font-weight: bold;">Subtotal:</td>
+                        <td style="padding: 8px 0; text-align: right; font-weight: bold;">£{{ item.total }}</td>
+                    </tr>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- What's Next -->
+        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%); padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #0066cc;">
+            <h3 style="margin-top: 0; color: #0066cc; font-size: 18px;">📱 What's Next?</h3>
+            <ol style="margin: 10px 0; padding-left: 20px; color: #333;">
+                <li style="margin: 8px 0;">Check your email for your ticket(s) with QR codes</li>
+                <li style="margin: 8px 0;">Save the tickets to your phone or print them out</li>
+                <li style="margin: 8px 0;">Arrive 15 minutes early to the venue</li>
+                <li style="margin: 8px 0;">Present your QR code at the entrance</li>
+                <li style="margin: 8px 0;">Enjoy your event! 🎉</li>
+            </ol>
+        </div>
+
+        <!-- Important Notes -->
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <h4 style="margin-top: 0; color: #856404;">⚠️ Important Information</h4>
+            <ul style="margin: 10px 0; padding-left: 20px; color: #856404; font-size: 14px;">
+                <li>Each QR code is unique and can only be used once</li>
+                <li>Do not share your QR codes with others</li>
+                <li>If you need a refund, please review our refund policy</li>
+                <li>Contact support if you don't receive your tickets within 15 minutes</li>
+            </ul>
+        </div>
+
+        <!-- Receipt Information -->
+        <div style="background-color: #fff; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #dee2e6;">
+            <h4 style="margin-top: 0; color: #666; font-size: 14px;">📧 Receipt Information</h4>
+            <p style="margin: 5px 0; font-size: 14px; color: #666;">
+                This email serves as your receipt. Please keep it for your records.<br>
+                A copy has been sent to: <strong>{{ order.email }}</strong>
+            </p>
+        </div>
+
+        <!-- Support CTA -->
+        <div style="text-align: center; margin: 30px 0;">
+            <p style="color: #666; margin-bottom: 15px;">
+                Have questions about your order?
+            </p>
+            <a href="mailto:support@jerseyevents.co.uk" style="background-color: #0066cc; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
+                Contact Support
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center;">
+            <p style="margin: 5px 0;"><strong>Jersey Events</strong></p>
+            <p style="margin: 5px 0;">Your trusted ticketing platform for Jersey</p>
+            <p style="margin: 5px 0;">
+                Jersey, Channel Islands<br>
+                <a href="mailto:support@jerseyevents.co.uk" style="color: #0066cc;">support@jerseyevents.co.uk</a>
+            </p>
+            <p style="margin: 15px 0 5px 0; font-size: 11px; color: #999;">
+                © 2025 Jersey Events. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -24,35 +24,6 @@
         z-index: 10;
     }
 
-    .contact-info-item {
-        display: flex;
-        align-items: center;
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--je-gray-100);
-        transition: var(--je-transition-smooth);
-    }
-
-    .contact-info-item:last-child {
-        border-bottom: none;
-    }
-
-    .contact-info-item:hover {
-        background: var(--je-gray-50);
-    }
-
-    .contact-icon {
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(135deg, var(--je-primary) 0%, var(--je-primary-light) 100%);
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 1rem;
-        font-size: 1.25rem;
-    }
-
     .form-section {
         background: white;
         padding: 2rem;
@@ -170,12 +141,15 @@
         <div class="contact-card">
             <div class="row g-0">
                 <!-- Contact Form -->
-                <div class="col-lg-8">
+                <div class="col-lg-12">
                     <div class="form-section">
-                        <h3 class="fw-bold mb-4">
+                        <h3 class="fw-bold mb-4 text-center">
                             <i class="fas fa-envelope text-je-primary me-2"></i>
                             Send us a Message
                         </h3>
+                        <p class="text-center text-muted mb-4">
+                            Fill out the form below and we'll get back to you within 24 hours
+                        </p>
 
                         <form method="post" id="contactForm">
                             {% csrf_token %}
@@ -249,68 +223,6 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-
-                <!-- Contact Information -->
-                <div class="col-lg-4">
-                    <div class="h-100 d-flex flex-column">
-                        <div class="p-4 bg-je-primary text-white">
-                            <h4 class="fw-bold mb-3">Get in Touch</h4>
-                            <p class="mb-0">
-                                We're here to help with any questions about events, tickets, or partnerships.
-                            </p>
-                        </div>
-
-                        <div class="flex-grow-1">
-                            <!-- Email -->
-                            <div class="contact-info-item">
-                                <div class="contact-icon">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Email</h6>
-                                    <a href="mailto:{{ contact_email }}" class="text-decoration-none">
-                                        {{ contact_email }}
-                                    </a>
-                                </div>
-                            </div>
-
-                            <!-- Phone -->
-                            <div class="contact-info-item">
-                                <div class="contact-icon">
-                                    <i class="fas fa-phone"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Phone</h6>
-                                    <a href="tel:{{ contact_phone }}" class="text-decoration-none">
-                                        {{ contact_phone }}
-                                    </a>
-                                </div>
-                            </div>
-
-                            <!-- Address -->
-                            <div class="contact-info-item">
-                                <div class="contact-icon">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Location</h6>
-                                    <span>{{ contact_address }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Response Time -->
-                            <div class="contact-info-item">
-                                <div class="contact-icon">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Response Time</h6>
-                                    <span>Within 24 hours</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

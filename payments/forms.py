@@ -1,19 +1,22 @@
 from django import forms
 from django.core.validators import RegexValidator
 from orders.models import Order
+from orders.validators import validate_order_email, validate_order_phone, TermsAcceptanceValidator
 
 
 class CheckoutForm(forms.Form):
-    """Form for guest and registered checkout."""
-    
+    """Form for guest and registered checkout for digital tickets."""
+
     # Customer information
     email = forms.EmailField(
         label='Email Address',
+        validators=[validate_order_email],
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'your@email.com',
             'required': True
-        })
+        }),
+        help_text='Your tickets will be sent to this email address'
     )
     first_name = forms.CharField(
         max_length=50,
@@ -33,136 +36,11 @@ class CheckoutForm(forms.Form):
     )
     phone = forms.CharField(
         max_length=20,
+        validators=[validate_order_phone],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': '+44 7700 900000',
             'required': True
-        })
-    )
-    
-    # Delivery address
-    delivery_address_line_1 = forms.CharField(
-        max_length=255,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Address Line 1',
-            'required': True
-        })
-    )
-    delivery_address_line_2 = forms.CharField(
-        max_length=255,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Address Line 2 (Optional)'
-        })
-    )
-    delivery_parish = forms.ChoiceField(
-        choices=[
-            ('', '-- Select Parish --'),
-            ('st_helier', 'St. Helier'),
-            ('st_brelade', 'St. Brelade'),
-            ('st_clement', 'St. Clement'),
-            ('st_john', 'St. John'),
-            ('st_lawrence', 'St. Lawrence'),
-            ('st_martin', 'St. Martin'),
-            ('st_ouen', 'St. Ouen'),
-            ('st_peter', 'St. Peter'),
-            ('st_saviour', 'St. Saviour'),
-            ('trinity', 'Trinity'),
-            ('st_mary', 'St. Mary'),
-            ('grouville', 'Grouville'),
-        ],
-        widget=forms.Select(attrs={
-            'class': 'form-control',
-            'required': True
-        })
-    )
-    delivery_postcode = forms.CharField(
-        max_length=10,
-        validators=[
-            RegexValidator(
-                regex=r'^JE\d{1,2}\s?\d[A-Z]{2}$',
-                message='Enter a valid Jersey postcode (e.g., JE2 3AB)'
-            )
-        ],
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'JE2 3AB',
-            'required': True
-        })
-    )
-    
-    # Delivery method
-    delivery_method = forms.ChoiceField(
-        choices=[
-            ('standard', 'Standard Delivery (£5.00)'),
-            ('express', 'Express Delivery (£15.00)'),
-            ('collection', 'Collection (Free)'),
-        ],
-        initial='standard',
-        widget=forms.RadioSelect(attrs={
-            'class': 'form-check-input'
-        })
-    )
-    
-    # Billing address
-    billing_same_as_delivery = forms.BooleanField(
-        initial=True,
-        required=False,
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input',
-            'id': 'billing-same'
-        })
-    )
-    
-    # Optional billing fields (shown only if different from delivery)
-    billing_first_name = forms.CharField(
-        max_length=50,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control billing-field',
-            'placeholder': 'First Name'
-        })
-    )
-    billing_last_name = forms.CharField(
-        max_length=50,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control billing-field',
-            'placeholder': 'Last Name'
-        })
-    )
-    billing_address_line_1 = forms.CharField(
-        max_length=255,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control billing-field',
-            'placeholder': 'Billing Address Line 1'
-        })
-    )
-    billing_address_line_2 = forms.CharField(
-        max_length=255,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control billing-field',
-            'placeholder': 'Billing Address Line 2'
-        })
-    )
-    billing_parish = forms.CharField(
-        max_length=50,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control billing-field',
-            'placeholder': 'Parish/City'
-        })
-    )
-    billing_postcode = forms.CharField(
-        max_length=10,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control billing-field',
-            'placeholder': 'Postcode'
         })
     )
     
@@ -218,28 +96,21 @@ class CheckoutForm(forms.Form):
     # Terms acceptance
     accept_terms = forms.BooleanField(
         required=True,
+        validators=[TermsAcceptanceValidator()],
         widget=forms.CheckboxInput(attrs={
             'class': 'form-check-input'
         }),
-        label='I agree to the Terms & Conditions and Privacy Policy'
+        label='I agree to the Terms & Conditions and Privacy Policy',
+        error_messages={
+            'required': 'You must accept the Terms & Conditions to complete your purchase.'
+        }
     )
 
     def clean(self):
         cleaned_data = super().clean()
-        billing_same = cleaned_data.get('billing_same_as_delivery')
         create_account = cleaned_data.get('create_account')
         password1 = cleaned_data.get('password1')
         password2 = cleaned_data.get('password2')
-
-        if not billing_same:
-            # Validate billing fields if different from delivery
-            required_billing = [
-                'billing_first_name', 'billing_last_name',
-                'billing_address_line_1', 'billing_postcode'
-            ]
-            for field in required_billing:
-                if not cleaned_data.get(field):
-                    self.add_error(field, 'This field is required.')
 
         # Validate account creation fields
         if create_account:

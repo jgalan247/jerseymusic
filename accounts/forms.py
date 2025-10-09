@@ -30,11 +30,11 @@ class CustomUserCreationForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
     user_type = forms.ChoiceField(choices=User.USER_TYPE_CHOICES, required=True)
-    
+
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'user_type', 'password1', 'password2')
-    
+        fields = ('email', 'first_name', 'last_name', 'user_type', 'password1', 'password2')
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
@@ -116,13 +116,7 @@ class CustomerRegistrationForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Use email as username if not provided
-        self.fields['username'].required = False
-        self.fields['username'].widget.attrs['placeholder'] = 'Username (optional - email will be used)'
+        fields = ('email', 'first_name', 'last_name', 'password1', 'password2')
     
     def clean_email(self):
         """Validate that the email is not already registered."""
@@ -157,23 +151,22 @@ class CustomerRegistrationForm(UserCreationForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        # Use email as username if username not provided
-        if not self.cleaned_data.get('username'):
-            user.username = self.cleaned_data['email']
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.user_type = 'customer'
         user.email_verified = False
-        
+
         if commit:
             user.save()
-            # Create customer profile
+            # Create customer profile with all fields
             CustomerProfile.objects.create(
                 user=user,
                 address_line_1=self.cleaned_data.get('address_line_1', ''),
+                address_line_2=self.cleaned_data.get('address_line_2', ''),
                 parish=self.cleaned_data.get('parish', ''),
-                postcode=self.cleaned_data.get('postcode', '')
+                postcode=self.cleaned_data.get('postcode', ''),
+                phone_number=self.cleaned_data.get('phone_number', '')
             )
         return user
 
@@ -222,15 +215,12 @@ class ArtistRegistrationForm(CustomerRegistrationForm):
     
     def save(self, commit=True):
         user = super(CustomerRegistrationForm, self).save(commit=False)
-        # Use email as username if not provided
-        if not self.cleaned_data.get('username'):
-            user.username = self.cleaned_data['email']
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.user_type = 'artist'
         user.email_verified = False
-        
+
         if commit:
             user.save()
             # Create artist profile
@@ -247,11 +237,10 @@ class ArtistRegistrationForm(CustomerRegistrationForm):
 
 class LoginForm(forms.Form):
     """Custom login form."""
-    username = forms.CharField(
-        max_length=150,
-        widget=forms.TextInput(attrs={
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Email or Username'
+            'placeholder': 'Email Address'
         })
     )
     password = forms.CharField(
@@ -260,24 +249,17 @@ class LoginForm(forms.Form):
             'placeholder': 'Password'
         })
     )
-    
+
     def clean(self):
-        username = self.cleaned_data.get('username')
+        email = self.cleaned_data.get('email')
         password = self.cleaned_data.get('password')
-        
-        if username and password:
-            # Try to authenticate with username or email
-            self.user = authenticate(username=username, password=password)
+
+        if email and password:
+            # Authenticate with email (now the USERNAME_FIELD)
+            self.user = authenticate(username=email, password=password)
+
             if not self.user:
-                # Try with email
-                try:
-                    user_obj = User.objects.get(email=username)
-                    self.user = authenticate(username=user_obj.username, password=password)
-                except User.DoesNotExist:
-                    pass
-            
-            if not self.user:
-                raise forms.ValidationError('Invalid username/email or password.')
+                raise forms.ValidationError('Invalid email or password.')
             if not self.user.is_active:
                 raise forms.ValidationError('This account is disabled.')
         return self.cleaned_data
@@ -519,4 +501,4 @@ class CustomUserChangeForm(UserChangeForm):
     """Custom user change form for admin."""
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'user_type')
+        fields = ('email', 'first_name', 'last_name', 'user_type')

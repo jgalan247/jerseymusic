@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Select Payment Method - Jersey Artwork{% endblock %}
+{% block title %}Select Payment Method - Jersey Events{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -20,7 +20,7 @@
                         <h6>Items:</h6>
                         {% for item in order.items.all %}
                         <div class="d-flex justify-content-between">
-                            <span>{{ item.artwork.title }} x{{ item.quantity }}</span>
+                            <span>{{ item.event.title }} x{{ item.quantity }}</span>
                             <span>£{{ item.total|floatformat:2 }}</span>
                         </div>
                         {% endfor %}
@@ -29,9 +29,9 @@
                             <span>Subtotal:</span>
                             <span>£{{ order.subtotal|floatformat:2 }}</span>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Shipping:</span>
-                            <span>£{{ order.shipping_cost|floatformat:2 }}</span>
+                        <div class="d-flex justify-content-between text-success">
+                            <span><i class="fas fa-ticket-alt me-1"></i>Digital Delivery:</span>
+                            <span><strong>FREE</strong></span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <strong>Total:</strong>

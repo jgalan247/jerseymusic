@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Cancelled - Jersey Events{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <!-- Cancelled Icon -->
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle fa-5x text-warning"></i>
+                    </div>
+
+                    <h2 class="mb-3">Payment Cancelled</h2>
+
+                    <p class="lead mb-4">
+                        {{ message|default:"Your payment was cancelled. No charges have been made to your account." }}
+                    </p>
+
+                    {% if order %}
+                    <div class="alert alert-info">
+                        <strong>Order #{{ order.order_number }}</strong><br>
+                        Status: Cancelled
+                    </div>
+                    {% endif %}
+
+                    <!-- Information Card -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body text-start">
+                            <h6 class="card-title"><i class="fas fa-info-circle me-2"></i>What happened?</h6>
+                            <p class="card-text mb-0">
+                                You cancelled the payment process or closed the payment window before completing your purchase.
+                                Don't worry - no charges were made.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        {% if order %}
+                        <a href="{% url 'cart:view' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shopping-cart me-2"></i>Return to Cart & Try Again
+                        </a>
+                        {% else %}
+                        <a href="{% url 'events:events_list' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-calendar-alt me-2"></i>Browse Events
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'events:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Return to Home
+                        </a>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="mt-4 pt-4 border-top">
+                        <h6 class="text-muted">Having Issues?</h6>
+                        <p class="small mb-2">
+                            If you're experiencing problems completing your payment, please contact our support team:
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:support@coderra.je">support@coderra.je</a>
+                        </p>
+                        <p class="small mb-0 text-muted">
+                            We're here to help! Response time: Within 2 hours
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-lightbulb me-2 text-info"></i>Tips for Successful Payment</h6>
+                    <ul class="small mb-0">
+                        <li>Ensure you have sufficient funds in your account</li>
+                        <li>Check that your card details are correct</li>
+                        <li>Some banks may require 3D Secure verification</li>
+                        <li>Try using a different browser if issues persist</li>
+                        <li>Contact your bank if your card is declined</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

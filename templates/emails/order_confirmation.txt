@@ -1,0 +1,16 @@
+Order Confirmation - {{ site_name }}
+
+Dear {{ customer_name }},
+
+Thank you for your order! Here are your order details:
+
+Order #{{ order.id }}
+Total: £{{ order.total }}
+Order Date: {{ order.created_at|date:"F d, Y" }}
+
+Your tickets will be delivered to this email address. Please keep this confirmation for your records.
+
+Thank you for using {{ site_name }}!
+
+---
+If you have any questions, please contact us at {{ support_email }}

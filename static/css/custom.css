@@ -1910,3 +1910,35 @@ a:focus {
     border: none;
     margin: 2rem 0;
 }
+
+.event-goers-section {
+    background-color: #1e40af;
+    color: white;
+}
+
+/* CRITICAL FIX: Ensure Event-Goers section has proper contrast */
+.bg-je-success {
+    background-color: #059669 !important;  /* Dark emerald green with WCAG AA contrast */
+}
+
+.card-header.bg-je-success {
+    background-color: #059669 !important;
+}
+
+.btn-je-success {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+}
+
+.btn-je-success:hover {
+    background-color: #047857 !important;
+    border-color: #047857 !important;
+}
+
+.text-je-success {
+    color: #059669 !important;
+}
+
+.border-je-success {
+    border-color: #059669 !important;
+}

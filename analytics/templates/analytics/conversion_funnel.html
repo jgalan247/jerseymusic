@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Conversion Funnel - SumUp Connection Analytics{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
+<style>
+.funnel-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.funnel-stage {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, #3b82f6, #1e40af);
+    color: white;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.funnel-stage:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1));
+    z-index: 1;
+}
+
+.funnel-stage-content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.funnel-stage-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.funnel-stage-count {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.funnel-stage-rate {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.conversion-rate {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 1rem 0;
+}
+
+.stage-details {
+    background: #f9fafb;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.time-filter {
+    margin-bottom: 2rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">SumUp Connection Funnel Analysis</h1>
+                <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-primary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Filter -->
+    <div class="row">
+        <div class="col-12">
+            <div class="time-filter">
+                <div class="btn-group" role="group">
+                    <a href="?days=7" class="btn {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7 Days</a>
+                    <a href="?days=30" class="btn {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">30 Days</a>
+                    <a href="?days=90" class="btn {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">90 Days</a>
+                </div>
+                <span class="ms-3 text-muted">
+                    Showing data from {{ start_date }} to today ({{ days }} days)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Funnel Visualization -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="funnel-container">
+                <h3 class="mb-4">Connection Funnel Steps</h3>
+
+                {% for stage_name, stage_data in funnel_data.items %}
+                <div class="funnel-stage" style="width: {% widthratio stage_data 1000 100 %}%;">
+                    <div class="funnel-stage-content">
+                        <div class="funnel-stage-title">
+                            {{ stage_data.label|default:stage_name|title }}
+                        </div>
+                        <div class="funnel-stage-count">{{ stage_data.count|default:stage_data }}</div>
+                        {% if conversion_rates %}
+                        <div class="funnel-stage-rate">
+                            Conversion: {{ conversion_rates|lookup:stage_name|default:0|floatformat:1 }}%
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if not forloop.last %}
+                <div class="conversion-rate">
+                    {% if conversion_rates and conversion_rates|lookup:stage_name %}
+                    ↓ {{ conversion_rates|lookup:stage_name|floatformat:1 }}% continue to next step
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="funnel-container">
+                <h3 class="mb-4">Key Metrics</h3>
+
+                <div class="mb-3">
+                    <div class="fw-bold text-primary">Overall Conversion Rate</div>
+                    <div class="h4">
+                        {% if funnel_data.invited and funnel_data.oauth_completed %}
+                        {{ funnel_data.oauth_completed|div:funnel_data.invited|mul:100|floatformat:1 }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">From invitation to completion</small>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-bold text-success">Email Engagement Rate</div>
+                    <div class="h4">
+                        {% if funnel_data.invited and funnel_data.email_opened %}
+                        {{ funnel_data.email_opened|div:funnel_data.invited|mul:100|floatformat:1 }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Emails opened vs sent</small>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-bold text-warning">Page Conversion Rate</div>
+                    <div class="h4">
+                        {% if funnel_data.page_viewed and funnel_data.oauth_started %}
+                        {{ funnel_data.oauth_started|div:funnel_data.page_viewed|mul:100|floatformat:1 }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Page views to OAuth start</small>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-bold text-info">OAuth Success Rate</div>
+                    <div class="h4">
+                        {% if funnel_data.oauth_started and funnel_data.oauth_completed %}
+                        {{ funnel_data.oauth_completed|div:funnel_data.oauth_started|mul:100|floatformat:1 }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">OAuth completions vs starts</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Breakdown -->
+    {% if funnel_details %}
+    <div class="row">
+        <div class="col-12">
+            <div class="funnel-container">
+                <h3 class="mb-4">Detailed Breakdown</h3>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Stage</th>
+                                <th>Total Users</th>
+                                <th>Conversion Rate</th>
+                                <th>Drop-off Rate</th>
+                                <th>Average Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detail in funnel_details %}
+                            <tr>
+                                <td class="fw-bold">{{ detail.stage|title }}</td>
+                                <td>{{ detail.count|default:0 }}</td>
+                                <td>
+                                    {% if detail.conversion_rate %}
+                                    <span class="badge bg-success">{{ detail.conversion_rate|floatformat:1 }}%</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if detail.drop_off_rate %}
+                                    <span class="badge bg-danger">{{ detail.drop_off_rate|floatformat:1 }}%</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if detail.avg_time %}
+                                    {{ detail.avg_time }}
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Funnel Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="funnel-container">
+                <h3 class="mb-4">Funnel Visualization</h3>
+                <div class="chart-container">
+                    <canvas id="funnelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+<script>
+// Funnel chart
+const funnelData = {
+    labels: [
+        'Invited',
+        'Email Opened',
+        'Link Clicked',
+        'Page Viewed',
+        'OAuth Started',
+        'OAuth Completed'
+    ],
+    datasets: [{
+        label: 'Users',
+        data: [
+            {{ funnel_data.invited|default:0 }},
+            {{ funnel_data.email_opened|default:0 }},
+            {{ funnel_data.link_clicked|default:0 }},
+            {{ funnel_data.page_viewed|default:0 }},
+            {{ funnel_data.oauth_started|default:0 }},
+            {{ funnel_data.oauth_completed|default:0 }}
+        ],
+        backgroundColor: [
+            '#3b82f6',
+            '#1d4ed8',
+            '#1e40af',
+            '#1e3a8a',
+            '#1e3a8a',
+            '#10b981'
+        ],
+        borderColor: [
+            '#2563eb',
+            '#1d4ed8',
+            '#1e40af',
+            '#1e3a8a',
+            '#172554',
+            '#059669'
+        ],
+        borderWidth: 2
+    }]
+};
+
+const funnelCtx = document.getElementById('funnelChart').getContext('2d');
+const funnelChart = new Chart(funnelCtx, {
+    type: 'bar',
+    data: funnelData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Users'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Funnel Stages'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'SumUp Connection Funnel ({{ days }} Days)'
+            },
+            tooltip: {
+                callbacks: {
+                    afterLabel: function(context) {
+                        const total = {{ funnel_data.invited|default:1 }};
+                        const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                        return `${percentage}% of invited users`;
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

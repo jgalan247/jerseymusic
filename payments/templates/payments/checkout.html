@@ -73,8 +73,10 @@
         top: 2rem;
         border-radius: var(--je-radius-xl);
         box-shadow: var(--je-shadow-xl);
-        overflow: hidden;
+        overflow: visible; /* Allow content to show properly */
         background: white;
+        z-index: 10;
+        transform: translateZ(0); /* Create stacking context */
     }
 
     .order-summary-header {
@@ -96,6 +98,9 @@
         border-radius: var(--je-radius-lg);
         padding: 1.5rem;
         text-align: center;
+        position: relative;
+        z-index: 5;
+        overflow: visible;
     }
 
     .security-badges {
@@ -110,14 +115,34 @@
     .payment-methods {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
+        align-items: center;
+        gap: 0.75rem;
         margin: 1rem 0;
-        opacity: 0.7;
+        padding: 0.5rem;
+        opacity: 0.8;
         transition: var(--je-transition-normal);
+        position: relative;
+        z-index: 1;
+        flex-wrap: wrap;
     }
 
     .payment-methods:hover {
         opacity: 1;
+    }
+
+    .payment-methods i {
+        position: relative;
+        z-index: 2;
+        transition: var(--je-transition-fast);
+        transform: translateZ(0); /* Force hardware acceleration */
+        backface-visibility: hidden;
+        will-change: transform;
+        flex-shrink: 0;
+    }
+
+    .payment-methods i:hover {
+        transform: translateY(-2px) scale(1.1);
+        z-index: 3;
     }
 
     /* Professional button styling */
@@ -182,6 +207,7 @@
         margin-bottom: 2rem;
     }
 
+
     /* Mobile responsiveness */
     @media (max-width: 768px) {
         .checkout-form {
@@ -202,6 +228,20 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 0.5rem;
+            padding: 0.75rem 0.5rem;
+            position: static;
+            z-index: auto;
+        }
+
+        .payment-methods i {
+            position: static;
+            z-index: auto;
+            transform: none !important;
+            margin: 0.25rem;
+        }
+
+        .payment-methods i:hover {
+            transform: none !important;
         }
 
         .btn-checkout {
@@ -274,7 +314,7 @@
             <div class="col-lg-8">
                 <div class="form-professional">
             
-                    <form method="post" id="checkout-form" class="needs-validation" novalidate>
+                    <form method="post" action="{% url 'payments:checkout' %}" id="checkout-form" class="needs-validation" novalidate>
                         {% csrf_token %}
 
                         <!-- Contact Information Card -->
@@ -318,6 +358,9 @@
                                             {% if form.email.errors %}
                                                 <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
                                             {% endif %}
+                                            <div class="form-text">
+                                                <i class="fas fa-envelope me-1"></i>Your tickets will be sent to this email address
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -422,68 +465,30 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Billing Information Card -->
+
+                        <!-- Digital Ticket Delivery Card -->
                         <div class="card checkout-card">
                             <div class="card-header">
-                                <i class="fas fa-credit-card me-2"></i>Billing Information
+                                <i class="fas fa-ticket-alt me-2"></i>Digital Ticket Delivery
                             </div>
                             <div class="card-body">
-                                <div class="form-check mb-4">
-                                    <input class="form-check-input" type="checkbox" id="billing-same" name="billing_same_as_delivery" checked>
-                                    <label class="form-check-label fw-medium" for="billing-same">
-                                        <i class="fas fa-check-circle text-je-success me-2"></i>
-                                        Same as contact information
-                                    </label>
-                                </div>
-
-                                <div id="billing-fields" class="d-none">
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="{{ form.billing_first_name.id_for_label }}"
-                                                       name="billing_first_name" placeholder="First Name">
-                                                <label for="{{ form.billing_first_name.id_for_label }}">First Name</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="{{ form.billing_last_name.id_for_label }}"
-                                                       name="billing_last_name" placeholder="Last Name">
-                                                <label for="{{ form.billing_last_name.id_for_label }}">Last Name</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="{{ form.billing_address_line_1.id_for_label }}"
-                                                       name="billing_address_line_1" placeholder="Address Line 1">
-                                                <label for="{{ form.billing_address_line_1.id_for_label }}">Address Line 1</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="{{ form.billing_address_line_2.id_for_label }}"
-                                                       name="billing_address_line_2" placeholder="Address Line 2 (Optional)">
-                                                <label for="{{ form.billing_address_line_2.id_for_label }}">Address Line 2 (Optional)</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="{{ form.billing_parish.id_for_label }}"
-                                                       name="billing_parish" placeholder="Parish/City">
-                                                <label for="{{ form.billing_parish.id_for_label }}">Parish/City</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="{{ form.billing_postcode.id_for_label }}"
-                                                       name="billing_postcode" placeholder="Postcode">
-                                                <label for="{{ form.billing_postcode.id_for_label }}">Postcode</label>
-                                            </div>
+                                <div class="alert alert-info mb-0">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-info-circle me-3 mt-1"></i>
+                                        <div>
+                                            <h6 class="mb-2">How you'll receive your tickets:</h6>
+                                            <ul class="mb-0 small">
+                                                <li>Tickets will be emailed immediately after payment</li>
+                                                <li>Each ticket includes a unique QR code for entry</li>
+                                                <li>You can print tickets or show them on your mobile device</li>
+                                                <li>A backup copy will be available in your account</li>
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                         <!-- Additional Information Card -->
                         <div class="card checkout-card">
                             <div class="card-header">
@@ -642,12 +647,12 @@
                                     <span>Subtotal:</span>
                                     <span>£{{ cart.subtotal }}</span>
                                 </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Processing Fee:</span>
-                                    <span id="processing-fee">£0.50</span>
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span><i class="fas fa-ticket-alt me-1"></i>Digital Delivery:</span>
+                                    <span><strong>FREE</strong></span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2 text-muted small">
-                                    <span><i class="fas fa-shield-alt me-1"></i>Insurance & Security:</span>
+                                    <span><i class="fas fa-shield-alt me-1"></i>Payment Security:</span>
                                     <span>Included</span>
                                 </div>
                             </div>
@@ -655,7 +660,7 @@
                             <div class="border-top pt-3 mt-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fs-5 fw-bold">Total:</span>
-                                    <span class="fs-4 fw-bold text-je-primary" id="order-total">£{{ cart.subtotal|add:0.50 }}</span>
+                                    <span class="fs-4 fw-bold text-je-primary" id="order-total">£{{ cart.subtotal }}</span>
                                 </div>
                             </div>
                         {% else %}
@@ -749,33 +754,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, false);
     });
 
-    // Billing address toggle
-    const billingSameCheckbox = document.getElementById('billing-same');
-    const billingFields = document.getElementById('billing-fields');
-
-    if (billingSameCheckbox) {
-        billingSameCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                billingFields.classList.add('d-none');
-                billingFields.classList.remove('d-block');
-            } else {
-                billingFields.classList.remove('d-none');
-                billingFields.classList.add('d-block');
-            }
-
-            // Toggle required attributes on billing fields
-            const billingInputs = billingFields.querySelectorAll('input[name^="billing_"]');
-            billingInputs.forEach(input => {
-                if (!this.checked && ['billing_first_name', 'billing_last_name', 'billing_address_line_1', 'billing_postcode'].includes(input.name)) {
-                    input.setAttribute('required', 'required');
-                    input.classList.add('required');
-                } else {
-                    input.removeAttribute('required');
-                    input.classList.remove('required');
-                }
-            });
-        });
-    }
 
     // Account creation toggle
     const createAccountCheckbox = document.getElementById('create-account');
@@ -832,16 +810,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Smooth scroll to first error
+    // Enhanced form submission with loading state
     const form = document.getElementById('checkout-form');
-    if (form) {
+    const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+
+    if (form && submitButton) {
         form.addEventListener('submit', function(e) {
             const firstError = form.querySelector('.is-invalid');
             if (firstError) {
                 e.preventDefault();
                 firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 firstError.focus();
+                return false;
             }
+
+            // Check HTML5 validation
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
+                return false;
+            }
+
+            // Show loading state
+            const originalHTML = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+            // Add loading class to form
+            form.classList.add('loading');
+
+            // Allow form to submit normally if validation passes
+            // Note: If there are server-side validation errors, the loading state
+            // will be reset when the page reloads with errors
+
+            return true; // Allow form submission
         });
     }
 });
@@ -870,15 +876,13 @@ function selectTicketType(element, value) {
     }, 150);
 }
 
-// Update processing fee calculation
-function updateProcessingFee() {
-    const processingElement = document.getElementById('processing-fee');
+// Update total calculation for digital tickets
+function updateOrderTotal() {
     const totalElement = document.getElementById('order-total');
     const ticketPrice = parseFloat('{{ cart.subtotal|default:0 }}');
-    const processingFee = 0.50;
 
-    const total = ticketPrice + processingFee;
-    totalElement.textContent = '£' + total.toFixed(2);
+    // No processing fees or shipping for digital tickets
+    totalElement.textContent = '£' + ticketPrice.toFixed(2);
 
     // Add animation to total
     totalElement.style.transform = 'scale(1.1)';

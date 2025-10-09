@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Failed - Jersey Events</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+        <h1 style="color: #dc3545; margin-bottom: 20px;">
+            <span style="font-size: 2em;">⚠️</span> Payment Failed
+        </h1>
+
+        <p>Hello {{ customer_name }},</p>
+
+        <p>We're sorry, but your payment for order <strong>#{{ order.order_number }}</strong> was not successful.</p>
+
+        <div style="background-color: #fff; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #dc3545;">Order Details</h3>
+            <p style="margin: 5px 0;"><strong>Order Number:</strong> {{ order.order_number }}</p>
+            <p style="margin: 5px 0;"><strong>Amount:</strong> £{{ order.total }}</p>
+            <p style="margin: 5px 0;"><strong>Status:</strong> Payment Failed</p>
+        </div>
+
+        <h3>What happened?</h3>
+        <p>Your payment was declined by your payment provider. This can happen for several reasons:</p>
+        <ul>
+            <li>Insufficient funds</li>
+            <li>Card details entered incorrectly</li>
+            <li>Bank security checks</li>
+            <li>Card expired or blocked</li>
+        </ul>
+
+        <h3>What should you do next?</h3>
+        <ol>
+            <li><strong>Check your payment details</strong> - Ensure card number, expiry date, and CVV are correct</li>
+            <li><strong>Verify with your bank</strong> - Your bank may have blocked the transaction for security</li>
+            <li><strong>Try again</strong> - Visit your cart to complete your purchase</li>
+        </ol>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ retry_url }}" style="background-color: #0d6efd; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                Try Payment Again
+            </a>
+        </div>
+
+        <div style="background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>📧 Need Help?</strong></p>
+            <p style="margin: 5px 0;">
+                Contact our support team at
+                <a href="mailto:{{ support_email }}" style="color: #0d6efd;">{{ support_email }}</a>
+            </p>
+            <p style="margin: 5px 0; font-size: 0.9em; color: #666;">
+                We typically respond within 2 hours
+            </p>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666;">
+            <p>Thank you for choosing {{ site_name }}!</p>
+            <p style="margin: 5px 0;">
+                Jersey Events<br>
+                Jersey, Channel Islands<br>
+                <a href="mailto:{{ support_email }}" style="color: #0d6efd;">{{ support_email }}</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

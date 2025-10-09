@@ -5,26 +5,35 @@ from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    """Custom user admin following Django conventions."""
+    """Custom user admin for email-only authentication."""
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ['username', 'email', 'first_name', 'last_name', 'user_type', 'is_active']
+    list_display = ['email', 'first_name', 'last_name', 'user_type', 'is_active']
     list_filter = ['user_type', 'is_active', 'is_staff', 'date_joined']
-    fieldsets = UserAdmin.fieldsets + (
-        ('Additional Info', {'fields': ('user_type', 'phone', 'email_verified')}),
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'phone')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('Additional Info', {'fields': ('user_type', 'email_verified')}),
     )
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Additional Info', {'fields': ('email', 'first_name', 'last_name', 'user_type')}),
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'user_type')}),
     )
-    search_fields = ['username', 'email', 'first_name', 'last_name']
+    search_fields = ['email', 'first_name', 'last_name']
+    ordering = ['email']
 
 @admin.register(CustomerProfile)
 class CustomerProfileAdmin(admin.ModelAdmin):
     """Customer profile admin following Django conventions."""
     list_display = ['user', 'parish', 'created_at']
     list_filter = ['parish', 'marketing_consent', 'created_at']
-    search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
+    search_fields = ['user__email', 'user__first_name', 'user__last_name']
     readonly_fields = ['created_at', 'updated_at']
 
 @admin.register(ArtistProfile)
@@ -32,7 +41,7 @@ class ArtistProfileAdmin(admin.ModelAdmin):
     """Artist profile admin following Django conventions."""
     list_display = ['display_name', 'user', 'is_approved', 'commission_rate', 'created_at']
     list_filter = ['is_approved', 'created_at']
-    search_fields = ['display_name', 'user__username', 'user__email']
+    search_fields = ['display_name', 'user__email']
     readonly_fields = ['created_at', 'updated_at']
     actions = ['approve_artists']
     

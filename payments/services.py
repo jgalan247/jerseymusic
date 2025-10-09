@@ -38,7 +38,7 @@ class PaymentService:
         
         try:
             response = requests.post(
-                'https://api.sumup.com/v0.1/checkouts',
+                f"{settings.SUMUP_API_URL}/checkouts",
                 json=data,
                 headers=headers
             )

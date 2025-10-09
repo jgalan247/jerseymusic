@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from . import sumup_views
 
 app_name = 'accounts'
 
@@ -20,6 +21,13 @@ urlpatterns = [
     # Profile
     path('profile/', views.profile_view, name='profile'),
     path('organiser-dashboard/', views.organiser_dashboard, name='organiser_dashboard'),
+    path('dashboard/', views.organiser_dashboard, name='dashboard'),  # Alias
+
+    # SumUp OAuth Integration
+    path('sumup/connect/', sumup_views.SumUpConnectView.as_view(), name='sumup_connect'),
+    path('sumup/callback/', sumup_views.SumUpCallbackView.as_view(), name='sumup_callback'),
+    path('sumup/disconnect/', sumup_views.SumUpDisconnectView.as_view(), name='sumup_disconnect'),
+    path('sumup/status/', sumup_views.SumUpStatusView.as_view(), name='sumup_status'),
 
     # Password reset
     path('password-reset/', 

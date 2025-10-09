@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+        <h1 style="color: #0066cc; margin-bottom: 20px;">Order Confirmation</h1>
+
+        <p>Dear {{ customer_name }},</p>
+
+        <p>Thank you for your order! Here are your order details:</p>
+
+        <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3>Order #{{ order.order_number }}</h3>
+            <p><strong>Total:</strong> £{{ order.total }}</p>
+            <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+            {% if ticket_count %}
+            <p><strong>Tickets:</strong> {{ ticket_count }} ticket{{ ticket_count|pluralize }} generated</p>
+            {% endif %}
+        </div>
+
+        {% if order.items.all %}
+        <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h4 style="color: #0066cc; margin-bottom: 15px;">Order Items</h4>
+            {% for item in order.items.all %}
+            <div style="border-left: 3px solid #0066cc; padding: 10px; margin-bottom: 10px; background: #f8f9fa;">
+                <strong>{{ item.event.title }}</strong><br>
+                <small style="color: #666;">
+                    {{ item.event.event_date|date:"l, F j, Y" }} at {{ item.event.event_time|time:"g:i A" }}<br>
+                    {{ item.event.venue_name }}
+                </small>
+                <div style="margin-top: 8px;">
+                    <span style="color: #666;">Quantity:</span> {{ item.quantity }}<br>
+                    <span style="color: #666;">Price per ticket:</span> £{{ item.price }}<br>
+                    {% if item.ticket_tier %}
+                    <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-weight: bold;">
+                        {{ item.ticket_tier.get_tier_type_display }} Tier
+                    </span>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6;">
+                    <strong>Subtotal: £{{ item.total }}</strong>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if tickets %}
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h4 style="color: #0066cc; margin-bottom: 15px;">📎 Your Tickets Are Attached</h4>
+            <p>Your PDF tickets are attached to this email. Each ticket contains:</p>
+            <ul style="margin: 10px 0;">
+                <li>Event details and venue information</li>
+                <li>Unique QR code for entry validation</li>
+                <li>Your customer information</li>
+                <li>Terms and conditions</li>
+            </ul>
+            <p><strong>Important:</strong> Please bring either a printed copy or show the QR code on your mobile device at the venue.</p>
+
+            <h5 style="color: #0066cc; margin-top: 15px;">Ticket Details:</h5>
+            {% for ticket in tickets %}
+            <div style="border-left: 3px solid #0066cc; padding-left: 10px; margin: 8px 0;">
+                <strong>{{ ticket.event.title }}</strong><br>
+                <small>Ticket #{{ ticket.ticket_number }} | {{ ticket.event.event_date|date:"l, F j, Y" }} at {{ ticket.event.event_time|time:"g:i A" }}</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
+            <h4 style="color: #28a745; margin-bottom: 10px;">✅ What's Next?</h4>
+            <ol style="margin: 10px 0; padding-left: 20px;">
+                <li>Save or print your tickets from the email attachments</li>
+                <li>Arrive at the venue 15 minutes before the event</li>
+                <li>Present your QR code for quick entry</li>
+                <li>Enjoy your event!</li>
+            </ol>
+        </div>
+
+        <p>Your tickets have been delivered to this email address. Please keep this confirmation for your records.</p>
+
+        <p>Thank you for using {{ site_name }}!</p>
+
+        <hr style="margin: 30px 0;">
+        <p style="font-size: 12px; color: #666;">
+            If you have any questions, please contact us at {{ support_email }}
+        </p>
+    </div>
+</body>
+</html>

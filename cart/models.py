@@ -3,6 +3,9 @@ from django.conf import settings
 from accounts.models import User
 from events.models import Event
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Cart(models.Model):
@@ -106,8 +109,9 @@ class CartItem(models.Model):
 
     def save(self, *args, **kwargs):
         # Set price when item is first added
+        # Use customer ticket price which includes processing fee if passed through
         if not self.pk and not self.price_at_time:
-            self.price_at_time = self.event.ticket_price
+            self.price_at_time = self.event.get_customer_ticket_price()
         super().save(*args, **kwargs)
 
     @property
@@ -115,11 +119,49 @@ class CartItem(models.Model):
         """Calculate total price for this line item."""
         return Decimal(str(self.quantity)) * self.price_at_time
 
+    def get_total_cost(self):
+        """Alternative method name for total price calculation."""
+        return self.total_price
+
     @property
     def is_available(self):
         """Check if event tickets are still available."""
         return (self.event.status == 'published' and
                 self.event.tickets_available >= self.quantity)
+
+    def validate_and_reserve_tickets(self):
+        """
+        Validate ticket availability and reserve them atomically.
+
+        ⚠️  CRITICAL: Must be called within a transaction to prevent race conditions!
+
+        Returns:
+            bool: True if tickets were reserved, False otherwise
+        """
+        from django.db import transaction
+        from django.db.models import F
+
+        with transaction.atomic():
+            # Use SELECT FOR UPDATE to lock the event row
+            event = Event.objects.select_for_update().get(id=self.event.id)
+
+            # Check availability with locked row
+            if event.tickets_available < self.quantity:
+                logger.error(
+                    f"Ticket race condition prevented: Event {event.id} only has "
+                    f"{event.tickets_available} tickets but {self.quantity} requested"
+                )
+                return False
+
+            # Reserve tickets by incrementing sold count
+            event.tickets_sold = F('tickets_sold') + self.quantity
+            event.save(update_fields=['tickets_sold'])
+
+            logger.info(
+                f"Reserved {self.quantity} tickets for event {event.id}. "
+                f"Total sold: {event.tickets_sold}"
+            )
+            return True
 
 
 class SavedItem(models.Model):

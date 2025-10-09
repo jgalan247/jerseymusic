@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Jersey Events Tickets - Order {{ order.order_number }}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .order-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .order-info h2 {
+            color: #333;
+            font-size: 20px;
+            margin-top: 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .info-value {
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .ticket-section {
+            margin: 30px 0;
+        }
+        .ticket-card {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        .event-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .event-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .event-details strong {
+            color: #333;
+            display: inline-block;
+            width: 80px;
+        }
+        .qr-code-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        .qr-code-container img {
+            max-width: 200px;
+            height: auto;
+        }
+        .ticket-number {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .instructions h3 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 8px 0;
+            color: #333;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                width: 100%;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎫 Your Tickets Are Ready!</h1>
+            <p>Order {{ order.order_number }} Confirmed</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Greeting -->
+            <div class="greeting">
+                Hi {{ order.delivery_first_name }},
+            </div>
+
+            <p style="color: #333; line-height: 1.6;">
+                Thank you for your purchase! Your payment has been confirmed and your tickets are attached below.
+                Please save this email or take a screenshot of your QR code(s) for entry.
+            </p>
+
+            <!-- Order Information -->
+            <div class="order-info">
+                <h2>Order Summary</h2>
+                <div class="info-row">
+                    <span class="info-label">Order Number:</span>
+                    <span class="info-value">{{ order.order_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Order Date:</span>
+                    <span class="info-value">{{ order.created_at|date:"F j, Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Customer:</span>
+                    <span class="info-value">{{ order.delivery_first_name }} {{ order.delivery_last_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ order.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total Paid:</span>
+                    <span class="info-value" style="font-size: 18px; color: #4caf50;">£{{ order.total }}</span>
+                </div>
+            </div>
+
+            <!-- Tickets Section -->
+            <div class="ticket-section">
+                <h2 style="color: #333; margin-bottom: 20px;">Your Tickets</h2>
+
+                {% for item in order.items.all %}
+                    {% for i in item.get_range %}
+                    <div class="ticket-card">
+                        <div class="event-title">
+                            {{ item.event.title }}
+                        </div>
+
+                        <div class="event-details">
+                            <div><strong>Date:</strong> {{ item.event.event_date|date:"l, F j, Y" }}</div>
+                            <div><strong>Time:</strong> {{ item.event.event_time|time:"g:i A" }}</div>
+                            <div><strong>Venue:</strong> {{ item.event.venue_name }}</div>
+                            <div><strong>Address:</strong> {{ item.event.venue_address }}</div>
+                            {% if item.ticket_tier %}
+                            <div style="margin-top: 10px;">
+                                <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                                    {{ item.ticket_tier.get_tier_type_display }} Ticket
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- QR Code -->
+                        <div class="qr-code-container">
+                            <img src="cid:qr_{{ forloop.parentloop.counter }}_{{ forloop.counter }}" alt="Ticket QR Code">
+                            <div class="ticket-number">
+                                Ticket #{{ order.order_number }}-{{ forloop.parentloop.counter }}{{ forloop.counter }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h3>📱 Important Information</h3>
+                <ul>
+                    <li>Present the QR code(s) above at the venue entrance</li>
+                    <li>You can show this email on your phone or print it out</li>
+                    <li>Each QR code is valid for one entry only</li>
+                    <li>Arrive at least 15 minutes before the event start time</li>
+                    <li>Keep this email safe - it's your proof of purchase</li>
+                </ul>
+            </div>
+
+            <!-- Support -->
+            <div style="text-align: center; margin: 30px 0;">
+                <p style="color: #666; margin-bottom: 10px;">
+                    Need help? Contact our support team
+                </p>
+                <a href="mailto:support@jerseyevents.co.uk" class="button">
+                    Contact Support
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin-bottom: 10px;">
+                <strong>Jersey Events</strong><br>
+                Your trusted ticketing platform for Jersey
+            </p>
+            <p>
+                This email was sent to {{ order.email }}<br>
+                <a href="#">View in browser</a> | <a href="#">Manage preferences</a>
+            </p>
+            <p style="margin-top: 20px; font-size: 11px; color: #999;">
+                © 2025 Jersey Events. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

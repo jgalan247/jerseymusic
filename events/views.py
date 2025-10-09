@@ -8,6 +8,7 @@ from django.db.models import Count
 from django.views.generic import DetailView
 from .models import Event
 from django.views.generic import ListView, DetailView
+from decimal import Decimal
 
 @login_required
 def create_event(request):
@@ -32,9 +33,19 @@ def create_event(request):
         if form.is_valid():
             event = form.save(commit=False)
             event.organiser = request.user
-            event.status = 'draft'  # Needs admin approval
+            event.status = 'draft'  # Will be published after listing fee payment
             event.save()
-            
+
+            # Create listing fee
+            from .models import ListingFee, ListingFeeConfig
+            listing_fee, created = ListingFee.objects.get_or_create(
+                event=event,
+                defaults={
+                    'organizer': request.user,
+                    'amount': ListingFeeConfig.get_config().standard_fee
+                }
+            )
+
             # Save main image
             if 'main_image' in request.FILES:
                 EventImage.objects.create(
@@ -44,8 +55,11 @@ def create_event(request):
                     order=1
                 )
             
-            messages.success(request, f'"{event.title}" uploaded! Pending admin approval.')
-            return redirect('events:my_events')
+            messages.success(
+                request,
+                f'"{event.title}" created successfully! Please pay the listing fee to publish your event.'
+            )
+            return redirect('payments:widget_listing_fee', event_id=event.pk)
     else:
         form = EventCreateForm()
     
@@ -181,6 +195,34 @@ def terms(request):
     """Terms and conditions page."""
     return render(request, 'events/terms.html')
 
+
+# Add this function to your existing views.py
+def pricing(request):
+    """Pricing page showing all tiers"""
+    
+    # Get pricing from settings
+    pricing_tiers = []
+    if hasattr(settings, 'PRICING_CONFIG'):
+        tiers_data = settings.PRICING_CONFIG.get('pay_per_event', {}).get('tiers', [])
+        pricing_tiers = tiers_data
+    else:
+        # Fallback hardcoded values
+        pricing_tiers = [
+            {'capacity': 100, 'price': Decimal('15.00'), 'name': 'Up to 100 tickets'},
+            {'capacity': 200, 'price': Decimal('25.00'), 'name': 'Up to 200 tickets'},
+            {'capacity': 300, 'price': Decimal('40.00'), 'name': 'Up to 300 tickets'},
+            {'capacity': 400, 'price': Decimal('55.00'), 'name': 'Up to 400 tickets'},
+            {'capacity': 500, 'price': Decimal('70.00'), 'name': 'Up to 500 tickets'},
+        ]
+    
+    context = {
+        'pricing_tiers': pricing_tiers,
+        'sumup_rate': 2.50,
+        'contact_email': getattr(settings, 'LARGE_EVENT_CONTACT_EMAIL', 'admin@coderra.je'),
+    }
+    
+    return render(request, 'pricing.html', context)
+
 class EventListView(ListView):
     model = Event
     template_name = "events/home.html"
@@ -191,3 +233,4 @@ class EventDetailView(DetailView):
     model = Event
     template_name = "events/detail.html"
     context_object_name = "event"
+

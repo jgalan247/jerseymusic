@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pricing - Jersey Music Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Fix for badge visibility */
+    .pricing-cards-container {
+        padding-top: 30px;
+    }
+    
+    .pricing-card-wrapper {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    
+    .most-popular-badge {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-je-primary mb-3">Simple, Transparent Pricing</h1>
+        <p class="lead text-muted">Pay only when you host an event. No monthly fees. No surprises.</p>
+        <div class="badge bg-je-success fs-6 px-4 py-2">
+            <i class="fas fa-check-circle me-2"></i>60% Cheaper Than Eventbrite
+        </div>
+    </div>
+
+    <!-- Pricing Tiers Grid -->
+    <div class="row g-4 mb-5 justify-content-center pricing-cards-container">
+        {% for tier in pricing_tiers %}
+        <div class="col-md-6 col-lg-4">
+            <div class="pricing-card-wrapper">
+                {% if tier.capacity == 200 %}
+                <div class="most-popular-badge">
+                    <span class="badge bg-je-primary px-4 py-2 shadow">⭐ Most Popular</span>
+                </div>
+                {% endif %}
+                
+                <div class="card card-professional h-100 {% if tier.capacity == 200 %}border-je-primary border-3{% endif %}">
+                    <div class="card-body text-center p-4">
+                        <h3 class="text-je-primary fw-bold mb-3">Up to {{ tier.capacity }}</h3>
+                        <div class="display-3 fw-bold text-je-primary mb-2">
+                            £{{ tier.price|floatformat:0 }}
+                        </div>
+                        <p class="text-muted mb-4">/event</p>
+                        
+                        <!-- Features -->
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-3 d-flex align-items-start">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <span>Up to {{ tier.capacity }} tickets</span>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <span>Multiple ticket tiers (VIP, Standard, etc.)</span>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <span>QR code digital tickets</span>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <span>Real-time sales dashboard</span>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <span>Email confirmations</span>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <i class="fas fa-check-circle text-je-success me-3 mt-1"></i>
+                                <span>Local Jersey support</span>
+                            </li>
+                        </ul>
+                        
+                        <a href="{% url 'accounts:register_organiser' %}" class="btn btn-je-primary w-100 mt-3">
+                            Get Started
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Large Events Contact -->
+    <div class="alert alert-info border-je-primary border-2 text-center p-4 mb-5">
+        <h5 class="fw-bold mb-3">
+            <i class="fas fa-building me-2"></i>Need more than 500 capacity?
+        </h5>
+        <p class="mb-3">For large venues and festivals, contact us for custom pricing</p>
+        <a href="mailto:admin@coderra.je" class="btn btn-je-primary btn-lg">
+            <i class="fas fa-envelope me-2"></i>Contact admin@coderra.je
+        </a>
+    </div>
+
+    <!-- Payment Processing Explanation -->
+    <div class="row mt-5 mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-je-primary border-2">
+                <div class="card-body p-4">
+                    <h4 class="text-je-primary mb-4 d-flex align-items-center">
+                        <i class="fas fa-info-circle me-3"></i>
+                        About Payment Processing
+                    </h4>
+                    <p class="mb-3">
+                        In addition to the platform fee above, SumUp charges <strong>2.5%</strong> for online payment processing.
+                    </p>
+                    <p class="mb-3">
+                        <strong>You choose:</strong>
+                    </p>
+                    <ul class="mb-3">
+                        <li class="mb-2">
+                            <strong>Absorb the fee:</strong> You pay the processing cost, customers see only the ticket price
+                        </li>
+                        <li class="mb-2">
+                            <strong>Pass to customers:</strong> Processing fee added at checkout (recommended for transparency)
+                        </li>
+                    </ul>
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <strong>Money goes directly to your SumUp account</strong> - no holds, no delays
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Example Calculation -->
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto">
+            <h3 class="text-center mb-4 fw-bold text-je-primary">Cost Example</h3>
+            <p class="text-center text-muted mb-4">200-ticket event at £20 per ticket</p>
+            
+            <div class="card shadow-lg">
+                <div class="card-body p-4">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-start">Ticket Revenue (200 × £20)</td>
+                                <td class="text-end fs-5"><strong>£4,000</strong></td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="text-start pt-3">Platform Fee (200 capacity tier)</td>
+                                <td class="text-end pt-3 text-danger">-£25</td>
+                            </tr>
+                            <tr>
+                                <td class="text-start">SumUp Processing (2.5%)</td>
+                                <td class="text-end text-danger">-£100</td>
+                            </tr>
+                            <tr class="border-top border-2">
+                                <td class="text-start pt-3"><strong class="text-je-success fs-5">You Keep</strong></td>
+                                <td class="text-end pt-3">
+                                    <strong class="text-je-success fs-4">£3,875</strong>
+                                    <br>
+                                    <small class="text-muted">(96.9% of revenue)</small>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="alert alert-success mt-4 mb-0 text-center">
+                        <strong>Compare to Eventbrite:</strong> You'd only keep £3,774 (94.3%)<br>
+                        <span class="fs-5 text-je-success fw-bold">💰 Save £101 per event with us!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Choose Us -->
+    <div class="row mt-5 mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-5 fw-bold text-je-primary">Why Jersey Organisers Choose Us</h3>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="text-center">
+                <div class="icon-circle icon-primary mx-auto mb-3">
+                    <i class="fas fa-percent"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Keep Your Tax Advantage</h5>
+                <p class="text-muted small">Stay in Jersey jurisdiction. Maintain 0% corporate tax. Don't trigger UK tax liability.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="text-center">
+                <div class="icon-circle icon-success mx-auto mb-3">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Start Selling Today</h5>
+                <p class="text-muted small">No 2-week approval wait. Connect SumUp and go live immediately.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="text-center">
+                <div class="icon-circle icon-warning mx-auto mb-3">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Local Jersey Support</h5>
+                <p class="text-muted small">Based in St. Helier. Real people, real support, right here in Jersey.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="text-center">
+                <div class="icon-circle icon-info mx-auto mb-3">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h5 class="fw-bold mb-2">60% Cheaper</h5>
+                <p class="text-muted small">Massive savings vs Eventbrite. More money for your event.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center mt-5 pt-5 pb-3">
+        <h3 class="mb-4 fw-bold">Ready to Start Selling Tickets?</h3>
+        <p class="lead text-muted mb-4">Create your account and list your first event today</p>
+        <a href="{% url 'accounts:register_organiser' %}" class="btn btn-je-primary btn-lg px-5 py-3">
+            <i class="fas fa-rocket me-2"></i>Get Started - It's Free
+        </a>
+        <p class="text-muted small mt-3">No credit card required. Only pay when you host an event.</p>
+    </div>
+</div>
+{% endblock %}

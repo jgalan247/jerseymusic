@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Redirecting to Pay Listing Fee - Jersey Events{% endblock %}
+
+{% block extra_head %}
+<style>
+    .listing-fee-container {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .event-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+
+    .redirect-card {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<!-- Auto-redirect script -->
+<script>
+    // Redirect to SumUp hosted checkout immediately
+    window.location.href = '{{ hosted_checkout_url }}';
+
+    // Fallback for manual redirect if automatic fails
+    setTimeout(function() {
+        if (document.getElementById('manual-redirect')) {
+            document.getElementById('manual-redirect').style.display = 'block';
+        }
+    }, 3000);
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="listing-fee-container">
+        <!-- Event Information -->
+        <div class="event-info">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                    <i class="fas fa-calendar-alt fa-2x"></i>
+                </div>
+                <div>
+                    <h4 class="mb-1">{{ event.title }}</h4>
+                    <p class="mb-0 opacity-75">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ event.venue.name }}
+                        <br>
+                        <i class="fas fa-clock me-1"></i>{{ event.event_date|date:"l, F j, Y" }}
+                        {% if event.start_time %}at {{ event.start_time|time:"g:i A" }}{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="payment-section">
+            <h4 class="mb-4">
+                <i class="fas fa-credit-card me-2"></i>Listing Fee Payment
+            </h4>
+
+            <!-- Fee Information -->
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle me-2"></i>About Listing Fees</h6>
+                <ul class="mb-0">
+                    <li>One-time fee to publish your event on Jersey Events</li>
+                    <li>Your event will be published immediately after payment</li>
+                    <li>Secure payment processed by SumUp</li>
+                    <li>Amount: <strong>£{{ listing_fee.amount }}</strong></li>
+                </ul>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="bg-light p-3 rounded mb-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Event Listing Fee:</span>
+                    <span class="fw-bold">£{{ listing_fee.amount }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Payment Reference:</span>
+                    <span class="text-muted">{{ listing_fee.payment_reference }}</span>
+                </div>
+                <hr class="my-2">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Total:</span>
+                    <span class="fw-bold text-primary fs-5">£{{ listing_fee.amount }}</span>
+                </div>
+            </div>
+
+            <!-- Redirect Status -->
+            <div class="redirect-card">
+                <div class="spinner"></div>
+
+                <h4 class="mb-3">Redirecting to Secure Payment</h4>
+
+                <p class="text-muted mb-4">
+                    You are being redirected to SumUp's secure payment page to complete your listing fee payment...
+                </p>
+
+                <div class="border rounded p-3 mb-4 bg-light">
+                    <div class="d-flex justify-content-between">
+                        <span>Listing Fee:</span>
+                        <strong>£{{ listing_fee.amount }}</strong>
+                    </div>
+                </div>
+
+                <div id="manual-redirect" style="display: none;">
+                    <div class="alert alert-warning">
+                        <p><strong>Automatic redirect failed.</strong></p>
+                        <p>Please click the button below to continue to payment:</p>
+                        <a href="{{ hosted_checkout_url }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-credit-card me-2"></i>Continue to Payment
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Security Information -->
+                <div class="mt-4">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <i class="fas fa-lock text-success mb-2"></i>
+                            <br><small class="text-muted">SSL Encrypted</small>
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-shield-alt text-success mb-2"></i>
+                            <br><small class="text-muted">PCI Compliant</small>
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-user-shield text-success mb-2"></i>
+                            <br><small class="text-muted">3D Secure</small>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-3">
+                        Powered by <strong>SumUp</strong> - Secure payment processing
+                    </small>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Event
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

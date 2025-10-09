@@ -1,0 +1,471 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Connection Alerts - SumUp Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+.alerts-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.alert-filters {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.alert-summary {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 2px solid #e2e8f0;
+}
+
+.summary-card.critical {
+    border-color: #dc2626;
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+}
+
+.summary-card.warning {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, #fef3c7, #fed7aa);
+}
+
+.summary-card.info {
+    border-color: #3b82f6;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+}
+
+.summary-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.summary-label {
+    font-size: 1rem;
+    color: #4b5563;
+}
+
+.alert-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+}
+
+.alert-item:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.alert-item.critical {
+    border-left: 4px solid #dc2626;
+    background: #fef2f2;
+}
+
+.alert-item.warning {
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+}
+
+.alert-item.info {
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+}
+
+.alert-item.acknowledged {
+    opacity: 0.6;
+    background: #f9fafb;
+}
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.alert-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.alert-message {
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.alert-meta {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-top: 1rem;
+}
+
+.severity-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.severity-critical {
+    background: #dc2626;
+    color: white;
+}
+
+.severity-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.severity-info {
+    background: #3b82f6;
+    color: white;
+}
+
+.acknowledge-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.acknowledge-btn:hover {
+    background: #059669;
+}
+
+.acknowledge-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+}
+
+.bulk-actions {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+.selected-count {
+    font-weight: 600;
+    color: #3b82f6;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">Connection Rate Alerts</h1>
+                <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-primary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Summary -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert-summary">
+                <div class="summary-card critical">
+                    <div class="summary-value">{{ critical_alerts }}</div>
+                    <div class="summary-label">Critical Alerts</div>
+                </div>
+
+                <div class="summary-card warning">
+                    <div class="summary-value">{{ unacknowledged_alerts }}</div>
+                    <div class="summary-label">Unacknowledged</div>
+                </div>
+
+                <div class="summary-card info">
+                    <div class="summary-value">{{ total_alerts }}</div>
+                    <div class="summary-label">Total Alerts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert-filters">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filter" class="form-label">Filter Alerts</label>
+                        <select name="filter" id="filter" class="form-select">
+                            <option value="all" {% if alert_filter == 'all' %}selected{% endif %}>All Alerts</option>
+                            <option value="unacknowledged" {% if alert_filter == 'unacknowledged' %}selected{% endif %}>Unacknowledged</option>
+                            <option value="critical" {% if alert_filter == 'critical' %}selected{% endif %}>Critical Only</option>
+                            <option value="warning" {% if alert_filter == 'warning' %}selected{% endif %}>Warning Only</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">Apply Filter</button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="checkAlerts()">
+                            Check New Alerts
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="bulk-actions" id="bulk-actions">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>
+                        <span class="selected-count" id="selected-count">0</span> alerts selected
+                    </span>
+                    <div>
+                        <button class="btn btn-success btn-sm" onclick="acknowledgeBulk()">
+                            Acknowledge Selected
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="clearSelection()">
+                            Clear Selection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alerts-container">
+                {% if page_obj %}
+                    {% for alert in page_obj %}
+                    <div class="alert-item {{ alert.severity }} {% if alert.acknowledged %}acknowledged{% endif %}">
+                        <div class="alert-header">
+                            <div class="form-check me-3">
+                                <input class="form-check-input alert-checkbox" type="checkbox"
+                                       value="{{ alert.id }}" id="alert-{{ alert.id }}"
+                                       {% if alert.acknowledged %}disabled{% endif %}>
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <div class="alert-title">
+                                    {{ alert.get_alert_type_display }}
+                                    <span class="severity-badge severity-{{ alert.severity }}">
+                                        {{ alert.get_severity_display }}
+                                    </span>
+                                    {% if alert.acknowledged %}
+                                    <span class="badge bg-success ms-2">Acknowledged</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="alert-message">{{ alert.message }}</div>
+
+                                {% if alert.threshold_value or alert.current_value %}
+                                <div class="mt-2">
+                                    {% if alert.threshold_value %}
+                                    <strong>Threshold:</strong> {{ alert.threshold_value }}%
+                                    {% endif %}
+                                    {% if alert.current_value %}
+                                    <strong>Current:</strong> {{ alert.current_value }}%
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <div class="alert-meta">
+                                    <strong>Triggered:</strong> {{ alert.triggered_at|timesince }} ago
+                                    {% if alert.acknowledged %}
+                                    <br><strong>Acknowledged by:</strong> {{ alert.acknowledged_by.get_full_name|default:alert.acknowledged_by.username }}
+                                    ({{ alert.acknowledged_at|timesince }} ago)
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="alert-actions">
+                                {% if not alert.acknowledged %}
+                                <button class="acknowledge-btn" onclick="acknowledgeAlert({{ alert.id }})">
+                                    Acknowledge
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Alerts pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&filter={{ alert_filter }}">
+                                        Previous
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}&filter={{ alert_filter }}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&filter={{ alert_filter }}">
+                                        Next
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <h4 class="text-success">🎉 No alerts found!</h4>
+                        <p class="text-muted">Your connection rates are looking healthy.</p>
+                        <button class="btn btn-outline-primary" onclick="checkAlerts()">
+                            Check for New Alerts
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Checkbox handling
+const checkboxes = document.querySelectorAll('.alert-checkbox:not([disabled])');
+const bulkActions = document.getElementById('bulk-actions');
+const selectedCount = document.getElementById('selected-count');
+
+checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkActions);
+});
+
+function updateBulkActions() {
+    const selected = Array.from(checkboxes).filter(cb => cb.checked);
+    const count = selected.length;
+
+    selectedCount.textContent = count;
+
+    if (count > 0) {
+        bulkActions.style.display = 'block';
+    } else {
+        bulkActions.style.display = 'none';
+    }
+}
+
+function clearSelection() {
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateBulkActions();
+}
+
+// Acknowledge individual alert
+function acknowledgeAlert(alertId) {
+    if (!confirm('Mark this alert as acknowledged?')) {
+        return;
+    }
+
+    fetch(`{% url 'analytics:acknowledge_alert' 0 %}`.replace('0', alertId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error acknowledging alert:', error);
+        alert('Error acknowledging alert');
+    });
+}
+
+// Acknowledge multiple alerts
+function acknowledgeBulk() {
+    const selected = Array.from(checkboxes).filter(cb => cb.checked);
+
+    if (selected.length === 0) {
+        alert('Please select at least one alert');
+        return;
+    }
+
+    if (!confirm(`Acknowledge ${selected.length} alerts?`)) {
+        return;
+    }
+
+    // Acknowledge each selected alert
+    const promises = selected.map(checkbox => {
+        const alertId = checkbox.value;
+        return fetch(`{% url 'analytics:acknowledge_alert' 0 %}`.replace('0', alertId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        });
+    });
+
+    Promise.all(promises)
+        .then(responses => {
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error acknowledging alerts:', error);
+            alert('Error acknowledging some alerts');
+        });
+}
+
+// Check for new alerts
+function checkAlerts() {
+    // This would trigger the management command to check for new alerts
+    // For now, just refresh the page
+    alert('Checking for new alerts... (This would normally trigger an automated check)');
+    location.reload();
+}
+</script>
+{% endblock %}

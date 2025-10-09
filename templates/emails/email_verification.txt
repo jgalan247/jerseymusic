@@ -1,0 +1,15 @@
+Verify Your Email Address - {{ site_name }}
+
+Dear {{ user.first_name|default:user.username }},
+
+Welcome to {{ site_name }}! Please verify your email address to complete your registration.
+
+Click this link to verify your email:
+{{ verification_url }}
+
+This link will expire in {{ expiry_hours }} hours.
+
+If you didn't create an account with us, you can safely ignore this email.
+
+Best regards,
+{{ site_name }} Team

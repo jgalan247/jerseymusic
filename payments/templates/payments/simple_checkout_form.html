@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Jersey Events{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Checkout Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i>Checkout
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'payments:simple_checkout' %}">
+                        {% csrf_token %}
+
+                        <h5 class="mb-3">Contact Information</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="first_name"
+                                       name="first_name"
+                                       value="{{ initial_data.first_name|default:'' }}"
+                                       required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="last_name"
+                                       name="last_name"
+                                       value="{{ initial_data.last_name|default:'' }}"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email"
+                                       class="form-control"
+                                       id="email"
+                                       name="email"
+                                       value="{{ initial_data.email|default:'' }}"
+                                       required>
+                                <small class="text-muted">Your tickets will be sent to this email</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel"
+                                       class="form-control"
+                                       id="phone"
+                                       name="phone"
+                                       value="{{ initial_data.phone|default:'' }}">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Order Review -->
+                        <h5 class="mb-3">Order Review</h5>
+
+                        <div class="list-group mb-4">
+                            {% for item in cart_items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ item.event.title }}</h6>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ item.event.event_date|date:"F j, Y" }}
+                                            {% if item.event.start_time %}
+                                                at {{ item.event.start_time|time:"g:i A" }}
+                                            {% endif %}
+                                        </p>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ item.event.venue_name }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <p class="mb-0">
+                                            {{ item.quantity }} × £{{ item.event.ticket_price|floatformat:2 }}
+                                        </p>
+                                        <p class="mb-0 fw-bold">
+                                            £{{ item.total_price|floatformat:2 }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'cart:view' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Proceed to Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal ({{ cart.total_items }} items):</span>
+                        <strong>£{{ cart.subtotal|floatformat:2 }}</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong class="text-primary fs-5">£{{ cart.total|floatformat:2 }}</strong>
+                    </div>
+
+                    <!-- Security Info -->
+                    <div class="alert alert-info small">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        <strong>Secure Payment</strong>
+                        <br>
+                        Your payment will be processed securely by SumUp.
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <div class="text-center">
+                        <p class="small text-muted mb-2">Accepted payment methods:</p>
+                        <div>
+                            <i class="fab fa-cc-visa fa-2x me-2 text-muted"></i>
+                            <i class="fab fa-cc-mastercard fa-2x me-2 text-muted"></i>
+                            <i class="fab fa-cc-amex fa-2x text-muted"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

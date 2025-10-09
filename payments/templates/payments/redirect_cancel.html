@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Cancelled - Jersey Events{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <!-- Cancel Icon -->
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-warning" style="font-size: 5rem;"></i>
+                    </div>
+
+                    <!-- Cancel Message -->
+                    <h2 class="text-warning mb-3">Payment Cancelled</h2>
+
+                    <p class="lead mb-4">
+                        {{ message|default:"Your payment was cancelled. No charges were made to your card." }}
+                    </p>
+
+                    {% if order and can_retry %}
+                        <!-- Order Info -->
+                        <div class="bg-light rounded p-3 mb-4">
+                            <h6 class="mb-2">Order Details</h6>
+                            <p class="mb-1">Order: <strong>{{ order.order_number }}</strong></p>
+                            <p class="mb-0">Total: <strong>£{{ order.total }}</strong></p>
+                        </div>
+
+                        <!-- Retry Payment -->
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'payments:redirect_checkout' order.id %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Try Payment Again
+                            </a>
+                            <a href="{% url 'cart:view' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-shopping-cart me-2"></i>Return to Cart
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Generic Actions -->
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'cart:view' %}" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart me-2"></i>View Cart
+                            </a>
+                            <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-calendar me-2"></i>Browse Events
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    <!-- Help Section -->
+                    <div class="mt-4 pt-3 border-top">
+                        <small class="text-muted">
+                            Need help? <a href="#" class="text-decoration-none">Contact our support team</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

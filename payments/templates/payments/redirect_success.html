@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful - Jersey Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        min-height: calc(100vh - 200px);
+        background: linear-gradient(135deg, var(--je-success-50) 0%, var(--je-primary-50) 100%);
+        padding: 2rem 0;
+    }
+
+    .success-card {
+        animation: slideUp 0.6s ease-out;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .success-header {
+        background: linear-gradient(135deg, var(--je-success-600) 0%, var(--je-success-700) 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .success-icon {
+        animation: scaleIn 0.5s ease-out 0.3s both;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+        }
+        to {
+            transform: scale(1);
+        }
+    }
+
+    .success-content {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .order-details-card {
+        background: var(--je-primary-50);
+        border: 1px solid var(--je-primary-200);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--je-primary-200);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .detail-label {
+        color: var(--je-secondary);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .detail-value {
+        color: var(--je-primary-800);
+        font-weight: 600;
+    }
+
+    .total-amount {
+        font-size: 1.25rem;
+        color: var(--je-success-700);
+    }
+
+    .event-item {
+        background: white;
+        border: 2px solid var(--je-primary-200);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .event-item:hover {
+        border-color: var(--je-primary-400);
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+    }
+
+    .tickets-info {
+        background: linear-gradient(135deg, var(--je-primary-50) 0%, var(--je-success-50) 100%);
+        border: 2px solid var(--je-primary-200);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .action-buttons {
+        margin-top: 2.5rem;
+        text-align: center;
+    }
+
+    .btn-primary-je {
+        background: linear-gradient(135deg, var(--je-primary-600) 0%, var(--je-primary-700) 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        margin: 0.5rem;
+    }
+
+    .btn-primary-je:hover {
+        background: linear-gradient(135deg, var(--je-primary-700) 0%, var(--je-primary-800) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+        color: white;
+    }
+
+    .btn-secondary-je {
+        background: var(--je-secondary);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        margin: 0.5rem;
+    }
+
+    .btn-secondary-je:hover {
+        background: var(--je-secondary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(71, 85, 105, 0.3);
+        color: white;
+    }
+
+    .error-state {
+        background: white;
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        text-align: center;
+        border: 2px solid var(--je-danger-200);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .success-container {
+            padding: 1rem;
+        }
+
+        .success-header {
+            padding: 2rem 1.5rem;
+        }
+
+        .success-content {
+            padding: 2rem 1.5rem;
+        }
+
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .event-item {
+            padding: 1rem;
+        }
+
+        .btn-primary-je,
+        .btn-secondary-je {
+            display: block;
+            margin: 0.5rem auto;
+            max-width: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="container">
+        <div class="success-card shadow-lg">
+
+            {% if success or already_paid %}
+                <!-- Success State -->
+                <div class="success-header">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; color: white;"></i>
+                    </div>
+                    <h1 class="h2 mb-3 fw-bold">
+                        {% if already_paid %}
+                            Order Already Confirmed
+                        {% else %}
+                            Payment Successful!
+                        {% endif %}
+                    </h1>
+                    <p class="mb-0 fs-5" style="opacity: 0.9;">
+                        {% if already_paid %}
+                            Your order has already been processed and confirmed.
+                        {% else %}
+                            Your payment has been processed successfully.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="success-content">
+
+                <!-- Order Details -->
+                {% if order %}
+                    <div class="mb-4">
+                        <h3 class="h4 fw-bold text-dark mb-3">
+                            <i class="fas fa-receipt me-2 text-primary"></i>Order Details
+                        </h3>
+                        <div class="order-details-card">
+                            <div class="detail-row">
+                                <span class="detail-label">Order Number:</span>
+                                <span class="detail-value">{{ order.order_number }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Total Amount:</span>
+                                <span class="detail-value total-amount">£{{ order.total }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Customer:</span>
+                                <span class="detail-value">{{ order.delivery_first_name }} {{ order.delivery_last_name }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">{{ order.email }}</span>
+                            </div>
+                            {% if order.paid_at %}
+                            <div class="detail-row">
+                                <span class="detail-label">Paid At:</span>
+                                <span class="detail-value">{{ order.paid_at|date:"M d, Y H:i" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                <!-- Event Items -->
+                <div class="mb-4">
+                    <h4 class="h4 fw-bold text-dark mb-3">
+                        <i class="fas fa-ticket-alt me-2 text-primary"></i>Event Tickets
+                    </h4>
+                    {% for item in order.items.all %}
+                    <div class="event-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-2 text-dark">{{ item.event_title }}</h5>
+                                <p class="mb-0 text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ item.quantity }} ticket{{ item.quantity|pluralize }}
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <p class="h5 fw-bold mb-0 text-success">£{{ item.total }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Tickets Section -->
+                {% if tickets %}
+                <div class="tickets-info">
+                    <div class="mb-3">
+                        <i class="fas fa-envelope fa-2x text-primary mb-2"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">
+                        🎫 {{ tickets|length }} ticket{{ tickets|length|pluralize }} generated
+                    </h5>
+                    <p class="mb-0 text-muted">
+                        Your tickets with QR codes have been sent to your email address.
+                        <br><strong>{{ order.email }}</strong>
+                    </p>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{% url 'events:events_list' %}" class="btn-primary-je">
+                        <i class="fas fa-calendar-alt me-2"></i>Browse More Events
+                    </a>
+
+                    {% if not success and not already_paid %}
+                    <a href="{% url 'cart:view' %}" class="btn-secondary-je">
+                        <i class="fas fa-shopping-cart me-2"></i>Try Again
+                    </a>
+                    {% endif %}
+                </div>
+                </div>
+
+            {% elif error %}
+                <!-- Error State -->
+                <div class="error-state">
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
+                        </div>
+                        <h1 class="h2 fw-bold text-danger mb-3">Payment Error</h1>
+                        <p class="fs-5 text-muted mb-4">
+                            {{ message|default:"There was an error processing your payment. Please contact support if this issue persists." }}
+                        </p>
+                        <div class="action-buttons">
+                            <a href="{% url 'events:events_list' %}" class="btn-primary-je">
+                                <i class="fas fa-home me-2"></i>Return to Events
+                            </a>
+                            <a href="{% url 'cart:view' %}" class="btn-secondary-je">
+                                <i class="fas fa-redo me-2"></i>Try Again
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

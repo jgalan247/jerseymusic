@@ -1,76 +1,107 @@
 {% extends 'base.html' %}
-{% block title %}Payment Successful - Jersey Artwork{% endblock %}
+{% load static %}
+
+{% block title %}Payment Successful - Jersey Events{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <!-- Success Icon -->
-            <div class="mb-4">
-                <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
-            </div>
-            
-            <h2 class="mb-3">Payment Successful!</h2>
-            <p class="lead">Thank you for your order. Your payment has been processed successfully.</p>
-            
-            {% if order %}
-            <!-- Order Details -->
-            <div class="card mt-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Order Confirmation</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Order Number:</strong> {{ order.order_number }}</p>
-                    <p><strong>Total Amount:</strong> £{{ order.total|floatformat:2 }}</p>
-                    
-                    <hr>
-                    
-                    <h6>Delivery Details:</h6>
-                    <p>
-                        {{ order.delivery_first_name }} {{ order.delivery_last_name }}<br>
-                        {{ order.delivery_address_line_1 }}<br>
-                        {% if order.delivery_address_line_2 %}
-                            {{ order.delivery_address_line_2 }}<br>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-check-circle text-success fa-5x mb-4"></i>
+
+                    <h2 class="text-success mb-3">Payment Successful!</h2>
+
+                    {% if order %}
+                        <div class="alert alert-success">
+                            <h5><i class="fas fa-ticket-alt me-2"></i>Order Confirmation</h5>
+                            <p class="mb-2"><strong>Order Number:</strong> {{ order.order_number }}</p>
+                            <p class="mb-2"><strong>Total Paid:</strong> £{{ order.total }}</p>
+                            <p class="mb-0"><strong>Items:</strong> {{ order.items.count }} ticket(s)</p>
+                        </div>
+
+                        {% if tickets_generated %}
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-envelope me-2"></i>Your Tickets</h6>
+                                <p class="mb-1">Your tickets are being generated and will be sent to:</p>
+                                <p class="mb-0"><strong>{{ order.email }}</strong></p>
+                            </div>
                         {% endif %}
-                        {{ order.delivery_parish }}, {{ order.delivery_postcode }}
-                    </p>
-                    
-                    <p><strong>Delivery Method:</strong> {{ order.get_delivery_method_display|default:order.delivery_method|title }}</p>
-                    
-                    <hr>
-                    
-                    <h6>Order Items:</h6>
-                    {% for item in order.items.all %}
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>{{ item.artwork.title }} x{{ item.quantity }}</span>
-                        <span>£{{ item.total|floatformat:2 }}</span>
+
+                        <!-- Order Items -->
+                        <div class="mt-4">
+                            <h6>Order Details:</h6>
+                            <div class="list-group">
+                                {% for item in order.items.all %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="text-start">
+                                                <h6 class="mb-1">{{ item.event.title }}</h6>
+                                                <small class="text-muted">
+                                                    {{ item.event.event_date|date:"l, F j, Y" }}
+                                                    {% if item.event.start_time %}
+                                                        at {{ item.event.start_time|time:"g:i A" }}
+                                                    {% endif %}
+                                                </small>
+                                                <br>
+                                                <small class="text-muted">Quantity: {{ item.quantity }}</small>
+                                            </div>
+                                            <span class="badge bg-primary">£{{ item.get_total_price }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="{% url 'orders:my_orders' %}" class="btn btn-primary">
+                                <i class="fas fa-list me-2"></i>View My Orders
+                            </a>
+                            <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-calendar me-2"></i>Browse More Events
+                            </a>
+                        </div>
+
+                    {% else %}
+                        <p class="lead">{{ message }}</p>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="{% url 'events:event_list' %}" class="btn btn-primary">
+                                <i class="fas fa-calendar me-2"></i>Browse Events
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    <!-- Security Notice -->
+                    <div class="mt-5 pt-4 border-top">
+                        <h6 class="text-muted">Secure Payment Processed</h6>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <i class="fas fa-lock text-success"></i>
+                                <br><small class="text-muted">SSL Encrypted</small>
+                            </div>
+                            <div class="col-4">
+                                <i class="fas fa-shield-alt text-success"></i>
+                                <br><small class="text-muted">PCI Compliant</small>
+                            </div>
+                            <div class="col-4">
+                                <i class="fab fa-cc-visa text-primary"></i>
+                                <br><small class="text-muted">Secure Processing</small>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-3">
+                            Payment processed securely by <strong>SumUp</strong>
+                        </small>
                     </div>
-                    {% endfor %}
+
+                    {% if already_paid %}
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This payment has already been processed. If you have any questions, please contact support.
+                        </div>
+                    {% endif %}
                 </div>
-            </div>
-            
-            <!-- Next Steps -->
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h5>What happens next?</h5>
-                    <p>A confirmation email has been sent to <strong>{{ order.email }}</strong></p>
-                    <p>Your order will be processed and shipped within 1-2 business days.</p>
-                    <p>You can track your order status in your account.</p>
-                </div>
-            </div>
-            {% else %}
-            <!-- Generic success message if no order -->
-            <div class="alert alert-info mt-4">
-                <p>Your payment has been processed. You should receive a confirmation email shortly.</p>
-            </div>
-            {% endif %}
-            
-            <!-- Action Buttons -->
-            <div class="mt-4">
-                {% if user.is_authenticated %}
-                <a href="{% url 'orders:my_orders' %}" class="btn btn-primary">View My Orders</a>
-                {% endif %}
-                <a href="{% url 'events:events_list' %}" class="btn btn-outline-primary">Continue Shopping</a>
             </div>
         </div>
     </div>

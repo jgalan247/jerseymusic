@@ -14,7 +14,6 @@
 
     <!-- Security Headers -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 
     <!-- Favicon -->
@@ -66,7 +65,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'events:upload' %}">
+                            <a class="nav-link" href="{% url 'events:create_event' %}">
                                 <i class="fas fa-plus me-1"></i>Create Event
                             </a>
                         </li>
@@ -74,7 +73,7 @@
                 </ul>
 
                 <ul class="navbar-nav">
-                    <!-- Cart - Available to All Users -->
+                    <!-- Cart -->
                     <li class="nav-item">
                         <a class="nav-link position-relative" href="{% url 'cart:view' %}">
                             <i class="fas fa-shopping-cart me-1"></i>Cart
@@ -89,7 +88,7 @@
                     {% if user.is_authenticated %}
                         {% if user.user_type == 'customer' %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'orders:customer_list' %}">
+                            <a class="nav-link" href="{% url 'orders:my_orders' %}">
                                 <i class="fas fa-ticket-alt me-1"></i>My Tickets
                             </a>
                         </li>
@@ -165,6 +164,7 @@
     <footer class="footer-je mt-5">
         <div class="container">
             <div class="row g-4">
+                <!-- About Section -->
                 <div class="col-lg-4">
                     <h5><i class="fas fa-calendar-alt text-je-island-blue me-2"></i>Jersey Events</h5>
                     <p>Connecting Jersey's vibrant community through memorable events and experiences.</p>
@@ -180,29 +180,28 @@
                         </a>
                     </div>
                 </div>
+
+                <!-- Quick Links -->
                 <div class="col-lg-4">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="{% url 'events:events_list' %}">Browse Events</a></li>
+                        <li class="mb-2"><a href="{% url 'events:pricing' %}">Pricing</a></li>
                         <li class="mb-2"><a href="{% url 'events:organisers' %}">Featured Organisers</a></li>
                         <li class="mb-2"><a href="{% url 'events:about' %}">About Us</a></li>
                         <li class="mb-2"><a href="{% url 'events:contact' %}">Contact</a></li>
                     </ul>
                 </div>
+
+                <!-- For Organisers -->
                 <div class="col-lg-4">
-                    <h5>Connect With Us</h5>
-                    <p class="mb-2">
-                        <i class="fas fa-envelope me-2"></i>
-                        <a href="mailto:info@jerseyevents.je" class="text-decoration-none">info@jerseyevents.je</a>
-                    </p>
-                    <p class="mb-2">
-                        <i class="fas fa-phone me-2"></i>
-                        <a href="tel:+441534123456" class="text-decoration-none">+44 1534 123456</a>
-                    </p>
-                    <p class="mb-0">
-                        <i class="fas fa-map-marker-alt me-2"></i>
-                        Jersey, Channel Islands
-                    </p>
+                    <h5>For Organisers</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'accounts:register_organiser' %}">Create an Account</a></li>
+                        <li class="mb-2"><a href="{% url 'events:why_choose_us' %}">Why Choose Us?</a></li>
+                        <li class="mb-2"><a href="{% url 'events:pricing' %}">See Pricing</a></li>
+                        <li class="mb-2"><a href="{% url 'events:contact' %}">Get in Touch</a></li>
+                    </ul>
                 </div>
             </div>
 
@@ -216,7 +215,7 @@
                         </div>
                         <div class="trust-indicator">
                             <i class="fas fa-credit-card icon"></i>
-                            <span>Secure Payments via SumUp</span>
+                            <span>Secure Payments</span>
                         </div>
                         <div class="trust-indicator">
                             <i class="fas fa-qrcode icon"></i>
@@ -224,17 +223,19 @@
                         </div>
                         <div class="trust-indicator">
                             <i class="fas fa-users icon"></i>
-                            <span>Trusted by 500+ Event-goers</span>
+                            <span>Trusted Platform</span>
                         </div>
                         <div class="trust-indicator">
                             <i class="fas fa-headset icon"></i>
-                            <span>24/7 Support</span>
+                            <span>Local Support</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <hr class="my-4">
+
+            <!-- Copyright & Legal Links -->
             <div class="row">
                 <div class="col-12 text-center">
                     <p class="mb-2 small">
@@ -242,10 +243,11 @@
                         Your personal data is protected with industry-standard encryption
                     </p>
                     <p class="mb-0 small">
-                        &copy; 2025 Jersey Events. All rights reserved. |
+                        &copy; 2025 Coderra.je - All rights reserved. |
                         <a href="{% url 'events:privacy' %}" class="text-decoration-none">Privacy Policy</a> |
                         <a href="{% url 'events:terms' %}" class="text-decoration-none">Terms & Conditions</a> |
-                        <a href="{% url 'events:refund_policy' %}" class="text-decoration-none">Refund Policy</a>
+                        <a href="{% url 'events:refund_policy' %}" class="text-decoration-none">Refund Policy</a> |
+                        <a href="{% url 'events:contact' %}" class="text-decoration-none">Contact Us</a>
                     </p>
                 </div>
             </div>

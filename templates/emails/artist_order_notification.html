@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>New Order Notification</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+        <h1 style="color: #28a745; margin-bottom: 20px;">🎉 New Order Received!</h1>
+
+        <p>Dear {{ artist.display_name }},</p>
+
+        <p>Great news! You've received a new order for your event.</p>
+
+        <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3>Order #{{ order.order_number }}</h3>
+            <p><strong>Customer:</strong> {{ order.delivery_first_name }} {{ order.delivery_last_name }}</p>
+            <p><strong>Email:</strong> {{ order.email }}</p>
+            <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+        </div>
+
+        {% if order.items.all %}
+        <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h4 style="color: #28a745; margin-bottom: 15px;">Order Details</h4>
+            {% for item in order.items.all %}
+            <div style="border-left: 3px solid #28a745; padding: 10px; margin-bottom: 10px; background: #f8f9fa;">
+                <strong>{{ item.event.title }}</strong><br>
+                <small style="color: #666;">
+                    {{ item.event.event_date|date:"l, F j, Y" }} at {{ item.event.event_time|time:"g:i A" }}
+                </small>
+                <div style="margin-top: 8px;">
+                    <span style="color: #666;">Tickets Sold:</span> {{ item.quantity }}<br>
+                    <span style="color: #666;">Price per Ticket:</span> £{{ item.price }}<br>
+                    {% if item.ticket_tier %}
+                    <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-weight: bold;">
+                        {{ item.ticket_tier.get_tier_type_display }} Tier
+                    </span>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6;">
+                    <strong>Revenue: £{{ item.total }}</strong>
+                </div>
+            </div>
+            {% endfor %}
+            <div style="background: #e8f5e9; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                <strong style="color: #28a745;">Total Order Value: £{{ order.total }}</strong>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h4 style="color: #0066cc; margin-top: 0;">💰 Your Earnings</h4>
+            <p style="margin-bottom: 0;">
+                After platform fees, you'll receive your payout according to your payment schedule.
+                View detailed earnings breakdown in your <a href="{{ dashboard_url }}" style="color: #0066cc; font-weight: bold;">organiser dashboard</a>.
+            </p>
+        </div>
+
+        <p>Thank you for using Jersey Events!</p>
+
+        <p>Best regards,<br>Jersey Events Team</p>
+
+        <hr style="margin: 30px 0;">
+        <p style="font-size: 12px; color: #666;">
+            Questions? Contact us at support@jerseyevents.co.uk
+        </p>
+    </div>
+</body>
+</html>

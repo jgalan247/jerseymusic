@@ -10,10 +10,15 @@ class Order(models.Model):
     """Main order model."""
     ORDER_STATUS_CHOICES = [
         ('pending', 'Pending Payment'),
+        ('pending_verification', 'Pending Payment Verification'),
         ('processing', 'Processing'),
+        ('completed', 'Completed'),  # Payment verified, tickets issued
         ('confirmed', 'Confirmed'),
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
+        ('failed', 'Payment Failed'),
+        ('expired', 'Verification Expired'),
+        ('requires_manual_review', 'Requires Manual Review'),
         ('cancelled', 'Cancelled'),
         ('refunded', 'Refunded'),
     ]
@@ -67,7 +72,7 @@ class Order(models.Model):
     
     # Order details
     status = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=ORDER_STATUS_CHOICES,
         default='pending'
     )
@@ -103,7 +108,32 @@ class Order(models.Model):
     # Additional information
     customer_note = models.TextField(blank=True)
     admin_note = models.TextField(blank=True)
-    
+    payment_notes = models.TextField(
+        blank=True,
+        help_text="Internal notes about payment verification issues"
+    )
+
+    # Terms & Conditions Acceptance (Legal Protection)
+    terms_accepted = models.BooleanField(
+        default=False,
+        help_text="Customer accepted Terms & Conditions at checkout"
+    )
+    terms_accepted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When T&C were accepted"
+    )
+    terms_version = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Version of T&C accepted (e.g., '1.0', '2024-01-15')"
+    )
+    acceptance_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of customer when T&C accepted (for legal records)"
+    )
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -201,15 +231,19 @@ class OrderItem(models.Model):
     def save(self, *args, **kwargs):
         # Calculate total
         self.total = Decimal(str(self.quantity)) * self.price
-        
+
         # Store artwork details for historical record
         if self.event and not self.event_title:
             self.event_title = self.event.title
             self.event_organiser = self.event.organiser.get_full_name()
             self.event_date = self.event.event_date
             self.venue_name = self.event.venue_name
-            
+
         super().save(*args, **kwargs)
+
+    def get_range(self):
+        """Helper method for iterating in templates."""
+        return range(1, self.quantity + 1)
 
 
 class OrderStatusHistory(models.Model):

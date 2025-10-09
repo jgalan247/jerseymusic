@@ -1,8 +1,15 @@
 # events/forms.py
 from django import forms
 from django.core.mail import EmailMessage
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from events.models import Event
+from events.validators import (
+    validate_event_capacity,
+    validate_ticket_price,
+    EventCapacityValidator,
+    TicketPriceValidator
+)
 
 class EventCreateForm(forms.ModelForm):
     class Meta:
@@ -13,7 +20,50 @@ class EventCreateForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'ticket_price': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
             'main_image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'capacity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'max': str(settings.MAX_AUTO_CAPACITY),
+                'help_text': f'Maximum capacity: {settings.MAX_AUTO_CAPACITY} tickets. For larger events, contact {settings.CUSTOM_PRICING_EMAIL}.'
+            })
         }
+
+    def clean_capacity(self):
+        """Validate capacity using custom validator."""
+        capacity = self.cleaned_data.get('capacity')
+        if capacity:
+            validate_event_capacity(capacity)
+        return capacity
+
+    def clean_ticket_price(self):
+        """Validate ticket price using custom validator."""
+        ticket_price = self.cleaned_data.get('ticket_price')
+        if ticket_price:
+            validate_ticket_price(ticket_price)
+        return ticket_price
+
+    def clean(self):
+        """Additional form-level validation."""
+        cleaned_data = super().clean()
+        capacity = cleaned_data.get('capacity')
+        ticket_price = cleaned_data.get('ticket_price')
+
+        # Show pricing tier information
+        if capacity and ticket_price:
+            from events.settings import get_pricing_tier
+            tier = get_pricing_tier(capacity)
+
+            if tier:
+                # Calculate platform fee for this tier
+                platform_fee = tier['fee']
+                # Add helpful message to user
+                self.tier_info = {
+                    'tier': tier['name'],
+                    'platform_fee': platform_fee,
+                    'capacity': capacity
+                }
+
+        return cleaned_data
 
 
 class ContactForm(forms.Form):

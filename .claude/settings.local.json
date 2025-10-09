@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py:*)",
+      "Bash(sqlite3:*)",
+      "Bash(chmod:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:developer.sumup.com)",
+      "WebSearch",
+      "Bash(python3 manage.py check:*)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Read(//private/tmp/claude/**)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(echo:*)",
+      "Bash(test:*)",
+      "Bash(createuser:*)",
+      "Bash(dropdb:*)",
+      "Bash(createdb:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

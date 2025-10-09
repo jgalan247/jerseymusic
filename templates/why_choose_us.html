@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Why Choose Jersey Music? - Lower Fees, Better Service{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 mb-3">Why Choose Jersey Music?</h1>
+        <p class="lead text-muted">
+            The smart choice for event organizers in Jersey. Lower fees, transparent pricing, better support.
+        </p>
+    </div>
+
+    <!-- Quick Comparison Card -->
+    <div class="card mb-5 border-primary shadow-lg">
+        <div class="card-body p-4">
+            <h2 class="card-title text-center mb-4">
+                <i class="fas fa-chart-bar me-2 text-primary"></i>The Numbers Speak for Themselves
+            </h2>
+            <div class="row text-center">
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 bg-success bg-opacity-10 rounded">
+                        <h3 class="text-success mb-2">Jersey Music</h3>
+                        <p class="h1 mb-2 text-success">£15 - £70</p>
+                        <p class="text-muted mb-0">flat fee per event</p>
+                        <p class="small text-muted mt-1">(~£0.12-£0.15 per ticket when sold out)</p>
+                        <p class="small text-success fw-bold mt-2">+ 2.5% payment processing</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 bg-danger bg-opacity-10 rounded">
+                        <h3 class="text-danger mb-2">Eventbrite</h3>
+                        <p class="h1 mb-2 text-danger">6.95% + £0.59</p>
+                        <p class="text-muted mb-0">per ticket (standard pricing)</p>
+                        <p class="small text-danger fw-bold mt-2">+ 2.9% + £0.30 payment processing</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Comparison Table -->
+    <div class="card mb-5 shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Feature-by-Feature Comparison</h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4 py-3">Feature</th>
+                            <th class="px-4 py-3 text-center">Jersey Music</th>
+                            <th class="px-4 py-3 text-center">Eventbrite</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Platform Fee</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>£15-£70 flat fee per event<br>
+                                <small class="text-muted">(~£0.12-£0.15 per ticket when sold out)</small>
+                            </td>
+                            <td class="px-4 py-3 text-center text-danger">
+                                <i class="fas fa-times-circle me-2"></i>6.95% + £0.59 per ticket
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Payment Processing</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>2.5% (online payments)
+                            </td>
+                            <td class="px-4 py-3 text-center text-danger">
+                                <i class="fas fa-times-circle me-2"></i>2.9% + £0.30 per ticket
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Transparent Pricing</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Flat fee per event
+                            </td>
+                            <td class="px-4 py-3 text-center text-warning">
+                                <i class="fas fa-minus-circle me-2"></i>Percentage-based (unpredictable)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Local Support</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Jersey-based team
+                            </td>
+                            <td class="px-4 py-3 text-center text-danger">
+                                <i class="fas fa-times-circle me-2"></i>International call center
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Payment to Organizer</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Direct to your account
+                            </td>
+                            <td class="px-4 py-3 text-center text-warning">
+                                <i class="fas fa-minus-circle me-2"></i>Held by platform, paid out later
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Monthly Subscriptions</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>None - pay per event only
+                            </td>
+                            <td class="px-4 py-3 text-center text-warning">
+                                <i class="fas fa-minus-circle me-2"></i>Optional Pro plan (£15-£129/month)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Ticket Tiers</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>VIP, Standard, Child, Concession, etc.
+                            </td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Multiple ticket types
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>QR Code Tickets</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Included
+                            </td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Included
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3"><strong>Real-time Analytics</strong></td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Included
+                            </td>
+                            <td class="px-4 py-3 text-center text-success">
+                                <i class="fas fa-check-circle me-2"></i>Included
+                            </td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="px-4 py-3"><strong>Best For:</strong></td>
+                            <td class="px-4 py-3 text-center text-success fw-bold">
+                                Jersey-based events of any size
+                            </td>
+                            <td class="px-4 py-3 text-center text-muted">
+                                Large international events
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Cost Calculator -->
+    <div class="card mb-5 shadow-lg border-success">
+        <div class="card-header bg-success text-white">
+            <h3 class="mb-0">
+                <i class="fas fa-calculator me-2"></i>Cost Calculator - See Your Savings
+            </h3>
+        </div>
+        <div class="card-body p-4">
+            <p class="mb-4">
+                Calculate exactly how much you'll save with Jersey Music compared to Eventbrite:
+            </p>
+
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label for="capacity" class="form-label fw-bold">Event Capacity</label>
+                    <input type="number" class="form-control form-control-lg" id="capacity"
+                           placeholder="e.g. 100" min="1" max="500" value="100">
+                    <small class="form-text text-muted">Maximum 500 tickets for automatic pricing</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="ticketPrice" class="form-label fw-bold">Ticket Price (£)</label>
+                    <input type="number" class="form-control form-control-lg" id="ticketPrice"
+                           placeholder="e.g. 25" min="1" step="0.01" value="25.00">
+                    <small class="form-text text-muted">Base price per ticket</small>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mb-4">
+                <button class="btn btn-success btn-lg" onclick="calculateCosts()">
+                    <i class="fas fa-calculator me-2"></i>Calculate My Savings
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="d-none">
+                <hr class="my-4">
+                <h4 class="mb-4 text-center">Your Cost Comparison</h4>
+
+                <div class="row">
+                    <!-- Jersey Music Column -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-header bg-success text-white text-center">
+                                <h5 class="mb-0">Jersey Music</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Capacity:</span>
+                                        <strong id="jm-capacity">-</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Ticket Price:</span>
+                                        <strong id="jm-ticket-price">-</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Pricing Tier:</span>
+                                        <strong id="jm-tier">-</strong>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Platform Fee/Ticket:</span>
+                                        <span id="jm-platform-fee">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Processing Fee/Ticket:</span>
+                                        <span id="jm-processing-fee">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold">Total Fee/Ticket:</span>
+                                        <span class="fw-bold" id="jm-total-fee">-</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Gross Revenue:</span>
+                                        <span id="jm-gross">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Total Fees:</span>
+                                        <span id="jm-total-fees">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-success">
+                                        <span class="fw-bold">You Keep:</span>
+                                        <strong class="h5 mb-0" id="jm-net">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Eventbrite Column -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-danger h-100">
+                            <div class="card-header bg-danger text-white text-center">
+                                <h5 class="mb-0">Eventbrite</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Capacity:</span>
+                                        <strong id="eb-capacity">-</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Ticket Price:</span>
+                                        <strong id="eb-ticket-price">-</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Pricing Model:</span>
+                                        <strong>Percentage-based</strong>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Platform Fee/Ticket:</span>
+                                        <span id="eb-platform-fee">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Processing Fee/Ticket:</span>
+                                        <span id="eb-processing-fee">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold">Total Fee/Ticket:</span>
+                                        <span class="fw-bold" id="eb-total-fee">-</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Gross Revenue:</span>
+                                        <span id="eb-gross">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Total Fees:</span>
+                                        <span id="eb-total-fees">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-danger">
+                                        <span class="fw-bold">You Keep:</span>
+                                        <strong class="h5 mb-0" id="eb-net">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings Summary -->
+                <div class="alert alert-success mt-4 text-center" role="alert">
+                    <h4 class="alert-heading">
+                        <i class="fas fa-piggy-bank me-2"></i>Your Total Savings
+                    </h4>
+                    <hr>
+                    <p class="h2 mb-2" id="savings-amount">£0.00</p>
+                    <p class="mb-0">
+                        That's <span id="savings-percent" class="fw-bold">0%</span> more in your pocket with Jersey Music!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Jersey Music Section -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-0 shadow">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-map-marked-alt fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="card-title">Jersey-Focused</h4>
+                    <p class="card-text">
+                        Built specifically for the Jersey events community. We understand local needs,
+                        regulations, and culture.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-0 shadow">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-pound-sign fa-3x text-success"></i>
+                    </div>
+                    <h4 class="card-title">Better Value</h4>
+                    <p class="card-text">
+                        Lower fees mean more money stays with you and your attendees.
+                        Transparent pricing with no hidden costs.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-0 shadow">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-headset fa-3x text-info"></i>
+                    </div>
+                    <h4 class="card-title">Local Support</h4>
+                    <p class="card-text">
+                        Real people in Jersey who care about your event's success.
+                        Quick responses, no call centers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="card bg-primary text-white text-center shadow-lg">
+        <div class="card-body p-5">
+            <h2 class="mb-3">Ready to Save Money on Your Next Event?</h2>
+            <p class="lead mb-4">
+                Join Jersey event organizers who are keeping more of their ticket revenue.
+            </p>
+            <a href="{% url 'accounts:register_organiser' %}" class="btn btn-light btn-lg me-2">
+                <i class="fas fa-user-plus me-2"></i>Create Free Account
+            </a>
+            <a href="{% url 'events:contact' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-envelope me-2"></i>Contact Us
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculateCosts() {
+    const capacity = parseInt(document.getElementById('capacity').value) || 0;
+    const ticketPrice = parseFloat(document.getElementById('ticketPrice').value) || 0;
+
+    if (capacity <= 0 || ticketPrice <= 0) {
+        alert('Please enter valid capacity and ticket price.');
+        return;
+    }
+
+    if (capacity > 500) {
+        alert('For events over 500 capacity, please contact us for custom pricing.');
+        return;
+    }
+
+    // Jersey Music Pricing - Using correct tier structure from pricing page
+    let jmPlatformFee;
+    let jmTier;
+    if (capacity <= 100) {
+        jmPlatformFee = 15.00;  // Total platform fee for up to 100 capacity
+        jmTier = 'Up to 100 (£15)';
+    } else if (capacity <= 200) {
+        jmPlatformFee = 25.00;
+        jmTier = 'Up to 200 (£25)';
+    } else if (capacity <= 300) {
+        jmPlatformFee = 40.00;
+        jmTier = 'Up to 300 (£40)';
+    } else if (capacity <= 400) {
+        jmPlatformFee = 55.00;
+        jmTier = 'Up to 400 (£55)';
+    } else {
+        jmPlatformFee = 70.00;
+        jmTier = 'Up to 500 (£70)';
+    }
+
+    const jmProcessingRate = 0.025; // 2.5% for online transactions
+    const jmProcessingFee = ticketPrice * jmProcessingRate;
+    const jmTotalFeePerTicket = (jmPlatformFee / capacity) + jmProcessingFee;
+    const jmGross = ticketPrice * capacity;
+    const jmTotalFees = jmPlatformFee + (jmProcessingFee * capacity);
+    const jmNet = jmGross - jmTotalFees;
+
+    // Eventbrite Pricing
+    const ebPlatformFeePerTicket = (ticketPrice * 0.0695) + 0.59; // 6.95% + £0.59
+    const ebProcessingFee = (ticketPrice * 0.029) + 0.30; // 2.9% + £0.30
+    const ebTotalFeePerTicket = ebPlatformFeePerTicket + ebProcessingFee;
+    const ebGross = ticketPrice * capacity;
+    const ebTotalFees = ebTotalFeePerTicket * capacity;
+    const ebNet = ebGross - ebTotalFees;
+
+    // Calculate savings
+    const savings = ebTotalFees - jmTotalFees;
+    const savingsPercent = ((savings / ebTotalFees) * 100).toFixed(1);
+
+    // Update Jersey Music side
+    document.getElementById('jm-capacity').textContent = capacity;
+    document.getElementById('jm-ticket-price').textContent = '£' + ticketPrice.toFixed(2);
+    document.getElementById('jm-tier').textContent = jmTier;
+    document.getElementById('jm-platform-fee').textContent = '£' + (jmPlatformFee / capacity).toFixed(2);
+    document.getElementById('jm-processing-fee').textContent = '£' + jmProcessingFee.toFixed(2);
+    document.getElementById('jm-total-fee').textContent = '£' + jmTotalFeePerTicket.toFixed(2);
+    document.getElementById('jm-gross').textContent = '£' + jmGross.toFixed(2);
+    document.getElementById('jm-total-fees').textContent = '£' + jmTotalFees.toFixed(2);
+    document.getElementById('jm-net').textContent = '£' + jmNet.toFixed(2);
+
+    // Update Eventbrite side
+    document.getElementById('eb-capacity').textContent = capacity;
+    document.getElementById('eb-ticket-price').textContent = '£' + ticketPrice.toFixed(2);
+    document.getElementById('eb-platform-fee').textContent = '£' + ebPlatformFeePerTicket.toFixed(2);
+    document.getElementById('eb-processing-fee').textContent = '£' + ebProcessingFee.toFixed(2);
+    document.getElementById('eb-total-fee').textContent = '£' + ebTotalFeePerTicket.toFixed(2);
+    document.getElementById('eb-gross').textContent = '£' + ebGross.toFixed(2);
+    document.getElementById('eb-total-fees').textContent = '£' + ebTotalFees.toFixed(2);
+    document.getElementById('eb-net').textContent = '£' + ebNet.toFixed(2);
+
+    // Update savings
+    document.getElementById('savings-amount').textContent = '£' + savings.toFixed(2);
+    document.getElementById('savings-percent').textContent = savingsPercent + '%';
+
+    // Show results
+    document.getElementById('results').classList.remove('d-none');
+
+    // Scroll to results
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+{% endblock %}

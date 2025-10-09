@@ -15,20 +15,6 @@
             <form method="post" novalidate>
                 {% csrf_token %}
 
-                <div class="form-floating mb-3">
-                    <input type="text"
-                           class="form-control"
-                           id="id_username"
-                           name="username"
-                           placeholder="Choose a username"
-                           required>
-                    <label for="id_username">
-                        <i class="fas fa-user me-2"></i>Username
-                    </label>
-                    {% if form.username.errors %}
-                        <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
-                    {% endif %}
-                </div>
 
                 <div class="form-floating mb-3">
                     <input type="email"
@@ -93,7 +79,7 @@
                     {% endif %}
                 </div>
 
-                <div class="form-floating mb-4">
+                <div class="form-floating mb-3">
                     <input type="password"
                            class="form-control"
                            id="id_password2"
@@ -106,6 +92,66 @@
                     {% if form.password2.errors %}
                         <div class="invalid-feedback d-block">{{ form.password2.errors.0 }}</div>
                     {% endif %}
+                </div>
+
+                <!-- Address Information -->
+                <div class="form-floating mb-3">
+                    <input type="text"
+                           class="form-control"
+                           id="id_address_line_1"
+                           name="address_line_1"
+                           placeholder="Address"
+                           required>
+                    <label for="id_address_line_1">
+                        <i class="fas fa-home me-2"></i>Address
+                    </label>
+                    {% if form.address_line_1.errors %}
+                        <div class="invalid-feedback d-block">{{ form.address_line_1.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select class="form-control" id="id_parish" name="parish" required>
+                                <option value="">Select Parish</option>
+                                <option value="st_helier">St. Helier</option>
+                                <option value="st_brelade">St. Brelade</option>
+                                <option value="st_clement">St. Clement</option>
+                                <option value="st_john">St. John</option>
+                                <option value="st_lawrence">St. Lawrence</option>
+                                <option value="st_martin">St. Martin</option>
+                                <option value="st_ouen">St. Ouen</option>
+                                <option value="st_peter">St. Peter</option>
+                                <option value="st_saviour">St. Saviour</option>
+                                <option value="trinity">Trinity</option>
+                                <option value="st_mary">St. Mary</option>
+                                <option value="grouville">Grouville</option>
+                            </select>
+                            <label for="id_parish">
+                                <i class="fas fa-map-marker-alt me-2"></i>Parish
+                            </label>
+                            {% if form.parish.errors %}
+                                <div class="invalid-feedback d-block">{{ form.parish.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text"
+                                   class="form-control"
+                                   id="id_postcode"
+                                   name="postcode"
+                                   placeholder="JE2 3AB"
+                                   required>
+                            <label for="id_postcode">
+                                <i class="fas fa-mail-bulk me-2"></i>Postcode
+                            </label>
+                            {% if form.postcode.errors %}
+                                <div class="invalid-feedback d-block">{{ form.postcode.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-je-primary w-100 mb-3">

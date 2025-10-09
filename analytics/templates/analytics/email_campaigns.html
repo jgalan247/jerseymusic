@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Email Campaigns - SumUp Analytics{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
+<style>
+.campaigns-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.metric-value {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.campaign-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.campaign-row:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.campaign-info h5 {
+    margin-bottom: 0.5rem;
+    color: #2d3748;
+}
+
+.campaign-subject {
+    color: #718096;
+    font-size: 0.875rem;
+}
+
+.campaign-stats {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-percentage {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.stat-count {
+    font-size: 0.875rem;
+    color: #718096;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-sent {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.status-draft {
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+.status-scheduled {
+    background: #bee3f8;
+    color: #2a4365;
+}
+
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">Email Campaign Performance</h1>
+                <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-primary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">{{ total_campaigns }}</div>
+                <div class="metric-label">Total Campaigns</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">{{ total_recipients|default:0 }}</div>
+                <div class="metric-label">Recipients</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">{{ avg_open_rate|default:0 }}%</div>
+                <div class="metric-label">Avg Open Rate</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">{{ avg_conversion_rate|default:0 }}%</div>
+                <div class="metric-label">Avg Conversion</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campaign Performance Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="campaigns-container">
+                <h3 class="mb-4">Campaign Performance Trends</h3>
+                <div class="chart-container">
+                    <canvas id="campaignPerformanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Campaigns -->
+    <div class="row">
+        <div class="col-12">
+            <div class="campaigns-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>Recent Campaigns</h3>
+                    <button class="btn btn-primary">Create Campaign</button>
+                </div>
+
+                {% if recent_campaigns %}
+                    {% for campaign in recent_campaigns %}
+                    <div class="campaign-row">
+                        <div class="campaign-info">
+                            <h5>{{ campaign.name }}</h5>
+                            <div class="campaign-subject">{{ campaign.subject }}</div>
+                            <div class="mt-2">
+                                <span class="status-badge status-{{ campaign.status }}">
+                                    {{ campaign.get_status_display }}
+                                </span>
+                                {% if campaign.sent_at %}
+                                <small class="text-muted ms-2">
+                                    Sent {{ campaign.sent_at|timesince }} ago
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="campaign-stats">
+                            <div class="stat-item">
+                                <div class="stat-percentage">{{ campaign.open_rate|floatformat:1 }}%</div>
+                                <div class="stat-count">{{ campaign.unique_opens }}/{{ campaign.successful_sends }} opens</div>
+                            </div>
+
+                            <div class="stat-item">
+                                <div class="stat-percentage">{{ campaign.click_rate|floatformat:1 }}%</div>
+                                <div class="stat-count">{{ campaign.unique_clicks }}/{{ campaign.successful_sends }} clicks</div>
+                            </div>
+
+                            <div class="stat-item">
+                                <div class="stat-percentage">{{ campaign.conversion_rate|floatformat:1 }}%</div>
+                                <div class="stat-count">{{ campaign.oauth_completions }}/{{ campaign.successful_sends }} conversions</div>
+                            </div>
+
+                            <div class="stat-item">
+                                <div class="stat-percentage">{{ campaign.total_recipients }}</div>
+                                <div class="stat-count">recipients</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <h4 class="text-muted">No campaigns yet</h4>
+                        <p class="text-muted">Create your first email campaign to track performance metrics.</p>
+                        <button class="btn btn-primary">Create First Campaign</button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Campaign Performance Breakdown -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="campaigns-container">
+                <h3 class="mb-4">Open Rate Distribution</h3>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="openRateChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="campaigns-container">
+                <h3 class="mb-4">Conversion Funnel</h3>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="conversionFunnelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+<script>
+// Campaign performance chart
+const campaignData = {{ campaign_performance|safe }};
+const performanceCtx = document.getElementById('campaignPerformanceChart').getContext('2d');
+
+const campaignPerformanceChart = new Chart(performanceCtx, {
+    type: 'line',
+    data: {
+        labels: campaignData.map(c => c.name),
+        datasets: [{
+            label: 'Open Rate (%)',
+            data: campaignData.map(c => c.open_rate),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.1
+        }, {
+            label: 'Click Rate (%)',
+            data: campaignData.map(c => c.click_rate),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.1
+        }, {
+            label: 'Conversion Rate (%)',
+            data: campaignData.map(c => c.conversion_rate),
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                title: {
+                    display: true,
+                    text: 'Percentage (%)'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            title: {
+                display: true,
+                text: 'Email Campaign Performance Over Time'
+            }
+        }
+    }
+});
+
+// Open rate distribution (doughnut chart)
+const openRateCtx = document.getElementById('openRateChart').getContext('2d');
+const openRateChart = new Chart(openRateCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['High (>30%)', 'Medium (15-30%)', 'Low (<15%)'],
+        datasets: [{
+            data: [
+                campaignData.filter(c => c.open_rate > 30).length,
+                campaignData.filter(c => c.open_rate >= 15 && c.open_rate <= 30).length,
+                campaignData.filter(c => c.open_rate < 15).length
+            ],
+            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Conversion funnel chart
+const funnelCtx = document.getElementById('conversionFunnelChart').getContext('2d');
+
+// Calculate average funnel metrics
+const totalRecipients = campaignData.reduce((sum, c) => sum + (c.recipients || 0), 0);
+const totalOpens = campaignData.reduce((sum, c) => sum + (c.opens || 0), 0);
+const totalClicks = campaignData.reduce((sum, c) => sum + (c.clicks || 0), 0);
+const totalConversions = campaignData.reduce((sum, c) => sum + (c.conversions || 0), 0);
+
+const conversionFunnelChart = new Chart(funnelCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Sent', 'Opened', 'Clicked', 'Converted'],
+        datasets: [{
+            label: 'Count',
+            data: [totalRecipients, totalOpens, totalClicks, totalConversions],
+            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

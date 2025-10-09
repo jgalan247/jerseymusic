@@ -1,22 +1,101 @@
 {% extends 'base.html' %}
 
-{% block title %}Artist Dashboard - Jersey Artwork{% endblock %}
+{% block title %}Artist Dashboard - Jersey Events{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <h1>Artist Dashboard</h1>
-    
+
     {% if not email_verified %}
     <div class="alert alert-warning">
-        Please verify your email to access all features. 
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Please verify your email to access all features.
         <a href="{% url 'accounts:resend_verification' %}">Resend verification email</a>
     </div>
     {% endif %}
-    
-    {% if not has_subscription %}
-    <div class="alert alert-info">
-        You need an active subscription to start selling. 
-        <a href="#" class="btn btn-primary btn-sm">Choose a Plan</a>
+
+
+    <!-- SumUp Connection Status -->
+    {% if user.artistprofile %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-{% if user.artistprofile.is_sumup_connected %}success{% elif user.artistprofile.sumup_connection_status == 'expired' %}warning{% else %}danger{% endif %}">
+                <div class="card-header bg-{% if user.artistprofile.is_sumup_connected %}success{% elif user.artistprofile.sumup_connection_status == 'expired' %}warning{% else %}danger{% endif %} text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if user.artistprofile.is_sumup_connected %}check-circle{% elif user.artistprofile.sumup_connection_status == 'expired' %}exclamation-triangle{% else %}times-circle{% endif %} me-2"></i>
+                        Payment Connection (SumUp)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if user.artistprofile.is_sumup_connected %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1">
+                                    <strong>Status:</strong>
+                                    <span class="text-success">Connected</span>
+                                </p>
+                                {% if user.artistprofile.sumup_merchant_code %}
+                                <p class="mb-1">
+                                    <strong>Merchant:</strong> {{ user.artistprofile.sumup_merchant_code }}
+                                </p>
+                                {% endif %}
+                                {% if user.artistprofile.sumup_connected_at %}
+                                <p class="mb-0 text-muted">
+                                    <small>Connected: {{ user.artistprofile.sumup_connected_at|date:"M j, Y g:i A" }}</small>
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <a href="{% url 'accounts:sumup_status' %}" class="btn btn-outline-primary btn-sm me-2">
+                                    <i class="fas fa-sync-alt me-1"></i>Check Status
+                                </a>
+                                <form method="post" action="{% url 'accounts:sumup_disconnect' %}" class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to disconnect SumUp? You will not be able to receive payments.')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-unlink me-1"></i>Disconnect
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% elif user.artistprofile.sumup_connection_status == 'expired' %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1">
+                                    <strong>Status:</strong>
+                                    <span class="text-warning">Connection Expired</span>
+                                </p>
+                                <p class="mb-0 text-muted">
+                                    Your SumUp connection has expired. Reconnect to continue receiving payments.
+                                </p>
+                            </div>
+                            <div>
+                                <a href="{% url 'accounts:sumup_connect' %}" class="btn btn-warning">
+                                    <i class="fas fa-link me-1"></i>Reconnect SumUp
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1">
+                                    <strong>Status:</strong>
+                                    <span class="text-danger">Not Connected</span>
+                                </p>
+                                <p class="mb-0 text-muted">
+                                    Connect your SumUp account to receive payments directly to your merchant account.
+                                </p>
+                            </div>
+                            <div>
+                                <a href="{% url 'accounts:sumup_connect' %}" class="btn btn-primary">
+                                    <i class="fas fa-link me-1"></i>Connect SumUp
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
     {% endif %}
     
@@ -24,18 +103,29 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">My Artworks</h5>
-                    <p class="card-text">Manage your artwork listings</p>
-                    <a href="#" class="btn btn-primary">View Artworks</a>
+                    <h5 class="card-title">
+                        <i class="fas fa-calendar-alt me-2"></i>My Events
+                    </h5>
+                    <p class="card-text">Create and manage your events</p>
+                    <a href="{% url 'events:list' %}" class="btn btn-primary">
+                        <i class="fas fa-eye me-1"></i>View Events
+                    </a>
+                    <a href="{% url 'events:create' %}" class="btn btn-outline-primary ms-2">
+                        <i class="fas fa-plus me-1"></i>Create Event
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Orders</h5>
-                    <p class="card-text">View and manage customer orders</p>
-                    <a href="#" class="btn btn-primary">View Orders</a>
+                    <h5 class="card-title">
+                        <i class="fas fa-receipt me-2"></i>Ticket Sales
+                    </h5>
+                    <p class="card-text">View tickets sold and earnings</p>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-chart-bar me-1"></i>View Sales
+                    </a>
                 </div>
             </div>
         </div>

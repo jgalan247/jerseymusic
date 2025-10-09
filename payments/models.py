@@ -29,6 +29,11 @@ class SumUpCheckout(models.Model):
         unique=True,
         help_text="Our reference sent to SumUp"
     )
+    checkout_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="ID returned by SumUp (alternative name for compatibility)"
+    )
     sumup_checkout_id = models.CharField(
         max_length=255,
         blank=True,
@@ -110,12 +115,38 @@ class SumUpCheckout(models.Model):
             prefix = "CHK"
             unique_id = str(uuid.uuid4().hex)[:10].upper()
             self.payment_id = f"{prefix}-{unique_id}"
-        
+
         if not self.checkout_reference:
             # Generate unique checkout reference for SumUp
             self.checkout_reference = str(uuid.uuid4())
-            
+
+        # Ensure checkout_id and sumup_checkout_id stay in sync
+        if self.checkout_id and not self.sumup_checkout_id:
+            self.sumup_checkout_id = self.checkout_id
+        elif self.sumup_checkout_id and not self.checkout_id:
+            self.checkout_id = self.sumup_checkout_id
+
         super().save(*args, **kwargs)
+
+    def calculate_platform_fee(self, rate=0.05):
+        """Calculate platform fee (default 5%)"""
+        return self.amount * Decimal(str(rate))
+
+    def calculate_artist_amount(self, rate=0.05):
+        """Calculate amount artist receives after platform fee"""
+        return self.amount - self.calculate_platform_fee(rate)
+
+    def calculate_listing_fee(self):
+        """Calculate listing fee for events"""
+        # Fixed listing fee of £2.50
+        return Decimal('2.50')
+
+    @property
+    def is_expired(self):
+        """Check if checkout has expired"""
+        if self.valid_until:
+            return timezone.now() > self.valid_until
+        return False
 
 
 class SumUpTransaction(models.Model):

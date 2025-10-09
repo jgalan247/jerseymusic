@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Processing Payment - Jersey Events{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-5">
+                    {% if processing_complete or already_completed %}
+                        <!-- Payment Verified Successfully -->
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle fa-5x text-success"></i>
+                        </div>
+                        <h2 class="mb-3">Payment Verified!</h2>
+                        <p class="lead mb-4">{{ message|default:"Your payment has been verified and your tickets have been sent to your email." }}</p>
+
+                        {% if order %}
+                        <div class="alert alert-info">
+                            <strong>Order #{{ order.order_number }}</strong><br>
+                            Confirmation sent to: <strong>{{ order.email }}</strong>
+                        </div>
+                        {% endif %}
+
+                    {% elif error %}
+                        <!-- Error State -->
+                        <div class="mb-4">
+                            <i class="fas fa-exclamation-triangle fa-5x text-danger"></i>
+                        </div>
+                        <h2 class="mb-3">Payment Error</h2>
+                        <p class="lead mb-4">{{ message|default:"There was an issue with your payment." }}</p>
+                        <div class="alert alert-danger">
+                            If you believe you completed the payment successfully, please contact our support team.
+                        </div>
+
+                    {% else %}
+                        <!-- Processing State -->
+                        <div class="mb-4">
+                            <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                        </div>
+                        <h2 class="mb-3">Processing Your Payment</h2>
+                        <p class="lead mb-4">{{ message|default:"Please wait while we verify your payment..." }}</p>
+
+                        {% if order %}
+                        <div class="alert alert-info mb-4">
+                            <strong><i class="fas fa-info-circle me-2"></i>Order #{{ order.order_number }}</strong><br>
+                            <span class="small">{{ order.email }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-clock me-2"></i>What's Happening?</h5>
+                                <p class="card-text text-start">
+                                    We're securely verifying your payment with our payment provider. This process typically takes <strong>5-10 minutes</strong>.
+                                </p>
+                                <ul class="text-start">
+                                    <li>✓ Payment submitted to SumUp</li>
+                                    <li><div class="spinner-border spinner-border-sm me-2"></div>Verifying payment...</li>
+                                    <li>⏳ Generating your tickets</li>
+                                    <li>⏳ Sending confirmation email</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {% if info %}
+                        <div class="alert alert-primary">
+                            <i class="fas fa-envelope me-2"></i>{{ info }}
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 mt-4">
+                        {% if processing_complete or already_completed %}
+                            <a href="{% url 'orders:my_orders' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-ticket-alt me-2"></i>View My Tickets
+                            </a>
+                        {% elif not error %}
+                            <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+                                <i class="fas fa-sync-alt me-2"></i>Check Status
+                            </button>
+                        {% endif %}
+
+                        <a href="{% url 'events:home' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-2"></i>Return to Home
+                        </a>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="mt-4 pt-4 border-top">
+                        <h6 class="text-muted">Need Help?</h6>
+                        <p class="small mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:support@coderra.je">support@coderra.je</a>
+                        </p>
+                        <p class="small mb-0 text-muted">
+                            Our support team typically responds within 2 hours
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Card -->
+            {% if processing and not error %}
+            <div class="card mt-4 border-primary">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-lightbulb me-2 text-primary"></i>What happens next?</h6>
+                    <ul class="small mb-0">
+                        <li>You can safely close this page - verification continues in the background</li>
+                        <li>You'll receive an email confirmation with your tickets attached as PDFs</li>
+                        <li>Tickets include QR codes for easy event check-in</li>
+                        <li>Check your spam folder if you don't receive the email within 10 minutes</li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if processing and not error %}
+<!-- Auto-refresh script for processing page -->
+<script>
+// Auto-refresh every 30 seconds to check if payment is verified
+setTimeout(function() {
+    location.reload();
+}, 30000);
+</script>
+{% endif %}
+{% endblock %}

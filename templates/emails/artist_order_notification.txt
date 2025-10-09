@@ -1,0 +1,15 @@
+New Order Received! - {{ site_name }}
+
+Dear {{ artist.display_name }},
+
+Great news! You've received a new order for your event.
+
+Order #{{ order.id }}
+Total: £{{ order.total }}
+Customer: {{ order.delivery_first_name }} {{ order.delivery_last_name }}
+Order Date: {{ order.created_at|date:"F d, Y" }}
+
+You can view more details in your artist dashboard at: {{ dashboard_url }}
+
+Best regards,
+{{ site_name }} Team

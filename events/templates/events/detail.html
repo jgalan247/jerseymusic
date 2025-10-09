@@ -328,6 +328,57 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Organizer Controls -->
+            {% if user.is_authenticated and user == event.organiser %}
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Organizer Controls
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Listing Fee Status -->
+                    {% if event.listing_fee %}
+                    <div class="mb-3">
+                        <h6>Listing Fee Status</h6>
+                        {% if event.listing_fee.is_paid %}
+                        <div class="alert alert-success d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <div>
+                                <strong>Paid</strong> - Your event is published and visible to customers.
+                                <br><small class="text-muted">Paid on {{ event.listing_fee.paid_at|date:"M j, Y g:i A" }}</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <div>
+                                <strong>Payment Required</strong> - Your event is in draft status.
+                                <br><small class="text-muted">Amount: £{{ event.listing_fee.amount }}</small>
+                            </div>
+                        </div>
+                        <a href="{% url 'payments:widget_listing_fee' event.id %}" class="btn btn-warning">
+                            <i class="fas fa-credit-card me-2"></i>Pay Listing Fee (£{{ event.listing_fee.amount }})
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Event Management -->
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'events:my_events' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>Manage My Events
+                        </a>
+                        {% if event.status == 'published' %}
+                        <button class="btn btn-outline-info" onclick="alert('Edit functionality coming soon!')">
+                            <i class="fas fa-edit me-2"></i>Edit Event
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

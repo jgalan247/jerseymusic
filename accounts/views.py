@@ -32,51 +32,157 @@ from django.conf import settings
 
 
 def register_customer(request):
-    """Customer registration view"""
+    """Customer registration view with comprehensive debugging"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    print(f"🔍 REGISTRATION DEBUG: Customer registration view called")
+    print(f"🔍 Request method: {request.method}")
+    print(f"🔍 User authenticated: {request.user.is_authenticated}")
+
     if request.user.is_authenticated:
+        print(f"🔍 User already authenticated, redirecting")
         return redirect('/')
-    
+
     if request.method == 'POST':
+        print(f"🔍 POST request received")
+        print(f"🔍 POST data keys: {list(request.POST.keys())}")
+        print(f"🔍 POST data: {dict(request.POST)}")
+
         form = CustomerRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            
-            # Send verification email
-            send_verification_email(request, user)
-            
-            messages.success(
-                request, 
-                'Registration successful! Please check your email to verify your account.'
-            )
-            return redirect('accounts:login')
+        print(f"🔍 Form created: {form.__class__.__name__}")
+
+        try:
+            is_valid = form.is_valid()
+            print(f"🔍 Form validation result: {is_valid}")
+
+            if not is_valid:
+                print(f"❌ FORM VALIDATION FAILED!")
+                print(f"❌ Form errors: {form.errors}")
+                print(f"❌ Form non-field errors: {form.non_field_errors()}")
+                for field_name, field_errors in form.errors.items():
+                    print(f"❌ Field '{field_name}' errors: {field_errors}")
+            else:
+                print(f"✅ Form validation successful!")
+
+                try:
+                    print(f"🔍 Attempting to save form...")
+                    user = form.save()
+                    print(f"✅ User created successfully!")
+                    print(f"✅ User ID: {user.id}")
+                    print(f"✅ User email: {user.email}")
+                    print(f"✅ User type: {user.user_type}")
+
+                    try:
+                        print(f"🔍 Attempting to send verification email...")
+                        # Send verification email
+                        send_verification_email(user, request)
+                        print(f"✅ Verification email sent successfully!")
+                    except Exception as e:
+                        print(f"❌ Email sending failed: {e}")
+                        logger.error(f"Email sending failed: {e}")
+
+                    messages.success(
+                        request,
+                        'Registration successful! Please check your email to verify your account.'
+                    )
+                    print(f"✅ Success message added")
+                    print(f"🔍 Redirecting to login...")
+                    return redirect('accounts:login')
+
+                except Exception as e:
+                    print(f"❌ USER CREATION FAILED: {e}")
+                    logger.error(f"User creation failed: {e}")
+                    messages.error(request, f'Registration failed: {str(e)}')
+
+        except Exception as e:
+            print(f"❌ FORM VALIDATION ERROR: {e}")
+            logger.error(f"Form validation error: {e}")
+            messages.error(request, f'Form validation error: {str(e)}')
     else:
+        print(f"🔍 GET request - creating empty form")
         form = CustomerRegistrationForm()
-    
+        print(f"🔍 Empty form created: {form.__class__.__name__}")
+
+    print(f"🔍 Rendering template with form")
     return render(request, 'accounts/register_customer.html', {'form': form})
 
 
 def register_organiser(request):
-    """Event organiser registration view"""
+    """Event organiser registration view with comprehensive debugging"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    print(f"🔍 REGISTRATION DEBUG: Organiser registration view called")
+    print(f"🔍 Request method: {request.method}")
+    print(f"🔍 User authenticated: {request.user.is_authenticated}")
+
     if request.user.is_authenticated:
+        print(f"🔍 User already authenticated, redirecting")
         return redirect('/')
 
     if request.method == 'POST':
+        print(f"🔍 POST request received")
+        print(f"🔍 POST data keys: {list(request.POST.keys())}")
+        print(f"🔍 POST data: {dict(request.POST)}")
+
         form = ArtistRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+        print(f"🔍 Form created: {form.__class__.__name__}")
 
-            # Send verification email
-            send_verification_email(request, user)
+        try:
+            is_valid = form.is_valid()
+            print(f"🔍 Form validation result: {is_valid}")
 
-            messages.success(
-                request,
-                'Registration successful! Please check your email to verify your account. '
-                'After verification, you can choose a subscription plan to start creating events.'
-            )
-            return redirect('accounts:login')
+            if not is_valid:
+                print(f"❌ FORM VALIDATION FAILED!")
+                print(f"❌ Form errors: {form.errors}")
+                print(f"❌ Form non-field errors: {form.non_field_errors()}")
+                for field_name, field_errors in form.errors.items():
+                    print(f"❌ Field '{field_name}' errors: {field_errors}")
+            else:
+                print(f"✅ Form validation successful!")
+
+                try:
+                    print(f"🔍 Attempting to save form...")
+                    user = form.save()
+                    print(f"✅ User created successfully!")
+                    print(f"✅ User ID: {user.id}")
+                    print(f"✅ User email: {user.email}")
+                    print(f"✅ User type: {user.user_type}")
+
+                    try:
+                        print(f"🔍 Attempting to send verification email...")
+                        # Send verification email
+                        send_verification_email(user, request)
+                        print(f"✅ Verification email sent successfully!")
+                    except Exception as e:
+                        print(f"❌ Email sending failed: {e}")
+                        logger.error(f"Email sending failed: {e}")
+
+                    messages.success(
+                        request,
+                        'Registration successful! Please check your email to verify your account. '
+                        'After verification, you can start creating events right away!'
+                    )
+                    print(f"✅ Success message added")
+                    print(f"🔍 Redirecting to login...")
+                    return redirect('accounts:login')
+
+                except Exception as e:
+                    print(f"❌ USER CREATION FAILED: {e}")
+                    logger.error(f"User creation failed: {e}")
+                    messages.error(request, f'Registration failed: {str(e)}')
+
+        except Exception as e:
+            print(f"❌ FORM VALIDATION ERROR: {e}")
+            logger.error(f"Form validation error: {e}")
+            messages.error(request, f'Form validation error: {str(e)}')
     else:
+        print(f"🔍 GET request - creating empty form")
         form = ArtistRegistrationForm()
+        print(f"🔍 Empty form created: {form.__class__.__name__}")
 
+    print(f"🔍 Rendering template with form")
     return render(request, 'accounts/register_organiser.html', {'form': form})
 
 
@@ -104,7 +210,7 @@ def login_view(request):
             
             # Log the user in
             login(request, user)
-            messages.success(request, f'Welcome back, {user.first_name or user.username}!')
+            messages.success(request, f'Welcome back, {user.first_name or user.email}!')
             
             # Redirect to next or default
             next_url = request.GET.get('next')
@@ -212,9 +318,7 @@ def verify_email(request, token):
 
         # Redirect based on user type
         if user.user_type == 'artist':
-            # Check if organiser has subscription
-            if not hasattr(user, 'subscription') or not user.subscription.is_active:
-                return redirect('subscriptions:plans')
+            # Redirect to organiser dashboard
             return redirect('accounts:organiser_dashboard')
         else:
             return redirect('events:events_list')
@@ -267,27 +371,18 @@ def resend_verification(request):
 
 @login_required
 def organiser_dashboard(request):
-    """Event organiser dashboard with subscription info."""
+    """Event organiser dashboard."""
     if request.user.user_type != 'artist':
         messages.error(request, 'Access denied. Event organisers only.')
         return redirect('/')
 
-    # Check subscription status
-    subscription = getattr(request.user, 'subscription', None)
-
     context = {
         'user': request.user,
-        'subscription': subscription,
-        'subscription_price': settings.SUBSCRIPTION_CONFIG['MONTHLY_PRICE'],
-        'can_create_events': subscription and subscription.can_upload_artwork if subscription else False,
         'event_count': request.user.events.filter(status='published').count(),
-        'max_events': settings.SUBSCRIPTION_CONFIG['FEATURES']['MAX_ARTWORKS'],
         'recent_orders': Order.objects.filter(
             items__event__organiser=request.user
         ).distinct().order_by('-created_at')[:10]
     }
-
-    # No commission calculation needed - subscription model
 
     return render(request, 'accounts/organiser_dashboard.html', context)
 

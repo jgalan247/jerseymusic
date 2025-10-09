@@ -133,7 +133,7 @@ def artist_orders(request):
 class CustomerOrderListView(LoginRequiredMixin, ListView):
     """View for customers to see their orders."""
     model = Order
-    template_name = 'orders/customer_list.html'
+    template_name = 'orders/my_orders.html'
     context_object_name = 'orders'
     paginate_by = 10
     

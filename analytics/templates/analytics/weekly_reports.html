@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Weekly Reports - SumUp Analytics{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
+<style>
+.reports-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.report-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.summary-stats {
+    display: flex;
+    gap: 3rem;
+    justify-content: center;
+    text-align: center;
+}
+
+.summary-stat {
+    flex: 1;
+}
+
+.summary-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.summary-label {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.report-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s;
+}
+
+.report-item:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.report-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.report-period {
+    color: #718096;
+    font-size: 0.875rem;
+}
+
+.report-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.metric-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: #718096;
+    margin-top: 0.25rem;
+}
+
+.metric-change {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.metric-change.positive {
+    color: #059669;
+}
+
+.metric-change.negative {
+    color: #dc2626;
+}
+
+.report-insights {
+    background: #f0f9ff;
+    border-left: 4px solid #0ea5e9;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.report-recommendations {
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.report-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-sent {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-draft {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: 2rem;
+}
+
+.generate-report-section {
+    background: #fef9e7;
+    border: 2px dashed #f59e0b;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">Weekly Adoption Reports</h1>
+                <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-primary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row">
+        <div class="col-12">
+            <div class="report-summary">
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <div class="summary-value">{{ total_reports }}</div>
+                        <div class="summary-label">Total Reports</div>
+                    </div>
+
+                    <div class="summary-stat">
+                        <div class="summary-value">{{ sent_reports }}</div>
+                        <div class="summary-label">Reports Sent</div>
+                    </div>
+
+                    <div class="summary-stat">
+                        {% if total_reports > 0 %}
+                        <div class="summary-value">{{ sent_reports|div:total_reports|mul:100|floatformat:0 }}%</div>
+                        {% else %}
+                        <div class="summary-value">0%</div>
+                        {% endif %}
+                        <div class="summary-label">Delivery Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate New Report -->
+    <div class="row">
+        <div class="col-12">
+            <div class="generate-report-section">
+                <h3 class="mb-3">📊 Generate New Weekly Report</h3>
+                <p class="text-muted mb-4">
+                    Generate a comprehensive weekly report showing connection progress, campaign performance, and insights.
+                </p>
+                <button class="btn btn-warning btn-lg" onclick="generateWeeklyReport()">
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+                    Generate This Week's Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Trends Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="reports-container">
+                <h3 class="mb-4">Weekly Connection Rate Trends</h3>
+                <div class="chart-container">
+                    <canvas id="weeklyTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="reports-container">
+                <h3 class="mb-4">Recent Reports</h3>
+
+                {% if reports %}
+                    {% for report in reports %}
+                    <div class="report-item">
+                        <div class="report-header">
+                            <div>
+                                <div class="report-title">
+                                    Week {{ report.week_start|date:"M d" }} - {{ report.week_end|date:"M d, Y" }}
+                                </div>
+                                <div class="report-period">
+                                    Generated {{ report.generated_at|timesince }} ago
+                                </div>
+                            </div>
+
+                            <div class="report-actions">
+                                {% if report.sent %}
+                                    <span class="status-badge status-sent">Sent</span>
+                                {% else %}
+                                    <span class="status-badge status-draft">Draft</span>
+                                    <button class="btn btn-sm btn-primary" onclick="sendReport({{ report.id }})">
+                                        Send Report
+                                    </button>
+                                {% endif %}
+                                <button class="btn btn-sm btn-outline-secondary" onclick="downloadReport({{ report.id }})">
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="report-metrics">
+                            <div class="metric-item">
+                                <div class="metric-value">{{ report.final_connection_rate|floatformat:1 }}%</div>
+                                <div class="metric-label">Final Rate</div>
+                                <div class="metric-change {% if report.final_connection_rate >= report.initial_connection_rate %}positive{% else %}negative{% endif %}">
+                                    {% if report.final_connection_rate >= report.initial_connection_rate %}+{% endif %}
+                                    {{ report.final_connection_rate|sub:report.initial_connection_rate|floatformat:1 }}%
+                                </div>
+                            </div>
+
+                            <div class="metric-item">
+                                <div class="metric-value">{{ report.new_connections }}</div>
+                                <div class="metric-label">New Connections</div>
+                            </div>
+
+                            <div class="metric-item">
+                                <div class="metric-value">{{ report.invitations_sent }}</div>
+                                <div class="metric-label">Invitations</div>
+                            </div>
+
+                            <div class="metric-item">
+                                <div class="metric-value">{{ report.campaigns_sent }}</div>
+                                <div class="metric-label">Campaigns</div>
+                            </div>
+
+                            <div class="metric-item">
+                                <div class="metric-value">{{ report.calculate_growth_rate|floatformat:1 }}%</div>
+                                <div class="metric-label">Growth Rate</div>
+                                <div class="metric-change {% if report.calculate_growth_rate >= 0 %}positive{% else %}negative{% endif %}">
+                                    Weekly Growth
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if report.key_insights %}
+                        <div class="report-insights">
+                            <strong>🔍 Key Insights:</strong><br>
+                            {{ report.key_insights|linebreaksbr }}
+                        </div>
+                        {% endif %}
+
+                        {% if report.recommendations %}
+                        <div class="report-recommendations">
+                            <strong>💡 Recommendations:</strong><br>
+                            {{ report.recommendations|linebreaksbr }}
+                        </div>
+                        {% endif %}
+
+                        {% if report.sent_at %}
+                        <div class="mt-3 text-muted">
+                            <small>📧 Sent {{ report.sent_at|timesince }} ago</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <h4 class="text-muted">📊 No reports generated yet</h4>
+                        <p class="text-muted">Generate your first weekly report to track SumUp connection progress.</p>
+                        <button class="btn btn-primary" onclick="generateWeeklyReport()">
+                            Generate First Report
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+<script>
+// Weekly trends chart
+const chartData = {{ chart_data|safe }};
+const ctx = document.getElementById('weeklyTrendsChart').getContext('2d');
+
+const weeklyTrendsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: chartData.weeks,
+        datasets: [{
+            label: 'Connection Rate (%)',
+            data: chartData.connection_rates,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.1,
+            fill: true
+        }, {
+            label: 'New Connections',
+            data: chartData.new_connections,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.1,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                title: {
+                    display: true,
+                    text: 'Connection Rate (%)'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'New Connections'
+                },
+                grid: {
+                    drawOnChartArea: false
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            title: {
+                display: true,
+                text: 'Weekly SumUp Connection Progress'
+            }
+        }
+    }
+});
+
+// Generate weekly report
+function generateWeeklyReport() {
+    if (!confirm('Generate a new weekly report? This may take a few moments.')) {
+        return;
+    }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="spinner-border spinner-border-sm"></i> Generating...';
+    button.disabled = true;
+
+    fetch('{% url "analytics:generate_report_api" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Weekly report generated successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error generating report:', error);
+        alert('Error generating weekly report');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// Send report via email
+function sendReport(reportId) {
+    if (!confirm('Send this report via email?')) {
+        return;
+    }
+
+    // This would implement email sending functionality
+    alert('Email sending functionality would be implemented here');
+}
+
+// Download report
+function downloadReport(reportId) {
+    // This would implement PDF/CSV download functionality
+    alert('Report download functionality would be implemented here');
+}
+</script>
+{% endblock %}

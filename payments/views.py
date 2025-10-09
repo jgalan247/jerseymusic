@@ -14,18 +14,23 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 
 from cart.models import Cart
 from orders.models import Order, OrderItem
 from events.models import Event
+from payments.connected_payment_service import ConnectedPaymentService
 from accounts.models import User
 from django.contrib.auth import login
 #from accounts.models import User
 from .models import SumUpCheckout, SumUpTransaction
 from .forms import CheckoutForm, PaymentMethodForm
+from .marketplace_service import MarketplacePaymentService
+from orders.validators import validate_checkout_data, record_terms_acceptance
 
 from django.http import HttpResponse
 import datetime
+from django_ratelimit.decorators import ratelimit
 
 from .models import SumUpCheckout, SumUpTransaction, Artist, ArtistSumUpAuth, Payment, Subscription
 from . import sumup as sumup_api
@@ -42,16 +47,18 @@ class CheckoutView(FormView):
     """Main checkout view for processing orders."""
     template_name = 'payments/checkout.html'
     form_class = CheckoutForm
-    
+
+    @method_decorator(ratelimit(key='ip', rate='10/m', method='POST'))
     def dispatch(self, request, *args, **kwargs):
+        """Rate limit checkout attempts to prevent abuse."""
         # Get or create cart
         self.cart = self.get_cart()
-        
+
         # Check if cart is empty
         if not self.cart or self.cart.items.count() == 0:
             messages.warning(request, "Your cart is empty.")
             return redirect('cart:view')
-        
+
         return super().dispatch(request, *args, **kwargs)
     
     def get_cart(self):
@@ -74,25 +81,16 @@ class CheckoutView(FormView):
     def get_initial(self):
         """Pre-fill form for logged-in users."""
         initial = super().get_initial()
-        
+
         if self.request.user.is_authenticated:
             user = self.request.user
             initial.update({
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
+                'phone': user.phone if hasattr(user, 'phone') else '',
             })
-            
-            # Check for customer profile
-            if hasattr(user, 'customerprofile'):
-                profile = user.customerprofile
-                initial.update({
-                    'phone': user.phone,
-                    'delivery_address_line_1': profile.address_line_1,
-                    'delivery_parish': profile.parish,
-                    'delivery_postcode': profile.postcode,
-                })
-        
+
         return initial
     
     def get_context_data(self, **kwargs):
@@ -103,6 +101,15 @@ class CheckoutView(FormView):
     
     def form_valid(self, form):
         """Process valid checkout form."""
+        try:
+            # Validate checkout data comprehensively
+            validate_checkout_data(form.cleaned_data, self.cart)
+        except ValidationError as e:
+            # Add validation errors to form
+            for error in e.messages:
+                messages.error(self.request, error)
+            return self.form_invalid(form)
+
         with transaction.atomic():
             # Handle guest account creation
             if not self.request.user.is_authenticated and form.cleaned_data.get('create_account'):
@@ -117,6 +124,10 @@ class CheckoutView(FormView):
 
             # Create order
             order = self.create_order(form.cleaned_data)
+
+            # Record T&C acceptance with legal metadata (IP address, timestamp, version)
+            if form.cleaned_data.get('accept_terms'):
+                record_terms_acceptance(order, self.request)
 
             # Store order ID in session for payment
             self.request.session['pending_order_id'] = order.id
@@ -163,75 +174,63 @@ class CheckoutView(FormView):
             return None
 
     def create_order(self, data):
-        """Create order from checkout data."""
-        # Calculate totals
-        shipping_cost = self.calculate_shipping(data['delivery_method'])
-        
+        """Create order from checkout data for digital tickets."""
         order = Order.objects.create(
             user=self.request.user if self.request.user.is_authenticated else None,
-            
+
             # Contact information
             email=data['email'],
             phone=data['phone'],
-            
-            # Delivery information - REQUIRED FIELDS
+
+            # For digital tickets, we use customer info for both delivery and billing
             delivery_first_name=data['first_name'],
             delivery_last_name=data['last_name'],
-            delivery_address_line_1=data['delivery_address_line_1'],
-            delivery_address_line_2=data.get('delivery_address_line_2', ''),
-            delivery_parish=data['delivery_parish'],
-            delivery_postcode=data['delivery_postcode'],
-            delivery_method=data['delivery_method'],
-            
-            # Billing information
-            billing_same_as_delivery=data['billing_same_as_delivery'],
-            billing_first_name=data.get('billing_first_name', data['first_name']),
-            billing_last_name=data.get('billing_last_name', data['last_name']),
-            billing_address_line_1=data.get('billing_address_line_1', ''),
-            billing_address_line_2=data.get('billing_address_line_2', ''),
-            billing_parish=data.get('billing_parish', ''),
-            billing_postcode=data.get('billing_postcode', ''),
-            
-            # Order details
+            # Set default values for required fields that are no longer collected
+            delivery_address_line_1='Digital Ticket Delivery',
+            delivery_address_line_2='',
+            delivery_parish='digital',
+            delivery_postcode='JE1 1AA',
+            delivery_method='digital',
+
+            # Billing matches delivery for simplicity
+            billing_same_as_delivery=True,
+            billing_first_name=data['first_name'],
+            billing_last_name=data['last_name'],
+            billing_address_line_1='Digital Ticket Delivery',
+            billing_address_line_2='',
+            billing_parish='digital',
+            billing_postcode='JE1 1AA',
+
+            # Order details - no shipping cost for digital tickets
             subtotal=self.cart.subtotal,
-            shipping_cost=shipping_cost,
-            total=self.cart.subtotal + shipping_cost,
-            # Note: Check if Order model has 'customer_note' field
-            # If not, remove this line
-            
+            shipping_cost=Decimal('0.00'),
+            total=self.cart.subtotal,
+
             status='pending'
         )
-    
+
         # If customer_note exists in the model, set it separately
         if hasattr(order, 'customer_note') and data.get('customer_note'):
             order.customer_note = data['customer_note']
             order.save()
-        
-        # Create order items
+
+        # Create order items and track artists for payout routing
         for cart_item in self.cart.items.all():
-            OrderItem.objects.create(
+            order_item = OrderItem.objects.create(
                 order=order,
                 event=cart_item.event,
                 quantity=cart_item.quantity,
                 price=cart_item.price_at_time,
                 total=cart_item.total_price
             )
-        
+
+            # Store artist info for connected payment routing
+            if hasattr(cart_item.event.organiser, 'artistprofile'):
+                artist_profile = cart_item.event.organiser.artistprofile
+                order_item.artist_commission = cart_item.total_price * (artist_profile.commission_rate / 100)
+                order_item.save()
+
         return order
-            
-            
-        
-    def calculate_shipping(self, method):
-        """Calculate shipping cost based on method and cart total."""
-        if method == 'collection':
-            return Decimal('0.00')
-        elif method == 'express':
-            return Decimal('15.00')
-        else:  # standard
-            # Free shipping over £100
-            if self.cart.subtotal >= Decimal('100.00'):
-                return Decimal('0.00')
-            return Decimal('5.00')
 
 
 class SelectPaymentMethodView(FormView):
@@ -259,7 +258,8 @@ class SelectPaymentMethodView(FormView):
         payment_method = form.cleaned_data['payment_method']
 
         if payment_method == 'sumup':
-            return redirect('payments:sumup_checkout', order_id=self.order.id)
+            # Use simplified widget-based checkout
+            return redirect('payments:widget_checkout', order_id=self.order.id)
         else:
             messages.error(self.request, "Invalid payment method.")
             return redirect('payments:select_method')
@@ -290,51 +290,13 @@ class SumUpCheckoutView(View):
             return redirect('payments:select_method')
 
     def create_sumup_checkout(self, order, request):
-        """Create SumUp checkout session."""
-        # Build return URL for callbacks
-        return_url = request.build_absolute_uri(
-            reverse('payments:sumup_callback')
-        )
-
-        # Build redirect URL for after payment
-        redirect_url = request.build_absolute_uri(
-            reverse('payments:sumup_success')
-        )
-
-        # Get event description
-        event_items = []
-        for item in order.items.all():
-            event_items.append(f"{item.quantity}x {item.event.title}")
-        description = f"Jersey Events: {', '.join(event_items[:3])}"
-        if len(event_items) > 3:
-            description += f" and {len(event_items) - 3} more"
-
-        # Create checkout record
-        checkout = SumUpCheckout.objects.create(
-            order=order,
-            customer=order.user,
-            amount=order.total,
-            currency='GBP',
-            description=description[:255],
-            merchant_code=settings.SUMUP_MERCHANT_CODE,
-            return_url=return_url,
-            redirect_url=redirect_url
-        )
-
+        """Create SumUp checkout session using marketplace service."""
         try:
-            # Call SumUp API
-            response = sumup_api.create_checkout_simple(
-                amount=float(order.total),
-                currency='GBP',
-                reference=checkout.checkout_reference,
-                description=description[:255],
-                return_url=return_url,
-                redirect_url=redirect_url
-            )
+            # Use marketplace service for intelligent payment routing
+            marketplace_service = MarketplacePaymentService()
+            checkout, checkout_data = marketplace_service.process_order_payment(order)
 
-            # Update checkout with SumUp response
-            checkout.sumup_checkout_id = response.get('id', '')
-            checkout.sumup_response = response
+            # Update checkout with additional data
             checkout.valid_until = timezone.now() + timezone.timedelta(minutes=30)
             checkout.status = 'pending'
             checkout.save()
@@ -342,9 +304,41 @@ class SumUpCheckoutView(View):
             return checkout
 
         except Exception as e:
-            checkout.status = 'failed'
-            checkout.save()
+            logger.error(f"Marketplace checkout creation failed: {e}")
             raise
+
+
+class ConnectedSumUpCheckoutView(View):
+    """Process SumUp checkout using artist's connected account."""
+
+    def get(self, request, order_id):
+        """Initiate connected SumUp checkout."""
+        try:
+            order = get_object_or_404(Order, id=order_id)
+            connected_service = ConnectedPaymentService()
+
+            if not connected_service.can_process_connected_payment(order):
+                messages.error(request, "Artist payment connection not available. Using platform payment.")
+                return redirect('payments:sumup_checkout', order_id=order_id)
+
+            # Create connected checkout
+            checkout = connected_service.create_connected_checkout(order)
+
+            # Get checkout URL and redirect
+            checkout_url = connected_service.get_checkout_url(checkout)
+
+            return render(request, 'payments/connected_checkout_redirect.html', {
+                'checkout_url': checkout_url,
+                'artist': checkout.artist.artistprofile,
+                'order': order
+            })
+
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Connected checkout error for order {order_id}: {e}")
+            messages.error(request, "Payment processing error. Please try again.")
+            return redirect('payments:select_method')
 
 
 class SumUpCallbackView(View):
@@ -634,7 +628,7 @@ class ProcessSumUpPaymentView(View):
             amount=order.total,
             currency='GBP',
             description=f"Order {order.order_number}",
-            merchant_code='TEST_MERCHANT',  # Use test value for now
+            merchant_code=settings.SUMUP_MERCHANT_CODE or 'M28WNZCB',
             return_url=self.request.build_absolute_uri(
                 reverse('payments:success')
             ),
@@ -764,16 +758,46 @@ class PaymentSuccessView(TemplateView):
 class PaymentFailedView(TemplateView):
     """Display payment failure page."""
     template_name = 'payments/failed.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # Get order from session
         order_id = self.request.session.get('pending_order_id')
         if order_id:
             context['order'] = get_object_or_404(Order, id=order_id)
-        
+
         return context
+
+
+class PaymentCancelView(TemplateView):
+    """Display payment cancellation page."""
+    template_name = 'payments/cancel.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get order from session
+        order_id = self.request.session.get('pending_order_id')
+        if order_id:
+            try:
+                order = Order.objects.get(id=order_id)
+                # Update order status to cancelled if it's still pending
+                if order.status == 'pending':
+                    order.status = 'cancelled'
+                    order.save()
+                context['order'] = order
+            except Order.DoesNotExist:
+                pass
+
+        return context
+
+
+def payment_cancel(request):
+    """Handle payment cancellation."""
+    return render(request, 'payments/cancel.html', {
+        'message': 'Payment was cancelled. You can try again when ready.'
+    })
 
 
 # --- SumUp OAuth ---
@@ -840,7 +864,7 @@ def start_checkout(request, artist_id):
         amount=order.total,
         currency='GBP',
         description=f'Order {order.order_number}',
-        merchant_code='TEST123',
+        merchant_code=settings.SUMUP_MERCHANT_CODE or 'M28WNZCB',
         return_url=request.build_absolute_uri(reverse("payments:payment_success")),
         checkout_reference=str(uuid.uuid4()),
         sumup_checkout_id=f'test_{uuid.uuid4().hex[:8]}',
@@ -890,11 +914,20 @@ def sumup_webhook(request):
     # Handle test checkout IDs
     checkout_id = data.get("id") or data.get("checkout_id")
     status = data.get("status")
-    
+
     if not checkout_id:
         return HttpResponse("ok")
-    
-    # Try to find SumUpCheckout
+
+    logger.info(f"SumUp webhook received: checkout_id={checkout_id}, status={status}")
+
+    # Handle successful payments using marketplace service
+    if status in ['PAID', 'SUCCESSFUL']:
+        marketplace_service = MarketplacePaymentService()
+        success = marketplace_service.handle_successful_payment(checkout_id, data)
+        if success:
+            return HttpResponse("ok")
+
+    # Try to find SumUpCheckout for other status updates
     try:
         checkout = SumUpCheckout.objects.get(sumup_checkout_id=checkout_id)
     except SumUpCheckout.DoesNotExist:
