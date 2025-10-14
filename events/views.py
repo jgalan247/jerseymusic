@@ -9,6 +9,9 @@ from django.views.generic import DetailView
 from .models import Event
 from django.views.generic import ListView, DetailView
 from decimal import Decimal
+from orders.models import Order, OrderItem
+from django.http import HttpResponse
+import csv
 
 @login_required
 def create_event(request):
@@ -16,14 +19,28 @@ def create_event(request):
     if request.user.user_type != 'artist':
         messages.error(request, "Only organisers can create events")
         return redirect('/')
-    
+
+    # Check if artist has connected SumUp account (CRITICAL for receiving payments)
+    try:
+        artist_profile = request.user.artistprofile
+        if not artist_profile.is_sumup_connected:
+            messages.warning(
+                request,
+                'Please connect your SumUp account before creating events. '
+                'This is where customers\' ticket payments will be sent directly to you.'
+            )
+            return redirect('accounts:sumup_connect')
+    except:
+        messages.error(request, "Artist profile not found. Please complete your profile first.")
+        return redirect('accounts:profile')
+
     # DEVELOPMENT MODE - Skip subscription check
     if settings.DEBUG:
         can_upload = True
     else:
         # Production - check subscription
         can_upload = hasattr(request.user, 'subscription') and request.user.subscription.is_active
-    
+
     if not can_upload:
         messages.error(request, "Active subscription required")
         return redirect('subscriptions:plans')
@@ -65,14 +82,56 @@ def create_event(request):
     
     return render(request, 'events/upload.html', {'form': form})
 
+from django.utils import timezone
+from django.db.models import Sum, Count, Q
+
 @login_required
 def my_events(request):
-    if request.user.user_type != 'artist':
-        messages.error(request, "Only artists can view this page")
-        return redirect('/')
+    """Organiser's event management page"""
     
+    if request.user.user_type != 'artist':
+        messages.error(request, 'Only event organisers can access this page.')
+        return redirect('events:events_list')
+    
+    # Get all events for this organiser
     events = Event.objects.filter(organiser=request.user).order_by('-created_at')
-    return render(request, 'events/my_events.html', {'events': events})
+    
+    # Add calculated fields to each event
+    for event in events:
+        # Calculate tickets sold
+        tickets_sold = OrderItem.objects.filter(
+            event=event,
+            order__status='completed'
+        ).aggregate(total=Sum('quantity'))['total'] or 0
+        event.tickets_sold = tickets_sold
+
+        # Calculate revenue
+        revenue = 0
+        completed_items = OrderItem.objects.filter(
+            event=event,
+            order__status='completed'
+        )
+
+        for item in completed_items:
+            revenue += item.price * item.quantity
+        event.revenue = revenue
+    
+    # Filter events by status
+    published_events = events.filter(status='published')
+    draft_events = events.filter(status='draft')
+    upcoming_events = events.filter(
+        event_date__gte=timezone.now().date(),
+        status='published'
+    )
+    
+    context = {
+        'events': events,
+        'published_events': published_events,
+        'draft_events': draft_events,
+        'upcoming_events': upcoming_events,
+    }
+    
+    return render(request, 'events/my_events.html', context)
 
 def events_list(request):
     events = Event.objects.filter(status='published')
@@ -233,4 +292,132 @@ class EventDetailView(DetailView):
     model = Event
     template_name = "events/detail.html"
     context_object_name = "event"
+
+
+# Event Summary Report Views
+@login_required
+def event_summary_report(request, event_id):
+    """Generate simple event summary report for organisers"""
+    from django.db.models import Sum
+    from django.utils import timezone
+    from datetime import timedelta
+
+    event = get_object_or_404(Event, id=event_id, organiser=request.user)
+
+    # Get all completed orders for this event
+    completed_items = OrderItem.objects.filter(
+        event=event,
+        order__status='completed'
+    ).select_related('order', 'order__user')
+
+    # Calculate basic stats
+    total_tickets_sold = completed_items.aggregate(
+        total=Sum('quantity')
+    )['total'] or 0
+
+    total_orders = completed_items.values('order').distinct().count()
+
+    # Calculate total revenue
+    total_revenue = Decimal('0.00')
+    for item in completed_items:
+        total_revenue += item.price * item.quantity
+
+    # Calculate fees based on capacity
+    if event.capacity <= 50:
+        platform_fee = Decimal('15.00')
+    elif event.capacity <= 100:
+        platform_fee = Decimal('30.00')
+    elif event.capacity <= 250:
+        platform_fee = Decimal('50.00')
+    elif event.capacity <= 400:
+        platform_fee = Decimal('60.00')
+    else:
+        platform_fee = Decimal('70.00')
+
+    processing_fee = total_revenue * Decimal('0.025')  # 2.5%
+    net_revenue = total_revenue - platform_fee - processing_fee
+
+    # Sales timeline (by week)
+    timeline = []
+    if completed_items.exists():
+        first_sale = completed_items.order_by('order__created_at').first().order.created_at
+        weeks_since_first = (timezone.now() - first_sale).days // 7 + 1
+
+        for week_num in range(1, min(weeks_since_first + 1, 5)):  # Max 4 weeks
+            week_start = first_sale + timedelta(weeks=week_num-1)
+            week_end = week_start + timedelta(weeks=1)
+
+            week_sales = completed_items.filter(
+                order__created_at__gte=week_start,
+                order__created_at__lt=week_end
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+
+            if week_sales > 0:
+                timeline.append({
+                    'week': f'Week {week_num}',
+                    'sales': week_sales
+                })
+
+    # Top customers (by quantity)
+    top_customers = []
+    customer_sales = {}
+
+    for item in completed_items:
+        user = item.order.user
+        customer_name = user.get_full_name() or user.email
+        customer_sales[customer_name] = customer_sales.get(customer_name, 0) + item.quantity
+
+    # Sort and get top 5
+    sorted_customers = sorted(customer_sales.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_customers = [{'name': name, 'tickets': qty} for name, qty in sorted_customers]
+
+    context = {
+        'event': event,
+        'total_tickets_sold': total_tickets_sold,
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'platform_fee': platform_fee,
+        'processing_fee': processing_fee,
+        'net_revenue': net_revenue,
+        'timeline': timeline,
+        'top_customers': top_customers,
+        'capacity': event.capacity,
+        'percentage_sold': round((total_tickets_sold / event.capacity * 100), 1) if event.capacity > 0 else 0,
+        'now': timezone.now(),
+    }
+
+    return render(request, 'events/event_summary_report.html', context)
+
+
+@login_required
+def export_guest_list(request, event_id):
+    """Export guest list as CSV"""
+    event = get_object_or_404(Event, id=event_id, organiser=request.user)
+
+    # Create response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{event.slug}_guest_list.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Order ID', 'Customer Name', 'Email', 'Quantity', 'Order Date', 'Total Paid'])
+
+    # Get all completed orders
+    completed_items = OrderItem.objects.filter(
+        event=event,
+        order__status='completed'
+    ).select_related('order', 'order__user').order_by('order__created_at')
+
+    for item in completed_items:
+        order = item.order
+        user = order.user
+        writer.writerow([
+            order.order_number,
+            user.get_full_name() or 'N/A',
+            user.email,
+            item.quantity,
+            order.created_at.strftime('%Y-%m-%d %H:%M'),
+            f'£{item.price * item.quantity:.2f}'
+        ])
+
+    return response
 

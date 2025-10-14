@@ -158,63 +158,22 @@
                             </div>
                         </div>
 
-                        <!-- Address Information -->
+                        <!-- Contact Information (Optional) -->
                         <div class="mb-4">
                             <h4 class="h5 mb-3 text-je-primary">
-                                <i class="fas fa-map-marker-alt me-2"></i>Address Information
+                                <i class="fas fa-phone me-2"></i>Contact Information (Optional)
                             </h4>
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <div class="form-floating">
-                                        <input type="text"
-                                               class="form-control"
-                                               id="id_address_line_1"
-                                               name="address_line_1"
-                                               placeholder="Address"
-                                               required>
-                                        <label for="id_address_line_1">Address</label>
-                                        {% if form.address_line_1.errors %}
-                                            <div class="invalid-feedback d-block">{{ form.address_line_1.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        <select class="form-control" id="id_parish" name="parish" required>
-                                            <option value="">Select Parish</option>
-                                            <option value="st_helier">St. Helier</option>
-                                            <option value="st_brelade">St. Brelade</option>
-                                            <option value="st_clement">St. Clement</option>
-                                            <option value="st_john">St. John</option>
-                                            <option value="st_lawrence">St. Lawrence</option>
-                                            <option value="st_martin">St. Martin</option>
-                                            <option value="st_ouen">St. Ouen</option>
-                                            <option value="st_peter">St. Peter</option>
-                                            <option value="st_saviour">St. Saviour</option>
-                                            <option value="trinity">Trinity</option>
-                                            <option value="st_mary">St. Mary</option>
-                                            <option value="grouville">Grouville</option>
-                                        </select>
-                                        <label for="id_parish">Parish</label>
-                                        {% if form.parish.errors %}
-                                            <div class="invalid-feedback d-block">{{ form.parish.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        <input type="text"
-                                               class="form-control"
-                                               id="id_postcode"
-                                               name="postcode"
-                                               placeholder="JE2 3AB"
-                                               required>
-                                        <label for="id_postcode">Postcode</label>
-                                        {% if form.postcode.errors %}
-                                            <div class="invalid-feedback d-block">{{ form.postcode.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                            <div class="form-floating">
+                                <input type="tel"
+                                       class="form-control"
+                                       id="id_phone_number"
+                                       name="phone_number"
+                                       placeholder="Phone number">
+                                <label for="id_phone_number">Phone Number (Optional)</label>
+                                <div class="form-text">For venue coordination and business purposes only</div>
+                                {% if form.phone_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.phone_number.errors.0 }}</div>
+                                {% endif %}
                             </div>
                         </div>
 

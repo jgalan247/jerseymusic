@@ -61,28 +61,135 @@ def oauth_authorize_url(state: str):
     )
 
 def exchange_code_for_tokens(code: str):
-    r = requests.post(
-        f"{settings.SUMUP_BASE_URL}/token",
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        data={
-            "grant_type": "authorization_code",
-            "code": code,
-            "client_id": settings.SUMUP_CLIENT_ID,
-            "client_secret": settings.SUMUP_CLIENT_SECRET,
-            "redirect_uri": settings.SUMUP_REDIRECT_URI,
-        },
-        timeout=20,
-    )
-    r.raise_for_status()
-    data = r.json()
-    expires_in = data.get("expires_in", 600)
-    return {
-        "access_token": data["access_token"],
-        "refresh_token": data.get("refresh_token", ""),
-        "token_type": data.get("token_type", "Bearer"),
-        "expires_at": timezone.now() + datetime.timedelta(seconds=expires_in - 30),
-        "scope": data.get("scope", ""),
+    """Exchange OAuth authorization code for access/refresh tokens with comprehensive logging."""
+    logger.info("=" * 80)
+    logger.info("📞 API Call: exchange_code_for_tokens()")
+    logger.info("=" * 80)
+
+    # Log configuration (mask sensitive data)
+    token_url = f"{settings.SUMUP_BASE_URL}/token"
+    logger.info(f"🔗 Token URL: {token_url}")
+    logger.info(f"🔑 Client ID: {settings.SUMUP_CLIENT_ID[:20]}..." if settings.SUMUP_CLIENT_ID else "❌ NOT SET")
+    logger.info(f"🔐 Client Secret: {'SET (length: ' + str(len(settings.SUMUP_CLIENT_SECRET)) + ')' if settings.SUMUP_CLIENT_SECRET else '❌ NOT SET'}")
+    logger.info(f"🔄 Redirect URI: {settings.SUMUP_REDIRECT_URI}")
+    logger.info(f"📝 Code preview: {code[:20]}...{code[-10:] if len(code) > 30 else ''}")
+
+    # Prepare request data
+    request_data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "client_id": settings.SUMUP_CLIENT_ID,
+        "client_secret": settings.SUMUP_CLIENT_SECRET,
+        "redirect_uri": settings.SUMUP_REDIRECT_URI,
     }
+
+    logger.info("📤 Sending POST request to SumUp token endpoint...")
+
+    try:
+        r = requests.post(
+            token_url,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=request_data,
+            timeout=20,
+        )
+
+        logger.info(f"📥 Response received:")
+        logger.info(f"   Status code: {r.status_code}")
+        logger.info(f"   Response headers: {dict(r.headers)}")
+
+        # Check for errors before raising
+        if not r.ok:
+            logger.error("=" * 80)
+            logger.error(f"❌ SumUp API returned error status {r.status_code}")
+            logger.error(f"   Response body: {r.text}")
+            logger.error(f"   Response headers: {dict(r.headers)}")
+            logger.error("=" * 80)
+
+        r.raise_for_status()
+
+        # Parse response
+        data = r.json()
+        logger.info("✅ Successfully parsed JSON response")
+        logger.info(f"   Response keys: {list(data.keys())}")
+
+        # Extract fields
+        expires_in = data.get("expires_in", 600)
+        access_token = data.get("access_token")
+        refresh_token = data.get("refresh_token", "")
+        token_type = data.get("token_type", "Bearer")
+        scope = data.get("scope", "")
+
+        logger.info(f"📋 Token details:")
+        logger.info(f"   Token type: {token_type}")
+        logger.info(f"   Expires in: {expires_in} seconds")
+        logger.info(f"   Scope: {scope}")
+        logger.info(f"   Access token length: {len(access_token) if access_token else 0}")
+        logger.info(f"   Refresh token length: {len(refresh_token) if refresh_token else 0}")
+
+        # Validate required fields
+        if not access_token:
+            logger.error("=" * 80)
+            logger.error("❌ CRITICAL: No access_token in response!")
+            logger.error(f"   Full response: {data}")
+            logger.error("=" * 80)
+            raise KeyError("access_token")
+
+        expires_at = timezone.now() + datetime.timedelta(seconds=expires_in - 30)
+        logger.info(f"⏰ Token expires at: {expires_at}")
+
+        result = {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": token_type,
+            "expires_at": expires_at,
+            "scope": scope,
+        }
+
+        logger.info("=" * 80)
+        logger.info("✅ Token exchange completed successfully")
+        logger.info("=" * 80)
+
+        return result
+
+    except requests.exceptions.HTTPError as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ HTTP Error during token exchange")
+        logger.error(f"   Status code: {e.response.status_code if hasattr(e, 'response') else 'N/A'}")
+        logger.error(f"   Response body: {e.response.text if hasattr(e, 'response') else 'N/A'}")
+        logger.error(f"   Error: {str(e)}")
+        logger.error("=" * 80)
+        raise
+
+    except requests.exceptions.Timeout as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ Timeout during token exchange (20 seconds)")
+        logger.error(f"   Error: {str(e)}")
+        logger.error("=" * 80)
+        raise
+
+    except requests.exceptions.RequestException as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ Network error during token exchange")
+        logger.error(f"   Error type: {type(e).__name__}")
+        logger.error(f"   Error: {str(e)}")
+        logger.error("=" * 80)
+        raise
+
+    except KeyError as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ Missing required field in token response: {str(e)}")
+        logger.error(f"   Response data: {data if 'data' in locals() else 'Not available'}")
+        logger.error("=" * 80)
+        raise
+
+    except Exception as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ Unexpected error during token exchange")
+        logger.error(f"   Error type: {type(e).__name__}")
+        logger.error(f"   Error: {str(e)}")
+        logger.error(f"   Full exception:", exc_info=True)
+        logger.error("=" * 80)
+        raise
 
 def refresh_access_token(artist_sumup):
     r = requests.post(

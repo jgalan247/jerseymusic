@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Jersey Events!</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="margin: 0; font-size: 32px;">Welcome to Jersey Events!</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Your journey starts here</p>
+    </div>
+
+    <div style="background-color: #f8f9fa; padding: 30px 20px; border-radius: 0 0 10px 10px;">
+        <h2 style="color: #667eea; margin-top: 0;">Hi {{ user.first_name }}!</h2>
+
+        <p style="font-size: 16px; line-height: 1.8;">
+            Thank you for joining <strong>Jersey Events</strong> - your trusted platform for discovering and booking amazing events across Jersey.
+        </p>
+
+        <p style="font-size: 16px; line-height: 1.8;">
+            We're thrilled to have you as part of our community!
+        </p>
+
+        <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #667eea;">
+            <h3 style="color: #667eea; margin-top: 0; font-size: 20px;">🎉 What's Next?</h3>
+            <ul style="padding-left: 20px; font-size: 15px; line-height: 2;">
+                {% if user.user_type == 'customer' %}
+                <li><strong>Browse Events:</strong> Discover upcoming concerts, festivals, and cultural events</li>
+                <li><strong>Book Tickets:</strong> Secure your spot with our easy booking process</li>
+                <li><strong>Digital Tickets:</strong> Receive tickets instantly via email with QR codes</li>
+                <li><strong>Manage Orders:</strong> View your bookings and order history anytime</li>
+                {% else %}
+                <li><strong>Create Events:</strong> List your events and start selling tickets</li>
+                <li><strong>Manage Sales:</strong> Track ticket sales and revenue in real-time</li>
+                <li><strong>Engage Attendees:</strong> Communicate with your audience effectively</li>
+                <li><strong>Grow Your Business:</strong> Reach more people with our marketing tools</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            {% if user.user_type == 'customer' %}
+            <a href="{{ browse_events_url }}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 35px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                Browse Events Now
+            </a>
+            {% else %}
+            <a href="{{ dashboard_url }}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 35px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                Go to Dashboard
+            </a>
+            {% endif %}
+        </div>
+
+        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #2196f3;">
+            <h3 style="color: #1976d2; margin-top: 0; font-size: 18px;">💡 Quick Tips</h3>
+            <ul style="padding-left: 20px; font-size: 14px; line-height: 1.8; margin: 10px 0;">
+                {% if user.user_type == 'customer' %}
+                <li>Check your email for ticket confirmations after purchase</li>
+                <li>Save your QR codes - you'll need them for entry</li>
+                <li>Arrive 15 minutes early to events for smooth check-in</li>
+                {% else %}
+                <li>Complete your organizer profile for better visibility</li>
+                <li>Price competitively - Jersey Events is 70% cheaper than Eventbrite</li>
+                <li>Promote your events on social media for maximum reach</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #ffc107;">
+            <p style="margin: 0; font-size: 14px; color: #856404;">
+                <strong>Need Help?</strong> Our support team is here for you! Contact us anytime at
+                <a href="mailto:support@jerseyevents.co.uk" style="color: #1976d2; text-decoration: none; font-weight: bold;">support@jerseyevents.co.uk</a>
+            </p>
+        </div>
+
+        <p style="font-size: 16px; line-height: 1.8; margin-top: 30px;">
+            We can't wait to see you at your next event!
+        </p>
+
+        <p style="font-size: 16px; line-height: 1.8;">
+            Cheers,<br>
+            <strong>The Jersey Events Team</strong>
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
+
+        <div style="text-align: center; color: #6c757d; font-size: 12px;">
+            <p style="margin: 5px 0;">
+                <strong>Jersey Events</strong><br>
+                Connecting People Through Amazing Experiences
+            </p>
+            <p style="margin: 10px 0;">
+                Jersey, Channel Islands<br>
+                <a href="mailto:support@jerseyevents.co.uk" style="color: #667eea; text-decoration: none;">support@jerseyevents.co.uk</a>
+            </p>
+            <p style="margin: 10px 0; font-size: 11px; color: #999;">
+                © {{ "now"|date:"Y" }} Jersey Events. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

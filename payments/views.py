@@ -803,33 +803,204 @@ def payment_cancel(request):
 # --- SumUp OAuth ---
 
 def sumup_connect_start(request, artist_id):
+    """Initiate SumUp OAuth flow"""
+    logger.info(f"🔵 Starting SumUp OAuth for artist {artist_id}")
+
     artist = get_object_or_404(Artist, pk=artist_id, is_active=True)
     state = f"{artist.id}:{uuid.uuid4()}"
     request.session["sumup_oauth_state"] = state
-    return redirect(sumup_api.oauth_authorize_url(state))
+
+    oauth_url = sumup_api.oauth_authorize_url(state)
+    logger.info(f"🔵 OAuth URL generated: {oauth_url}")
+    logger.info(f"🔵 Redirect URI configured: {settings.SUMUP_REDIRECT_URI}")
+    logger.info(f"🔵 State parameter: {state}")
+
+    return redirect(oauth_url)
 
 def sumup_connect_callback(request):
+    """Handle SumUp OAuth callback with comprehensive debugging"""
+    logger.info("=" * 80)
+    logger.info("🟢 SumUp OAuth callback received")
+    logger.info("=" * 80)
+
+    # Log all GET parameters
+    logger.info(f"🟢 Full request.GET: {dict(request.GET)}")
+    logger.info(f"🟢 Request method: {request.method}")
+    logger.info(f"🟢 Request path: {request.path}")
+    logger.info(f"🟢 Request full URI: {request.build_absolute_uri()}")
+
+    # Extract parameters
     state_sent = request.session.get("sumup_oauth_state")
     state_recv = request.GET.get("state")
     code = request.GET.get("code")
-    if not code or state_sent != state_recv:
-        return HttpResponseBadRequest("Bad OAuth state or missing code")
+    error = request.GET.get("error")
+    error_description = request.GET.get("error_description")
 
-    artist_id = int(state_recv.split(":")[0])
-    artist = get_object_or_404(Artist, pk=artist_id)
+    logger.info(f"🔍 Session state (sent): {state_sent}")
+    logger.info(f"🔍 Received state: {state_recv}")
+    logger.info(f"🔍 Authorization code present: {'YES' if code else 'NO'}")
+    if code:
+        logger.info(f"🔍 Code length: {len(code)}")
+        logger.info(f"🔍 Code preview: {code[:20]}...{code[-10:] if len(code) > 30 else ''}")
 
-    tokens = sumup_api.exchange_code_for_tokens(code)
-    ArtistSumUpAuth.objects.update_or_create(
-        artist=artist,
-        defaults={
-            "access_token": tokens["access_token"],
-            "refresh_token": tokens["refresh_token"],
-            "token_type": tokens["token_type"],
-            "expires_at": tokens["expires_at"],
-            "scope": tokens["scope"],
-        },
-    )
-    return HttpResponse("SumUp connected. You can close this window.")
+    # Check for errors first
+    if error:
+        logger.error("=" * 80)
+        logger.error(f"❌ OAuth error received from SumUp:")
+        logger.error(f"   Error: {error}")
+        logger.error(f"   Description: {error_description}")
+        logger.error(f"   All params: {dict(request.GET)}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest(f"OAuth error: {error} - {error_description}")
+
+    # Check for authorization code
+    if not code:
+        logger.error("=" * 80)
+        logger.error(f"❌ No authorization code received")
+        logger.error(f"   All GET params: {dict(request.GET)}")
+        logger.error(f"   Session has state: {'YES' if state_sent else 'NO'}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest("No authorization code received. Please try connecting again.")
+
+    # Validate state parameter
+    if not state_sent:
+        logger.error("=" * 80)
+        logger.error(f"❌ No state found in session")
+        logger.error(f"   Session keys: {list(request.session.keys())}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest("Session expired. Please try connecting again.")
+
+    if state_sent != state_recv:
+        logger.error("=" * 80)
+        logger.error(f"❌ State mismatch (possible CSRF attack)")
+        logger.error(f"   Expected: {state_sent}")
+        logger.error(f"   Received: {state_recv}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest("Invalid state parameter. Please try connecting again.")
+
+    logger.info("✅ OAuth state validated successfully")
+
+    # Extract artist ID from state
+    try:
+        artist_id = int(state_recv.split(":")[0])
+        logger.info(f"🔍 Extracted artist ID: {artist_id}")
+    except (ValueError, IndexError) as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ Failed to extract artist ID from state: {state_recv}")
+        logger.error(f"   Error: {str(e)}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest("Invalid state format")
+
+    # Get artist
+    try:
+        artist = Artist.objects.get(pk=artist_id, is_active=True)
+        logger.info(f"✅ Found artist: {artist_id} ({artist.business_name if hasattr(artist, 'business_name') else 'Unknown'})")
+    except Artist.DoesNotExist:
+        logger.error("=" * 80)
+        logger.error(f"❌ Artist not found or inactive: {artist_id}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest("Artist not found")
+
+    # Exchange code for tokens
+    logger.info("=" * 80)
+    logger.info(f"🟢 Exchanging authorization code for tokens")
+    logger.info(f"   Artist ID: {artist_id}")
+    logger.info(f"   Code preview: {code[:20]}...")
+    logger.info("=" * 80)
+
+    try:
+        # Call the token exchange function
+        logger.info("🔄 Calling sumup_api.exchange_code_for_tokens()...")
+        tokens = sumup_api.exchange_code_for_tokens(code)
+
+        logger.info("=" * 80)
+        logger.info("✅ Tokens received successfully from SumUp API")
+        logger.info(f"   Token type: {tokens.get('token_type', 'N/A')}")
+        logger.info(f"   Scope: {tokens.get('scope', 'N/A')}")
+        logger.info(f"   Expires at: {tokens.get('expires_at', 'N/A')}")
+        logger.info(f"   Has access_token: {'YES' if tokens.get('access_token') else 'NO'}")
+        logger.info(f"   Has refresh_token: {'YES' if tokens.get('refresh_token') else 'NO'}")
+        logger.info("=" * 80)
+
+        # Save tokens to database
+        logger.info("💾 Saving tokens to database...")
+        auth_record, created = ArtistSumUpAuth.objects.update_or_create(
+            artist=artist,
+            defaults={
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+                "token_type": tokens["token_type"],
+                "expires_at": tokens["expires_at"],
+                "scope": tokens["scope"],
+            },
+        )
+
+        logger.info("=" * 80)
+        logger.info(f"✅ Artist SumUp auth {'created' if created else 'updated'} successfully")
+        logger.info(f"   Artist ID: {artist_id}")
+        logger.info(f"   Auth record ID: {auth_record.id if auth_record else 'N/A'}")
+        logger.info(f"   Token expires: {auth_record.expires_at if auth_record else 'N/A'}")
+        logger.info("=" * 80)
+
+        # Clear the state from session
+        if "sumup_oauth_state" in request.session:
+            del request.session["sumup_oauth_state"]
+            logger.info("🧹 Cleared OAuth state from session")
+
+        return HttpResponse(
+            "<html><body style='font-family: Arial, sans-serif; padding: 40px; text-align: center;'>"
+            "<h1 style='color: #00A651;'>✅ SumUp Connected Successfully!</h1>"
+            "<p style='font-size: 18px;'>Your SumUp account has been connected.</p>"
+            "<p style='color: #666;'>You can close this window and return to the dashboard.</p>"
+            "<script>setTimeout(() => { window.close(); }, 3000);</script>"
+            "</body></html>",
+            content_type="text/html"
+        )
+
+    except requests.exceptions.HTTPError as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ HTTP error during token exchange")
+        logger.error(f"   Status code: {e.response.status_code if hasattr(e, 'response') else 'N/A'}")
+        logger.error(f"   Response body: {e.response.text if hasattr(e, 'response') else 'N/A'}")
+        logger.error(f"   Error: {str(e)}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest(
+            f"<html><body style='font-family: Arial, sans-serif; padding: 40px;'>"
+            f"<h1 style='color: #E53935;'>❌ Token Exchange Failed</h1>"
+            f"<p><strong>HTTP Error {e.response.status_code if hasattr(e, 'response') else ''}:</strong> {str(e)}</p>"
+            f"<p>Please try connecting again or contact support if the issue persists.</p>"
+            f"<p style='margin-top: 20px;'><a href='/accounts/organiser-dashboard/'>← Back to Dashboard</a></p>"
+            f"</body></html>"
+        )
+    except KeyError as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ Missing required field in token response")
+        logger.error(f"   Missing field: {str(e)}")
+        logger.error(f"   Received tokens: {tokens if 'tokens' in locals() else 'N/A'}")
+        logger.error("=" * 80)
+        return HttpResponseBadRequest(
+            f"<html><body style='font-family: Arial, sans-serif; padding: 40px;'>"
+            f"<h1 style='color: #E53935;'>❌ Invalid Token Response</h1>"
+            f"<p>Missing required field: {str(e)}</p>"
+            f"<p>The SumUp API response was incomplete. Please try again.</p>"
+            f"<p style='margin-top: 20px;'><a href='/accounts/organiser-dashboard/'>← Back to Dashboard</a></p>"
+            f"</body></html>"
+        )
+    except Exception as e:
+        logger.error("=" * 80)
+        logger.error(f"❌ Unexpected error during token exchange")
+        logger.error(f"   Error type: {type(e).__name__}")
+        logger.error(f"   Error message: {str(e)}")
+        logger.error(f"   Full exception:", exc_info=True)
+        logger.error("=" * 80)
+        return HttpResponseBadRequest(
+            f"<html><body style='font-family: Arial, sans-serif; padding: 40px;'>"
+            f"<h1 style='color: #E53935;'>❌ Connection Failed</h1>"
+            f"<p><strong>Error:</strong> {str(e)}</p>"
+            f"<p>An unexpected error occurred. Please try again or contact support.</p>"
+            f"<p style='margin-top: 20px;'><a href='/accounts/organiser-dashboard/'>← Back to Dashboard</a></p>"
+            f"</body></html>"
+        )
 
 # --- Create checkout for an artist's order ---
 

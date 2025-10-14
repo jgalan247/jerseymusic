@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Events - Jersey Events{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="container py-4">
+    <div class="row align-items-center mb-4">
+        <div class="col-lg-8">
+            <h1 class="mb-2"><i class="fas fa-calendar-check me-2 text-je-primary"></i>My Events</h1>
+            <p class="text-muted">Manage your events and track their performance</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <a href="{% url 'events:create_event' %}" class="btn btn-je-primary">
+                <i class="fas fa-plus me-2"></i>Create New Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Overview Cards -->
+    <div class="row g-4 mb-5">
+        <!-- Total Events -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card stats-card stats-primary h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Events</h6>
+                            <h2 class="mb-0 fw-bold">{{ total_events|default:0 }}</h2>
+                        </div>
+                        <div class="icon-circle icon-primary">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Published Events -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card stats-card stats-success h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Published</h6>
+                            <h2 class="mb-0 fw-bold">{{ published_count|default:0 }}</h2>
+                        </div>
+                        <div class="icon-circle icon-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Draft Events -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card stats-card stats-warning h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Drafts</h6>
+                            <h2 class="mb-0 fw-bold">{{ drafts_count|default:0 }}</h2>
+                        </div>
+                        <div class="icon-circle icon-warning">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card stats-card stats-info h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Upcoming</h6>
+                            <h2 class="mb-0 fw-bold">{{ upcoming_count|default:0 }}</h2>
+                        </div>
+                        <div class="icon-circle icon-info">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events List Card -->
+    <div class="card card-professional">
+        <!-- Card Header with Tabs -->
+        <div class="card-header bg-white border-bottom">
+            <ul class="nav nav-tabs card-header-tabs" id="eventsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-events" type="button" role="tab" aria-controls="all-events" aria-selected="true">
+                        <i class="fas fa-th-list me-2"></i>All Events <span class="badge bg-primary ms-2">{{ total_events|default:0 }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="published-tab" data-bs-toggle="tab" data-bs-target="#published-events" type="button" role="tab" aria-controls="published-events" aria-selected="false">
+                        <i class="fas fa-check-circle me-2"></i>Published <span class="badge bg-success ms-2">{{ published_count|default:0 }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="drafts-tab" data-bs-toggle="tab" data-bs-target="#draft-events" type="button" role="tab" aria-controls="draft-events" aria-selected="false">
+                        <i class="fas fa-edit me-2"></i>Drafts <span class="badge bg-warning ms-2">{{ drafts_count|default:0 }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming-events" type="button" role="tab" aria-controls="upcoming-events" aria-selected="false">
+                        <i class="fas fa-clock me-2"></i>Upcoming <span class="badge bg-info ms-2">{{ upcoming_count|default:0 }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Card Body with Tab Content -->
+        <div class="card-body p-4">
+            <div class="tab-content" id="eventsTabContent">
+                <!-- All Events Tab -->
+                <div class="tab-pane fade show active" id="all-events" role="tabpanel" aria-labelledby="all-tab">
+                    {% if events %}
+                        <div class="row g-4">
+                            {% for event in events %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card event-card h-100">
+                                    <!-- Event Image -->
+                                    <div class="position-relative">
+                                        {% if event.main_image %}
+                                            <img src="{{ event.main_image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                                        {% elif event.additional_images.exists %}
+                                            <img src="{{ event.additional_images.first.image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                <i class="fas fa-calendar-alt fa-3x text-white opacity-50"></i>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- Status Badge -->
+                                        <div class="position-absolute top-0 end-0 m-3">
+                                            {% if event.status == 'published' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Published
+                                                </span>
+                                            {% elif event.status == 'draft' %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-edit me-1"></i>Draft
+                                                </span>
+                                            {% elif event.status == 'cancelled' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle me-1"></i>Cancelled
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Event Details -->
+                                    <div class="card-body">
+                                        <h5 class="card-title fw-bold mb-2">{{ event.title }}</h5>
+
+                                        <!-- Event Meta -->
+                                        <div class="mb-3">
+                                            <p class="card-text text-muted small mb-1">
+                                                <i class="fas fa-calendar text-je-primary me-1"></i>
+                                                {{ event.event_date|date:"d M Y" }}
+                                            </p>
+                                            <p class="card-text text-muted small mb-1">
+                                                <i class="fas fa-clock text-je-primary me-1"></i>
+                                                {{ event.start_time|time:"H:i" }}
+                                            </p>
+                                            <p class="card-text text-muted small mb-0">
+                                                <i class="fas fa-map-marker-alt text-je-primary me-1"></i>
+                                                {{ event.venue }}
+                                            </p>
+                                        </div>
+
+                                        <!-- Event Stats -->
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="fw-bold text-je-primary">{{ event.tickets_sold|default:0 }}</div>
+                                                    <small class="text-muted">Sold</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="fw-bold text-je-success">£{{ event.revenue|default:0|floatformat:2 }}</div>
+                                                    <small class="text-muted">Revenue</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Action Buttons -->
+                                        <div class="d-grid gap-2">
+                                            <a href="{% url 'events:event_detail' event.id %}" class="btn btn-je-primary btn-sm">
+                                                <i class="fas fa-eye me-2"></i>View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Empty State -->
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-calendar-times fa-4x text-muted opacity-50"></i>
+                            </div>
+                            <h4 class="text-muted mb-3">No Events Yet</h4>
+                            <p class="text-muted mb-4">Start creating amazing events and engage with your audience!</p>
+                            <a href="{% url 'events:create_event' %}" class="btn btn-je-primary">
+                                <i class="fas fa-plus me-2"></i>Create Your First Event
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Published Events Tab -->
+                <div class="tab-pane fade" id="published-events" role="tabpanel" aria-labelledby="published-tab">
+                    {% if published_events %}
+                        <div class="row g-4">
+                            {% for event in published_events %}
+                            <!-- Same event card structure as above -->
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card event-card h-100">
+                                    <div class="position-relative">
+                                        {% if event.main_image %}
+                                            <img src="{{ event.main_image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                <i class="fas fa-calendar-alt fa-3x text-white opacity-50"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="position-absolute top-0 end-0 m-3">
+                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Published</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title fw-bold mb-2">{{ event.title }}</h5>
+                                        <div class="mb-3">
+                                            <p class="card-text text-muted small mb-1">
+                                                <i class="fas fa-calendar text-je-primary me-1"></i>{{ event.event_date|date:"d M Y" }}
+                                            </p>
+                                            <p class="card-text text-muted small mb-0">
+                                                <i class="fas fa-map-marker-alt text-je-primary me-1"></i>{{ event.venue }}
+                                            </p>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="fw-bold text-je-primary">{{ event.tickets_sold|default:0 }}</div>
+                                                    <small class="text-muted">Sold</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="fw-bold text-je-success">£{{ event.revenue|default:0|floatformat:2 }}</div>
+                                                    <small class="text-muted">Revenue</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-grid">
+                                            <a href="{% url 'events:event_detail' event.id %}" class="btn btn-je-primary btn-sm">
+                                                <i class="fas fa-eye me-2"></i>View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-4x text-muted opacity-50 mb-3"></i>
+                            <h5 class="text-muted">No Published Events</h5>
+                            <p class="text-muted">Publish your draft events to make them visible to customers.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Draft Events Tab -->
+                <div class="tab-pane fade" id="draft-events" role="tabpanel" aria-labelledby="drafts-tab">
+                    {% if draft_events %}
+                        <div class="row g-4">
+                            {% for event in draft_events %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card event-card h-100">
+                                    <div class="position-relative">
+                                        {% if event.main_image %}
+                                            <img src="{{ event.main_image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                <i class="fas fa-calendar-alt fa-3x text-white opacity-50"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="position-absolute top-0 end-0 m-3">
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-edit me-1"></i>Draft</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title fw-bold mb-2">{{ event.title }}</h5>
+                                        <div class="mb-3">
+                                            <p class="card-text text-muted small mb-1">
+                                                <i class="fas fa-calendar text-je-primary me-1"></i>{{ event.event_date|date:"d M Y" }}
+                                            </p>
+                                            <p class="card-text text-muted small mb-0">
+                                                <i class="fas fa-map-marker-alt text-je-primary me-1"></i>{{ event.venue }}
+                                            </p>
+                                        </div>
+                                        <div class="alert alert-warning py-2 mb-3">
+                                            <small><i class="fas fa-info-circle me-1"></i>This event is not visible to customers yet</small>
+                                        </div>
+                                        <div class="d-grid">
+                                            <a href="{% url 'events:event_detail' event.id %}" class="btn btn-je-primary btn-sm">
+                                                <i class="fas fa-eye me-2"></i>View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-edit fa-4x text-muted opacity-50 mb-3"></i>
+                            <h5 class="text-muted">No Draft Events</h5>
+                            <p class="text-muted">All your events are published!</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Upcoming Events Tab -->
+                <div class="tab-pane fade" id="upcoming-events" role="tabpanel" aria-labelledby="upcoming-tab">
+                    {% if upcoming_events %}
+                        <div class="row g-4">
+                            {% for event in upcoming_events %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card event-card h-100">
+                                    <div class="position-relative">
+                                        {% if event.main_image %}
+                                            <img src="{{ event.main_image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                <i class="fas fa-calendar-alt fa-3x text-white opacity-50"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="position-absolute top-0 end-0 m-3">
+                                            <span class="badge bg-info"><i class="fas fa-clock me-1"></i>Upcoming</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title fw-bold mb-2">{{ event.title }}</h5>
+                                        <div class="mb-3">
+                                            <p class="card-text text-muted small mb-1">
+                                                <i class="fas fa-calendar text-je-primary me-1"></i>{{ event.event_date|date:"d M Y" }}
+                                            </p>
+                                            <p class="card-text text-muted small mb-0">
+                                                <i class="fas fa-map-marker-alt text-je-primary me-1"></i>{{ event.venue }}
+                                            </p>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="fw-bold text-je-primary">{{ event.tickets_sold|default:0 }}</div>
+                                                    <small class="text-muted">Sold</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="fw-bold text-je-success">£{{ event.revenue|default:0|floatformat:2 }}</div>
+                                                    <small class="text-muted">Revenue</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-grid">
+                                            <a href="{% url 'events:event_detail' event.id %}" class="btn btn-je-primary btn-sm">
+                                                <i class="fas fa-eye me-2"></i>View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-clock fa-4x text-muted opacity-50 mb-3"></i>
+                            <h5 class="text-muted">No Upcoming Events</h5>
+                            <p class="text-muted">Create new events for future dates.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

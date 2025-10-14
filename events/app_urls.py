@@ -12,6 +12,10 @@ urlpatterns = [
     path("create-event/", views.create_event, name="create_event"),
     path("my-events/", views.my_events, name="my_events"),
 
+    # Event summary and reports
+    path("event/<int:event_id>/summary/", views.event_summary_report, name="event_summary_report"),
+    path("event/<int:event_id>/export-guests/", views.export_guest_list, name="export_guest_list"),
+
     # Listing fee payments
     path("event/<int:event_id>/pay-listing-fee/", listing_fee_views.pay_listing_fee, name="pay_listing_fee"),
     path("event/<int:event_id>/listing-fee/success/", listing_fee_views.listing_fee_success, name="listing_fee_success"),

@@ -73,8 +73,13 @@ if DEBUG:
     import sys
     print("⚠️  WARNING: DEBUG mode is enabled! Never use in production!", file=sys.stderr)
 
-#ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip()]
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app', 'testserver']
+#ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip(), '831c2e5887a5.ngrok-free.app']
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app', 'testserver']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '831c2e5887a5.ngrok-free.app',  # Add your ngrok domain
+]
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
@@ -324,8 +329,19 @@ def get_pricing_tier(capacity):
 # ============================================
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://1de8a13b06da.ngrok-free.app',  # ✅ Correct - this is a list
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://831c2e5887a5.ngrok-free.app',
 ]
+
+    
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://5d74f0391463.ngrok-free.app',  # ngrok HTTPS
+    'http://localhost:8000',  # Local development
+    'http://127.0.0.1:8000',
+    'https://831c2e5887a5.ngrok-free.app',
+  ]  # Local development (IP), 'https://831c2e5887a5.ngrok-free.app']
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
 
@@ -340,6 +356,7 @@ SUMUP_MERCHANT_CODE = os.getenv("SUMUP_MERCHANT_CODE")  # NEVER hardcode!
 SUMUP_ACCESS_TOKEN = os.getenv("SUMUP_ACCESS_TOKEN")  # Rotate regularly
 SUMUP_API_KEY = os.getenv("SUMUP_API_KEY", "")
 SUMUP_MERCHANT_ID = os.getenv("SUMUP_MERCHANT_ID", "")
+
 
 # Verify critical payment credentials are set for production
 if not DEBUG and not all([SUMUP_CLIENT_ID, SUMUP_CLIENT_SECRET, SUMUP_MERCHANT_CODE]):
@@ -686,3 +703,23 @@ Q_CLUSTER = {
     # Admin
     'django_redis': None,  # Not using Redis initially (ORM-based queue)
 }
+
+# Should have this for local testing:
+if LOCAL_TEST:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'localhost'
+    EMAIL_PORT = 1025
+    EMAIL_USE_TLS = False
+    EMAIL_HOST_USER = ''
+    EMAIL_HOST_PASSWORD = ''
+    DEFAULT_FROM_EMAIL = 'noreply@jerseyevents.je'
+
+# ============================================
+# CSRF SETTINGS FOR DEVELOPMENT
+# ============================================
+if DEBUG:
+    CSRF_COOKIE_SECURE = False  # Allow non-HTTPS in development
+    SESSION_COOKIE_SECURE = False  # Allow non-HTTPS in development
+    CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access in development
+    CSRF_USE_SESSIONS = False  # Use cookie-based CSRF (default)
+    CSRF_COOKIE_SAMESITE = 'Lax'  # More permissive for development

@@ -164,25 +164,32 @@
     <footer class="footer-je mt-5">
         <div class="container">
             <div class="row g-4">
+                <!-- Logo Section -->
+                <div class="col-lg-3">
+                    <div class="mb-3">
+                        <img src="{% static 'images/coderraLogo.png' %}" alt="Coderra Logo" class="img-fluid" style="max-width: 180px;">
+                    </div>
+                </div>
+
                 <!-- About Section -->
-                <div class="col-lg-4">
+                <div class="col-lg-3">
                     <h5><i class="fas fa-calendar-alt text-je-island-blue me-2"></i>Jersey Events</h5>
                     <p>Connecting Jersey's vibrant community through memorable events and experiences.</p>
                     <div class="d-flex gap-3 mt-3">
-                        <a href="#" class="text-decoration-none">
+                        <a href="#" target="_blank" rel="noopener noreferrer" class="text-decoration-none" aria-label="Follow us on Facebook">
                             <i class="fab fa-facebook fa-lg"></i>
                         </a>
-                        <a href="#" class="text-decoration-none">
+                        <a href="#" target="_blank" rel="noopener noreferrer" class="text-decoration-none" aria-label="Follow us on Instagram">
                             <i class="fab fa-instagram fa-lg"></i>
                         </a>
-                        <a href="#" class="text-decoration-none">
+                        <a href="#" target="_blank" rel="noopener noreferrer" class="text-decoration-none" aria-label="Follow us on Twitter">
                             <i class="fab fa-twitter fa-lg"></i>
                         </a>
                     </div>
                 </div>
 
                 <!-- Quick Links -->
-                <div class="col-lg-4">
+                <div class="col-lg-3">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="{% url 'events:events_list' %}">Browse Events</a></li>
@@ -194,7 +201,7 @@
                 </div>
 
                 <!-- For Organisers -->
-                <div class="col-lg-4">
+                <div class="col-lg-3">
                     <h5>For Organisers</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="{% url 'accounts:register_organiser' %}">Create an Account</a></li>
@@ -243,7 +250,7 @@
                         Your personal data is protected with industry-standard encryption
                     </p>
                     <p class="mb-0 small">
-                        &copy; 2025 Coderra.je - All rights reserved. |
+                        &copy; {% now "Y" %} Coderra.je - All rights reserved. |
                         <a href="{% url 'events:privacy' %}" class="text-decoration-none">Privacy Policy</a> |
                         <a href="{% url 'events:terms' %}" class="text-decoration-none">Terms & Conditions</a> |
                         <a href="{% url 'events:refund_policy' %}" class="text-decoration-none">Refund Policy</a> |

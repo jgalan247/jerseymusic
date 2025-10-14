@@ -4,218 +4,428 @@
 {% block title %}Create Event - Jersey Events{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-12 px-4">
-    <div class="max-w-2xl mx-auto">
-        <!-- Header Section -->
-        <div class="text-center mb-8">
-            <i class="fas fa-calendar-plus text-6xl text-blue-600 mb-4"></i>
-            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Create New Event</h1>
-            <p class="text-gray-600">Bring your event to life and start selling tickets</p>
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <div class="mb-3">
+            <i class="fas fa-calendar-plus fa-4x text-je-primary"></i>
         </div>
+        <h1 class="display-5 fw-bold mb-3">Create New Event</h1>
+        <p class="lead text-muted">
+            Bring your event to life and start selling tickets
+        </p>
+    </div>
 
-        {% if debug %}
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <i class="fas fa-tools text-blue-600"></i> Development Mode: Subscription check bypassed
+    {% if debug %}
+    <div class="alert alert-info border-0 mb-4" role="alert">
+        <i class="fas fa-tools me-2"></i>
+        <strong>Development Mode:</strong> Subscription check bypassed
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Basic Information Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-je-primary text-white py-3">
+                        <h3 class="mb-0 h5">
+                            <i class="fas fa-info-circle me-2"></i>Basic Information
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Event Title -->
+                        <div class="mb-4">
+                            <label for="id_title" class="form-label fw-semibold">
+                                Event Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   name="title"
+                                   id="id_title"
+                                   class="form-control form-control-lg {% if form.title.errors %}is-invalid{% endif %}"
+                                   placeholder="Give your event a catchy, memorable title"
+                                   required>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Make it descriptive and engaging to attract attendees
+                            </small>
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.title.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-4">
+                            <label for="id_category" class="form-label fw-semibold">
+                                Event Category
+                            </label>
+                            <select name="category"
+                                    id="id_category"
+                                    class="form-select {% if form.category.errors %}is-invalid{% endif %}">
+                                <option value="">Select a category...</option>
+                                <option value="music">🎵 Music & Concerts</option>
+                                <option value="workshop">📚 Workshops & Learning</option>
+                                <option value="food">🍽️ Food & Drink</option>
+                                <option value="arts">🎨 Arts & Culture</option>
+                                <option value="sports">⚽ Sports & Fitness</option>
+                                <option value="business">💼 Business & Networking</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Choose the category that best describes your event
+                            </small>
+                            {% if form.category.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.category.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label fw-semibold">
+                                Event Description <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="description"
+                                      id="id_description"
+                                      rows="6"
+                                      class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                                      placeholder="Tell attendees what makes your event special..."
+                                      required></textarea>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-pen me-1"></i>
+                                Include key details: What to expect, who should attend, what's included
+                            </small>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- When & Where Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-je-island-blue text-white py-3">
+                        <h3 class="mb-0 h5">
+                            <i class="fas fa-calendar-alt me-2"></i>When & Where
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Date & Time Row -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="id_event_date" class="form-label fw-semibold">
+                                    Event Date <span class="text-danger">*</span>
+                                </label>
+                                <input type="date"
+                                       name="event_date"
+                                       id="id_event_date"
+                                       class="form-control {% if form.event_date.errors %}is-invalid{% endif %}"
+                                       required>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    When will your event take place?
+                                </small>
+                                {% if form.event_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.event_date.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_event_time" class="form-label fw-semibold">
+                                    Event Time <span class="text-danger">*</span>
+                                </label>
+                                <input type="time"
+                                       name="event_time"
+                                       id="id_event_time"
+                                       class="form-control {% if form.event_time.errors %}is-invalid{% endif %}"
+                                       required>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Start time (24-hour format)
+                                </small>
+                                {% if form.event_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.event_time.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Venue Name -->
+                        <div class="mb-4">
+                            <label for="id_venue_name" class="form-label fw-semibold">
+                                Venue Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   name="venue_name"
+                                   id="id_venue_name"
+                                   class="form-control {% if form.venue_name.errors %}is-invalid{% endif %}"
+                                   placeholder="e.g., Jersey Arts Centre, St. Helier Parish Hall"
+                                   required>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                Name of the venue or location
+                            </small>
+                            {% if form.venue_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.venue_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Venue Address -->
+                        <div class="mb-3">
+                            <label for="id_venue_address" class="form-label fw-semibold">
+                                Venue Address <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="venue_address"
+                                      id="id_venue_address"
+                                      rows="3"
+                                      class="form-control {% if form.venue_address.errors %}is-invalid{% endif %}"
+                                      placeholder="Enter complete address including postcode"
+                                      required></textarea>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-location-arrow me-1"></i>
+                                Full address so attendees can find you easily
+                            </small>
+                            {% if form.venue_address.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.venue_address.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tickets & Pricing Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-success text-white py-3">
+                        <h3 class="mb-0 h5">
+                            <i class="fas fa-ticket-alt me-2"></i>Tickets & Pricing
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3 mb-4">
+                            <!-- Capacity -->
+                            <div class="col-md-6">
+                                <label for="id_capacity" class="form-label fw-semibold">
+                                    Event Capacity <span class="text-danger">*</span>
+                                </label>
+                                <input type="number"
+                                       name="capacity"
+                                       id="id_capacity"
+                                       class="form-control {% if form.capacity.errors %}is-invalid{% endif %}"
+                                       placeholder="Maximum attendees"
+                                       min="1"
+                                       max="500"
+                                       required>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-users me-1"></i>
+                                    Maximum 500 tickets per event
+                                </small>
+                                {% if form.capacity.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.capacity.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Ticket Price -->
+                            <div class="col-md-6">
+                                <label for="id_ticket_price" class="form-label fw-semibold">
+                                    Ticket Price (£) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">£</span>
+                                    <input type="number"
+                                           name="ticket_price"
+                                           id="id_ticket_price"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control {% if form.ticket_price.errors %}is-invalid{% endif %}"
+                                           placeholder="0.00"
+                                           required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-pound-sign me-1"></i>
+                                    Price per ticket in British Pounds
+                                </small>
+                                {% if form.ticket_price.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.ticket_price.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label for="id_status" class="form-label fw-semibold">
+                                Publication Status
+                            </label>
+                            <select name="status"
+                                    id="id_status"
+                                    class="form-select {% if form.status.errors %}is-invalid{% endif %}">
+                                <option value="draft">📝 Draft - Not visible to customers</option>
+                                <option value="published">✅ Published - Visible and bookable</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-eye me-1"></i>
+                                Published events appear in search results and can be booked
+                            </small>
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.status.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Pricing Info Box -->
+                        <div class="alert alert-info border-0 mb-0">
+                            <h6 class="alert-heading mb-2">
+                                <i class="fas fa-info-circle me-2"></i>Platform Fees
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li><strong>Capacity-based fee:</strong> £15-£70 per event (based on capacity tier)</li>
+                                <li><strong>Payment processing:</strong> 2.5% per ticket transaction</li>
+                                <li><strong>No hidden fees:</strong> You keep the majority of ticket revenue</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Images Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-warning text-dark py-3">
+                        <h3 class="mb-0 h5">
+                            <i class="fas fa-image me-2"></i>Event Images
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label for="main_image" class="form-label fw-semibold">
+                                Main Event Image <span class="text-danger">*</span>
+                            </label>
+                            <div class="border border-2 border-dashed rounded-3 p-5 text-center bg-light">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5 class="text-secondary mb-2">Upload Main Event Image</h5>
+                                <p class="text-muted mb-3">Choose a high-quality image that represents your event</p>
+                                <input type="file"
+                                       name="main_image"
+                                       id="main_image"
+                                       class="form-control {% if form.main_image.errors %}is-invalid{% endif %}"
+                                       required
+                                       accept="image/jpeg,image/png,image/jpg">
+                                <div id="image-preview" class="mt-3"></div>
+                            </div>
+                            <small class="form-text text-muted d-block mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Recommended:</strong> 1200x600px or larger, JPG or PNG format, under 5MB
+                            </small>
+                            {% if form.main_image.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.main_image.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons Card -->
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <button type="submit" class="btn btn-je-primary btn-lg px-5">
+                                <i class="fas fa-rocket me-2"></i>Create Event
+                            </button>
+                            <a href="{% url 'events:my_events' %}" class="btn btn-outline-secondary btn-lg px-5">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                        <p class="text-center text-muted small mt-3 mb-0">
+                            <i class="fas fa-lock me-1"></i>
+                            Your event will be saved securely and can be edited anytime
+                        </p>
+                    </div>
+                </div>
+            </form>
         </div>
-        {% endif %}
-
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
-
-            <!-- Basic Information -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">
-                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>Basic Information
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                    <div class="md:col-span-2">
-                        <label for="id_title" class="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
-                        <input type="text" name="title" id="id_title"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                               placeholder="Give your event a catchy, descriptive name" required>
-                        {% if form.title.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.title.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="id_category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <select name="category" id="id_category"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Select Category</option>
-                            <option value="music">Music & Concerts</option>
-                            <option value="workshop">Workshops & Learning</option>
-                            <option value="food">Food & Drink</option>
-                            <option value="arts">Arts & Culture</option>
-                            <option value="sports">Sports & Fitness</option>
-                            <option value="business">Business & Networking</option>
-                        </select>
-                        {% if form.category.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.category.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                    <textarea name="description" id="id_description" rows="4"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md h-32 focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                              placeholder="Tell people what makes your event special" required></textarea>
-                    <p class="text-sm text-gray-500 mt-1">Tell people what makes your event special</p>
-                    {% if form.description.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.description.errors.0 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Date & Time -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">
-                    <i class="fas fa-calendar-alt text-blue-600 mr-2"></i>When & Where
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                    <div>
-                        <label for="id_event_date" class="block text-sm font-medium text-gray-700 mb-1">Event Date *</label>
-                        <input type="date" name="event_date" id="id_event_date"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                               required>
-                        {% if form.event_date.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.event_date.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="id_event_time" class="block text-sm font-medium text-gray-700 mb-1">Event Time *</label>
-                        <input type="time" name="event_time" id="id_event_time"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                               required>
-                        {% if form.event_time.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.event_time.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                    <div>
-                        <label for="id_venue_name" class="block text-sm font-medium text-gray-700 mb-1">Venue Name *</label>
-                        <input type="text" name="venue_name" id="id_venue_name"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                               placeholder="Enter venue name" required>
-                        {% if form.venue_name.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.venue_name.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="id_capacity" class="block text-sm font-medium text-gray-700 mb-1">Capacity *</label>
-                        <input type="number" name="capacity" id="id_capacity"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                               placeholder="Maximum number of attendees" required>
-                        <p class="text-sm text-gray-500 mt-1">Maximum number of attendees</p>
-                        {% if form.capacity.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.capacity.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label for="id_venue_address" class="block text-sm font-medium text-gray-700 mb-1">Venue Address *</label>
-                    <textarea name="venue_address" id="id_venue_address" rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                              placeholder="Enter complete venue address" required></textarea>
-                    {% if form.venue_address.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.venue_address.errors.0 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Pricing -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">
-                    <i class="fas fa-ticket-alt text-blue-600 mr-2"></i>Tickets & Pricing
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                    <div>
-                        <label for="id_ticket_price" class="block text-sm font-medium text-gray-700 mb-1">Ticket Price (£) *</label>
-                        <input type="number" name="ticket_price" id="id_ticket_price" step="0.01" min="0"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500"
-                               placeholder="0.00" required>
-                        <p class="text-sm text-gray-500 mt-1">Price per ticket in British Pounds</p>
-                        {% if form.ticket_price.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.ticket_price.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="id_status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" id="id_status"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                        </select>
-                        <p class="text-sm text-gray-500 mt-1">Published events are visible to customers</p>
-                        {% if form.status.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.status.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Images -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">
-                    <i class="fas fa-images text-blue-600 mr-2"></i>Event Images
-                </h3>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Main Event Image *</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition duration-200">
-                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-                        <h5 class="text-gray-600 mb-2">Upload Main Event Image</h5>
-                        <p class="text-gray-500 mb-4">Choose a high-quality image that represents your event</p>
-                        <input type="file" name="main_image" id="main_image"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               required accept="image/*">
-                    </div>
-                    <p class="text-sm text-gray-500 mt-2">
-                        <i class="fas fa-info-circle"></i> Recommended: 1200x600px, JPG or PNG format
-                    </p>
-                    {% if form.main_image.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.main_image.errors.0 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button type="submit" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <i class="fas fa-rocket mr-2"></i>Create Event
-                </button>
-                <a href="{% url 'events:my_events' %}" class="bg-gray-600 text-white py-2 px-6 rounded-md hover:bg-gray-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 text-center">
-                    <i class="fas fa-times mr-2"></i>Cancel
-                </a>
-            </div>
-        </form>
     </div>
 </div>
 
+<!-- Image Preview JavaScript -->
 <script>
-// File input enhancement
 document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.querySelector('input[type="file"]');
+    // File input preview
+    const fileInput = document.getElementById('main_image');
+    const previewDiv = document.getElementById('image-preview');
+
     if (fileInput) {
         fileInput.addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                const label = document.createElement('div');
-                label.className = 'mt-2 text-green-600 text-sm';
-                label.innerHTML = `<i class="fas fa-check"></i> ${fileName}`;
+            const file = e.target.files[0];
+            if (file) {
+                // Show file name with success icon
+                const fileName = file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
 
-                // Remove existing file name display
-                const existing = e.target.parentNode.querySelector('.text-green-600');
-                if (existing) existing.remove();
+                previewDiv.innerHTML = `
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>${fileName}</strong> (${fileSize} MB)
+                    </div>
+                `;
 
-                e.target.parentNode.appendChild(label);
+                // Optional: Show image preview
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'img-thumbnail mt-3';
+                        img.style.maxHeight = '200px';
+                        previewDiv.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
+        });
+    }
+
+    // Optional: Capacity-based fee calculator
+    const capacityInput = document.getElementById('id_capacity');
+    if (capacityInput) {
+        capacityInput.addEventListener('input', function() {
+            const capacity = parseInt(this.value) || 0;
+            let fee = '15-70';
+            let tier = 'Small Event';
+
+            if (capacity <= 50) {
+                fee = '15';
+                tier = 'Small Event (up to 50)';
+            } else if (capacity <= 100) {
+                fee = '30';
+                tier = 'Medium Event (51-100)';
+            } else if (capacity <= 250) {
+                fee = '50';
+                tier = 'Large Event (101-250)';
+            } else if (capacity <= 400) {
+                fee = '60';
+                tier = 'Very Large Event (251-400)';
+            } else if (capacity <= 500) {
+                fee = '70';
+                tier = 'Major Event (401-500)';
+            }
+
+            // You can add a dynamic display here if desired
+            console.log(`Capacity: ${capacity}, Fee: £${fee}, Tier: ${tier}`);
         });
     }
 });

@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Organiser Dashboard - Jersey Events{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="text-center mb-5">
+        <div class="mb-3">
+            <i class="fas fa-chart-line fa-3x text-je-primary"></i>
+        </div>
+        <h1 class="display-5 fw-bold">Welcome, {{ user.first_name }}!</h1>
+        <p class="lead text-muted">
+            Your organiser dashboard - manage your events, track sales, and grow your audience.
+        </p>
+    </div>
+
+    <!-- SumUp Connection Alert -->
+    {% if artist_profile %}
+        {% if not artist_profile.is_sumup_connected %}
+        <div class="alert alert-danger shadow-sm mb-5" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle fa-3x me-4 mt-1"></i>
+                <div class="flex-grow-1">
+                    <h4 class="alert-heading mb-3">
+                        <i class="fas fa-credit-card me-2"></i>Action Required: Connect Your SumUp Account
+                    </h4>
+                    <p class="mb-3">
+                        <strong>You need to connect your SumUp account to receive ticket payments.</strong>
+                        Without this, customers cannot buy tickets for your events and you cannot receive revenue.
+                    </p>
+                    <div class="bg-white p-3 rounded mb-3">
+                        <h6 class="fw-bold mb-2">Why is this required?</h6>
+                        <ul class="mb-0 small">
+                            <li>Customer payments go <strong>directly to your SumUp account</strong></li>
+                            <li>The platform never touches your ticket revenue</li>
+                            <li>You control your own payouts and funds</li>
+                            <li>Industry-standard secure payment processing</li>
+                        </ul>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'accounts:sumup_connect' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plug me-2"></i>Connect SumUp Account Now
+                        </a>
+                        <a href="https://sumup.com" target="_blank" class="btn btn-outline-secondary">
+                            <i class="fas fa-info-circle me-2"></i>Learn About SumUp
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif artist_profile.sumup_connection_status == 'expired' %}
+        <div class="alert alert-warning shadow-sm mb-5" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-circle fa-2x me-4 mt-1"></i>
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading mb-2">
+                        <i class="fas fa-sync-alt me-2"></i>SumUp Connection Expired
+                    </h5>
+                    <p class="mb-3">
+                        Your SumUp connection has expired. Please reconnect to continue receiving payments.
+                    </p>
+                    <a href="{% url 'accounts:sumup_connect' %}" class="btn btn-warning">
+                        <i class="fas fa-plug me-2"></i>Reconnect SumUp Account
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-success shadow-sm mb-5" role="alert">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-2x me-3"></i>
+                    <div>
+                        <h6 class="mb-1 fw-bold">
+                            <i class="fas fa-credit-card me-2"></i>SumUp Connected
+                        </h6>
+                        <p class="mb-0 small">
+                            Merchant Code: <code>{{ artist_profile.sumup_merchant_code }}</code> •
+                            Ticket payments go directly to your account
+                        </p>
+                    </div>
+                </div>
+                <form action="{% url 'accounts:sumup_disconnect' %}" method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-secondary"
+                            onclick="return confirm('Are you sure you want to disconnect SumUp? You will not be able to receive payments until you reconnect.')">
+                        <i class="fas fa-unlink me-1"></i>Disconnect
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-calendar-alt fa-3x text-je-primary mb-3"></i>
+                    <h2 class="fw-bold mb-1">{{ total_events|default:0 }}</h2>
+                    <p class="text-muted mb-0">Total Events</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-ticket-alt fa-3x text-je-success mb-3"></i>
+                    <h2 class="fw-bold mb-1">{{ total_tickets_sold|default:0 }}</h2>
+                    <p class="text-muted mb-0">Tickets Sold</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-pound-sign fa-3x text-je-island-blue mb-3"></i>
+                    <h2 class="fw-bold mb-1">£{{ total_revenue|default:0|floatformat:2 }}</h2>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-clock fa-3x text-je-warning mb-3"></i>
+                    <h2 class="fw-bold mb-1">{{ upcoming_events|default:0 }}</h2>
+                    <p class="text-muted mb-0">Upcoming Events</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="card mb-5 shadow-sm">
+        <div class="card-header bg-je-primary text-white py-3">
+            <h3 class="mb-0">
+                <i class="fas fa-bolt me-2"></i>Quick Actions
+            </h3>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <a href="{% url 'events:create_event' %}" class="btn btn-outline-primary btn-lg w-100 py-3">
+                        <i class="fas fa-plus-circle fa-2x mb-2 d-block"></i>
+                        <strong>Create New Event</strong>
+                        <small class="d-block text-muted mt-1">Set up your next event</small>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'events:my_events' %}" class="btn btn-outline-success btn-lg w-100 py-3">
+                        <i class="fas fa-calendar-check fa-2x mb-2 d-block"></i>
+                        <strong>Manage Events</strong>
+                        <small class="d-block text-muted mt-1">View and edit events</small>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-info btn-lg w-100 py-3">
+                        <i class="fas fa-user-cog fa-2x mb-2 d-block"></i>
+                        <strong>Profile Settings</strong>
+                        <small class="d-block text-muted mt-1">Update your details</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Events Section -->
+    <div class="card mb-5 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h3 class="mb-0">
+                <i class="fas fa-calendar-alt me-2 text-je-primary"></i>Your Recent Events
+            </h3>
+        </div>
+        <div class="card-body p-4">
+            {% if recent_events %}
+                <div class="row g-3">
+                    {% for event in recent_events %}
+                    <div class="col-md-6">
+                        <div class="card border h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-1">{{ event.title }}</h5>
+                                        <p class="text-muted mb-1 small">
+                                            <i class="fas fa-calendar me-1"></i>{{ event.date|date:"d M Y" }}
+                                        </p>
+                                        <p class="text-muted mb-0 small">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ event.venue.name }}
+                                        </p>
+                                    </div>
+                                    <span class="badge bg-{{ event.get_status_display|lower }} rounded-pill">
+                                        {{ event.get_status_display }}
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Tickets Sold:</span>
+                                        <strong>{{ event.tickets_sold|default:0 }} / {{ event.capacity }}</strong>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-je-success" 
+                                             role="progressbar" 
+                                             style="width: {% widthratio event.tickets_sold|default:0 event.capacity 100 %}%"
+                                             aria-valuenow="{% widthratio event.tickets_sold|default:0 event.capacity 100 %}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'events:event_detail' event.id %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                    <a href="{% url 'events:event_summary_report' event.id %}" class="btn btn-sm btn-outline-success flex-fill">
+                                        <i class="fas fa-file-alt me-1"></i>Summary
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-plus fa-4x text-muted mb-4"></i>
+                    <h4 class="fw-bold mb-3">No Events Yet</h4>
+                    <p class="text-muted mb-4">
+                        Ready to create your first event? It only takes a few minutes!
+                    </p>
+                    <a href="{% url 'events:create_event' %}" class="btn btn-je-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Create Your First Event
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Platform Features Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-je-island-blue text-white py-3">
+            <h3 class="mb-0">
+                <i class="fas fa-info-circle me-2"></i>Platform Features & Pricing
+            </h3>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-rocket me-2 text-je-primary"></i>Getting Started
+                    </h5>
+                    <ol class="ps-3">
+                        <li class="mb-2">Click "Create New Event" above</li>
+                        <li class="mb-2">Fill in event details (title, date, venue)</li>
+                        <li class="mb-2">Set your capacity (up to 500 tickets)</li>
+                        <li class="mb-2">Add ticket tiers (VIP, Standard, etc.)</li>
+                        <li class="mb-2">Publish and start selling!</li>
+                    </ol>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-star me-2 text-je-success"></i>What You Get
+                    </h5>
+                    <ul class="list-unstyled ps-3">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-je-success me-2"></i>
+                            Flat fee pricing (£15-£70 per event)
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-je-success me-2"></i>
+                            Multiple ticket tiers and pricing
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-je-success me-2"></i>
+                            Digital QR code tickets
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-je-success me-2"></i>
+                            Real-time sales tracking
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-je-success me-2"></i>
+                            Direct payments to your account
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-je-success me-2"></i>
+                            Local Jersey support
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mb-0">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-question-circle fa-2x me-3"></i>
+                    <div>
+                        <strong>Need help?</strong>
+                        <span class="ms-2">Check out our 
+                            <a href="{% url 'events:pricing' %}" class="alert-link">pricing guide</a> or 
+                            <a href="{% url 'events:contact' %}" class="alert-link">contact support</a>.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dashboard specific styles */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.bg-draft {
+    background-color: #6c757d;
+}
+
+.bg-published {
+    background-color: #198754;
+}
+
+.bg-cancelled {
+    background-color: #dc3545;
+}
+
+.bg-completed {
+    background-color: #0d6efd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-5 {
+        font-size: 2rem;
+    }
+    
+    .card-body.p-4 {
+        padding: 1.5rem !important;
+    }
+}
+</style>
+{% endblock %}

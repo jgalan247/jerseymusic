@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Event Summary - {{ event.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print { display: none !important; }
+        .container { max-width: 100%; }
+        body { font-size: 12pt; }
+        .card { border: 1px solid #dee2e6 !important; box-shadow: none !important; }
+    }
+
+    .report-section {
+        margin-bottom: 2rem;
+        page-break-inside: avoid;
+    }
+
+    .report-header {
+        border-bottom: 3px solid var(--je-primary, #2563eb);
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-box {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid var(--je-primary, #2563eb);
+        height: 100%;
+    }
+
+    .breakdown-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .breakdown-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Action Buttons (hidden when printing) -->
+    <div class="no-print mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <a href="{% url 'events:my_events' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to My Events
+            </a>
+            <div class="d-flex gap-2">
+                <button onclick="window.print()" class="btn btn-je-primary">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </button>
+                <a href="{% url 'events:export_guest_list' event.id %}" class="btn btn-success">
+                    <i class="fas fa-download me-2"></i>Export Guest List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Header -->
+    <div class="report-header">
+        <h1 class="mb-2">EVENT SUMMARY REPORT</h1>
+        <h2 class="h3 text-je-primary mb-3">{{ event.title }}</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="text-muted mb-1">
+                    <i class="fas fa-calendar me-2"></i>{{ event.event_date|date:"F d, Y" }}
+                    <i class="fas fa-clock ms-3 me-2"></i>{{ event.event_time|time:"H:i" }}
+                </p>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>{{ event.venue_name }}
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="text-muted small mb-0">
+                    Generated on {{ now|date:"F d, Y" }} at {{ now|time:"H:i" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Summary -->
+    <div class="report-section">
+        <h3 class="mb-3"><i class="fas fa-chart-line me-2 text-success"></i>SALES SUMMARY</h3>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="stat-box">
+                    <div class="text-muted small mb-2">Tickets Sold</div>
+                    <div class="h4 mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        {{ total_tickets_sold }} / {{ capacity }}
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: {{ percentage_sold }}%"
+                             aria-valuenow="{{ percentage_sold }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ percentage_sold }}% capacity</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-box">
+                    <div class="text-muted small mb-2">Total Revenue</div>
+                    <div class="h4 mb-0">
+                        <i class="fas fa-pound-sign text-success me-2"></i>
+                        £{{ total_revenue|floatformat:2 }}
+                    </div>
+                    <small class="text-muted">Gross ticket sales</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-box">
+                    <div class="text-muted small mb-2">Total Orders</div>
+                    <div class="h4 mb-0">
+                        <i class="fas fa-shopping-cart text-success me-2"></i>
+                        {{ total_orders }}
+                    </div>
+                    <small class="text-muted">Completed purchases</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Price -->
+    <div class="report-section">
+        <h3 class="mb-3"><i class="fas fa-ticket-alt me-2 text-primary"></i>TICKET PRICING</h3>
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">Ticket Price</td>
+                            <td class="text-end">£{{ event.ticket_price|floatformat:2 }} per ticket</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Tickets Sold</td>
+                            <td class="text-end">{{ total_tickets_sold }} tickets</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="fw-bold">GROSS REVENUE</td>
+                            <td class="text-end fw-bold h5 mb-0">£{{ total_revenue|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fee Breakdown -->
+    <div class="report-section">
+        <h3 class="mb-3"><i class="fas fa-calculator me-2 text-info"></i>FEES & NET REVENUE</h3>
+        <div class="card">
+            <div class="card-body">
+                <table class="table breakdown-table mb-0">
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-arrow-up text-success me-2"></i>Gross Revenue</td>
+                            <td class="text-end fw-semibold">£{{ total_revenue|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-minus-circle text-danger me-2"></i>Platform Fee ({{ capacity }} capacity)</td>
+                            <td class="text-end text-danger">-£{{ platform_fee|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-minus-circle text-danger me-2"></i>Processing Fees (2.5%)</td>
+                            <td class="text-end text-danger">-£{{ processing_fee|floatformat:2 }}</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td class="fw-bold h5 mb-0">
+                                <i class="fas fa-check-circle text-success me-2"></i>You Receive
+                            </td>
+                            <td class="text-end fw-bold h4 mb-0 text-success">£{{ net_revenue|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                {% if total_revenue > 0 %}
+                <div class="alert alert-info border-0 mt-3 mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>You keep {{ net_revenue|floatformat:2|add:0|floatformat:0 }}£ of {{ total_revenue|floatformat:2|add:0|floatformat:0 }}£
+                    ({% widthratio net_revenue total_revenue 100 %}%)</strong> of gross revenue
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Timeline -->
+    {% if timeline %}
+    <div class="report-section">
+        <h3 class="mb-3"><i class="fas fa-clock me-2 text-warning"></i>SALES TIMELINE</h3>
+        <div class="card">
+            <div class="card-body">
+                <table class="table breakdown-table mb-0">
+                    <tbody>
+                        {% for week in timeline %}
+                        <tr>
+                            <td class="fw-bold" style="width: 100px;">{{ week.week }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-3" style="min-width: 80px;">{{ week.sales }} ticket{{ week.sales|pluralize }}</span>
+                                    <div class="progress flex-grow-1" style="height: 25px;">
+                                        {% widthratio week.sales total_tickets_sold 100 as week_percent %}
+                                        <div class="progress-bar bg-je-primary" style="width: {{ week_percent }}%">
+                                            {{ week_percent }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Customers -->
+    {% if top_customers %}
+    <div class="report-section">
+        <h3 class="mb-3"><i class="fas fa-users me-2 text-primary"></i>TOP CUSTOMERS</h3>
+        <div class="card">
+            <div class="card-body">
+                <table class="table breakdown-table mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Customer Name</th>
+                            <th class="text-end">Tickets</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in top_customers %}
+                        <tr>
+                            <td class="fw-bold">{{ forloop.counter }}.</td>
+                            <td>{{ customer.name }}</td>
+                            <td class="text-end">
+                                <span class="badge bg-je-primary">{{ customer.tickets }} ticket{{ customer.tickets|pluralize }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- No Sales Message -->
+    {% if total_tickets_sold == 0 %}
+    <div class="report-section">
+        <div class="alert alert-info border-0">
+            <h5 class="alert-heading">
+                <i class="fas fa-info-circle me-2"></i>No Sales Yet
+            </h5>
+            <p class="mb-0">
+                This event hasn't sold any tickets yet. Once customers start purchasing tickets,
+                their information will appear in this report.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="report-section text-center text-muted mt-5 pt-4" style="border-top: 1px solid #dee2e6;">
+        <p class="small mb-0">
+            <strong>Jersey Events</strong> • {{ now|date:"F d, Y" }} • www.jerseyevents.je
+        </p>
+        <p class="small mb-0">
+            Event organised by {{ event.organiser.get_full_name }}
+        </p>
+    </div>
+</div>
+{% endblock %}

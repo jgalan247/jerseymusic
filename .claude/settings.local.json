@@ -19,7 +19,17 @@
       "Bash(test:*)",
       "Bash(createuser:*)",
       "Bash(dropdb:*)",
-      "Bash(createdb:*)"
+      "Bash(createdb:*)",
+      "Bash(awk:*)",
+      "Bash(xargs:*)",
+      "Bash(for file in accounts/templates/accounts/*.html events/templates/events/*.html payments/templates/payments/*.html orders/templates/orders/*.html cart/templates/cart/*.html)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then if ! grep -q '{% csrf_token %}' \"$file\")",
+      "Bash(! grep -q '{%csrf_token%}' \"$file\")",
+      "Bash(then echo \"❌ MISSING: $file\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Read(//Users/josegalan/jersey_music_backup_20251014/**)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,55 @@
+WELCOME TO JERSEY EVENTS!
+========================
+
+Hi {{ user.first_name }}!
+
+Thank you for joining Jersey Events - your trusted platform for discovering and booking amazing events across Jersey.
+
+We're thrilled to have you as part of our community!
+
+WHAT'S NEXT?
+------------
+{% if user.user_type == 'customer' %}
+* Browse Events: Discover upcoming concerts, festivals, and cultural events
+* Book Tickets: Secure your spot with our easy booking process
+* Digital Tickets: Receive tickets instantly via email with QR codes
+* Manage Orders: View your bookings and order history anytime
+
+Get started: {{ browse_events_url }}
+{% else %}
+* Create Events: List your events and start selling tickets
+* Manage Sales: Track ticket sales and revenue in real-time
+* Engage Attendees: Communicate with your audience effectively
+* Grow Your Business: Reach more people with our marketing tools
+
+Go to your dashboard: {{ dashboard_url }}
+{% endif %}
+
+QUICK TIPS
+----------
+{% if user.user_type == 'customer' %}
+* Check your email for ticket confirmations after purchase
+* Save your QR codes - you'll need them for entry
+* Arrive 15 minutes early to events for smooth check-in
+{% else %}
+* Complete your organizer profile for better visibility
+* Price competitively - Jersey Events is 70% cheaper than Eventbrite
+* Promote your events on social media for maximum reach
+{% endif %}
+
+NEED HELP?
+----------
+Our support team is here for you! Contact us anytime at support@jerseyevents.co.uk
+
+We can't wait to see you at your next event!
+
+Cheers,
+The Jersey Events Team
+
+---
+Jersey Events
+Connecting People Through Amazing Experiences
+Jersey, Channel Islands
+support@jerseyevents.co.uk
+
+© {{ "now"|date:"Y" }} Jersey Events. All rights reserved.

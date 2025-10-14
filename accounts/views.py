@@ -1,3 +1,4 @@
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -13,10 +14,12 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.views import View
 from django.http import HttpResponse
-from orders.models import Order 
-from orders.models import RefundRequest
-from django.db.models import Sum, Q, F, DecimalField, ExpressionWrapper
+from django.conf import settings
+from django.utils import timezone
+from django.db.models import Sum, Count, Q, F, DecimalField, ExpressionWrapper
+from functools import wraps
 
+# Import models
 from .forms import (
     CustomerRegistrationForm, ArtistRegistrationForm, ResendVerificationForm,
     CustomUserCreationForm, LoginForm, CustomerProfileForm,
@@ -25,8 +28,24 @@ from .forms import (
 from .models import User, CustomerProfile, ArtistProfile, EmailVerificationToken
 from .email_utils import send_verification_email, send_welcome_email, resend_verification_email
 
-from django.conf import settings
+# Import from other apps
+from orders.models import Order, OrderItem, RefundRequest
+from events.models import Event  # ← ADD THIS LINE
 
+# ← ADD THIS DECORATOR
+def user_type_required(user_type):
+    """Decorator to check if user has the required user_type"""
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('accounts:login')
+            if request.user.user_type != user_type:
+                messages.error(request, 'You do not have permission to access this page.')
+                return redirect('/')
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 # Note: send_verification_email function now imported from email_utils
 
@@ -189,7 +208,7 @@ def register_organiser(request):
 def login_view(request):
     """User login view"""
     if request.user.is_authenticated:
-        return redirect('events:gallery')
+        return redirect('events:home')
     
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -369,22 +388,80 @@ def resend_verification(request):
 
 
 
-@login_required
-def organiser_dashboard(request):
-    """Event organiser dashboard."""
-    if request.user.user_type != 'artist':
-        messages.error(request, 'Access denied. Event organisers only.')
-        return redirect('/')
+#from django.utils import timezone
+#from django.db.models import Sum, Count, Q
 
+@login_required
+@user_type_required('artist')
+def organiser_dashboard(request):
+    """Organiser dashboard view with stats and quick actions"""
+
+    # Get artist profile and check SumUp connection
+    try:
+        artist_profile = request.user.artistprofile
+    except ArtistProfile.DoesNotExist:
+        artist_profile = None
+
+    # Get organiser's events
+    user_events = Event.objects.filter(organiser=request.user)
+
+    # Calculate stats
+    total_events = user_events.count()
+    
+    # Use event_date instead of date
+    upcoming_events = user_events.filter(
+        event_date__gte=timezone.now().date(),
+        status='published'
+    ).count()
+    
+    # Get recent events (last 5)
+    recent_events = user_events.order_by('-created_at')[:5]
+    
+    # Add tickets_sold and other info to each event
+    for event in recent_events:
+        # Calculate tickets sold from completed orders
+        tickets_sold = OrderItem.objects.filter(
+            event=event,
+            order__status='completed'
+        ).aggregate(total=Sum('quantity'))['total'] or 0
+
+        event.tickets_sold = tickets_sold
+        
+        # Add status color for badge
+        status_colors = {
+            'draft': 'secondary',
+            'published': 'success',
+            'cancelled': 'danger',
+            'completed': 'info'
+        }
+        event.status_color = status_colors.get(event.status, 'secondary')
+    
+    # Calculate total tickets sold and revenue across ALL events
+    total_tickets_sold = 0
+    total_revenue = 0
+    
+    for event in user_events:
+        # Get completed order items for this event
+        completed_items = OrderItem.objects.filter(
+            event=event,
+            order__status='completed'
+        )
+
+        for item in completed_items:
+            total_tickets_sold += item.quantity
+            total_revenue += item.price * item.quantity
+    
     context = {
-        'user': request.user,
-        'event_count': request.user.events.filter(status='published').count(),
-        'recent_orders': Order.objects.filter(
-            items__event__organiser=request.user
-        ).distinct().order_by('-created_at')[:10]
+        'total_events': total_events,
+        'upcoming_events': upcoming_events,
+        'recent_events': recent_events,
+        'total_tickets_sold': total_tickets_sold,
+        'total_revenue': total_revenue,
+        'artist_profile': artist_profile,  # Add artist profile for SumUp connection status
     }
 
     return render(request, 'accounts/organiser_dashboard.html', context)
+
 
 class ArtistProfileDetailView(DetailView):
     """Public artist profile view"""

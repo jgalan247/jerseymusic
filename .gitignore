@@ -310,6 +310,60 @@ stripe_config.json
 backup/
 backups/
 
+# Test and debug files (root level)
+test_*.py
+debug_*.py
+*_test.py
+*_debug.py
+comprehensive_*.py
+diagnostic*.py
+simple_health_check.py
+consistency_checker.py
+final_*.py
+check_*.py
+fix_*.py
+create_test_*.py
+analytics_integration_check.py
+payment_test_scenarios.py
+
+# Debug HTML files
+test_*.html
+debug_*.html
+*_test.html
+*_debug.html
+comprehensive_*.html
+minimal_*.html
+official_*.html
+
+# Development documentation (optional - can keep if useful)
+*_COMPLETE.md
+*_REPORT.md
+*_FIX.md
+*_SUMMARY.md
+*_AUDIT*.md
+*_IMPLEMENTATION*.md
+*_DEBUG*.md
+NGROK_INFO.txt
+
+# Test results and output files
+test_results.txt
+test_output.txt
+test_summary.txt
+orders_full.txt
+orders_test_results.txt
+subscriptions_test_results.txt
+failures.txt
+tailwind_consistency_report.json
+
+# Development scripts
+clean_cache.sh
+create_test_structure.sh
+run.sh
+
+# SSL certificates (development only)
+ssl/
+*.csr
+
 # =====================================================
 # Miscellaneous
 # =====================================================

@@ -52,20 +52,23 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomerRegistrationForm(UserCreationForm):
-    """Registration form for customers with Jersey-specific fields."""
+    """Simplified registration form for customers - tickets are delivered via email."""
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Email address'
-        })
+            'placeholder': 'Email address',
+            'autocomplete': 'email'
+        }),
+        help_text='Your tickets will be sent to this email address'
     )
     first_name = forms.CharField(
         max_length=30,
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'First name'
+            'placeholder': 'First name',
+            'autocomplete': 'given-name'
         })
     )
     last_name = forms.CharField(
@@ -73,82 +76,22 @@ class CustomerRegistrationForm(UserCreationForm):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Last name'
+            'placeholder': 'Last name',
+            'autocomplete': 'family-name'
         })
     )
-    phone_number = forms.CharField(
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Phone number (optional)'
-        })
-    )
-    address_line_1 = forms.CharField(
-        max_length=255,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Address Line 1'
-        })
-    )
-    address_line_2 = forms.CharField(
-        max_length=255,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Address Line 2 (optional)'
-        })
-    )
-    parish = forms.ChoiceField(
-        choices=JERSEY_PARISHES,
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    postcode = forms.CharField(
-        max_length=10,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'JE2 3AB'
-        })
-    )
-    
+
     class Meta:
         model = User
         fields = ('email', 'first_name', 'last_name', 'password1', 'password2')
-    
+
     def clean_email(self):
         """Validate that the email is not already registered."""
         email = self.cleaned_data.get('email')
         if email and User.objects.filter(email=email).exists():
             raise ValidationError('This email address is already registered.')
         return email
-    
-    def clean_postcode(self):
-        """Validate Jersey postcode format (JE[1-5] + digit + 2 letters)."""
-        postcode = self.cleaned_data.get('postcode', '').upper().strip()
-        
-        # Remove any spaces for validation
-        postcode_no_space = postcode.replace(' ', '')
-        
-        # Jersey postcode pattern: JE[1-5] followed by a digit and two letters
-        pattern = r'^JE[1-5]\d[A-Z]{2}$'
-        
-        if not re.match(pattern, postcode_no_space):
-            raise ValidationError(
-                'Enter a valid Jersey postcode (e.g., JE2 3AB). '
-                'Format: JE[1-5] followed by a digit and two letters.'
-            )
-        
-        # Normalize the postcode with a space after JE + digit
-        if len(postcode_no_space) == 6:
-            normalized = postcode_no_space[:3] + ' ' + postcode_no_space[3:]
-        else:
-            normalized = postcode
-            
-        return normalized
-    
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
@@ -159,24 +102,43 @@ class CustomerRegistrationForm(UserCreationForm):
 
         if commit:
             user.save()
-            # Create customer profile with all fields
-            CustomerProfile.objects.create(
-                user=user,
-                address_line_1=self.cleaned_data.get('address_line_1', ''),
-                address_line_2=self.cleaned_data.get('address_line_2', ''),
-                parish=self.cleaned_data.get('parish', ''),
-                postcode=self.cleaned_data.get('postcode', ''),
-                phone_number=self.cleaned_data.get('phone_number', '')
-            )
+            # Create customer profile (address fields can be added later if needed)
+            CustomerProfile.objects.create(user=user)
         return user
 
 
-class ArtistRegistrationForm(CustomerRegistrationForm):
-    """Registration form for artists with additional artist-specific fields."""
+class ArtistRegistrationForm(UserCreationForm):
+    """Registration form for event organizers/artists with contact details."""
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Email address',
+            'autocomplete': 'email'
+        })
+    )
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'First name',
+            'autocomplete': 'given-name'
+        })
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Last name',
+            'autocomplete': 'family-name'
+        })
+    )
     bio = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'placeholder': 'Tell us about yourself and your art...',
+            'placeholder': 'Tell us about yourself and your events...',
             'rows': 4
         }),
         required=False,
@@ -187,8 +149,9 @@ class ArtistRegistrationForm(CustomerRegistrationForm):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Your artist or studio name'
-        })
+            'placeholder': 'Your organizer or business name'
+        }),
+        label='Organizer Name'
     )
     business_name = forms.CharField(
         max_length=200,
@@ -198,23 +161,44 @@ class ArtistRegistrationForm(CustomerRegistrationForm):
             'placeholder': 'Business name (optional)'
         })
     )
+    phone_number = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Contact phone (optional)',
+            'autocomplete': 'tel'
+        }),
+        help_text='For venue and tax purposes'
+    )
     portfolio_website = forms.URLField(
         required=False,
         widget=forms.URLInput(attrs={
             'class': 'form-control',
-            'placeholder': 'https://your-portfolio.com'
+            'placeholder': 'https://your-website.com'
         })
     )
-    
+
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'password1', 'password2')
+
+    def clean_email(self):
+        """Validate that the email is not already registered."""
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise ValidationError('This email address is already registered.')
+        return email
+
     def clean_portfolio_website(self):
         """Validate portfolio website URL."""
         url = self.cleaned_data.get('portfolio_website', '')
         if url and not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         return url
-    
+
     def save(self, commit=True):
-        user = super(CustomerRegistrationForm, self).save(commit=False)
+        user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']

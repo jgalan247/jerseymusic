@@ -1,0 +1,136 @@
+{% load static %}
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden mb-6 hover:shadow-lg transition-shadow duration-200">
+    <div class="md:flex">
+        <!-- Event Image -->
+        <div class="md:w-1/3">
+            {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}" class="h-48 w-full object-cover md:h-full">
+            {% else %}
+                <div class="h-48 w-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center md:h-full">
+                    <svg class="w-20 h-20 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Event Details -->
+        <div class="p-6 md:w-2/3">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h3 class="text-xl font-bold text-gray-900">{{ event.title }}</h3>
+
+                        <!-- Status Badge -->
+                        {% if event.status == 'published' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Published
+                            </span>
+                        {% elif event.status == 'draft' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Draft
+                            </span>
+                        {% elif event.status == 'cancelled' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Cancelled
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Event Meta -->
+                    <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            {{ event.event_date|date:"d M Y" }}
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ event.start_time|time:"H:i" }}
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            {{ event.venue }}
+                        </div>
+                    </div>
+
+                    <!-- Event Statistics -->
+                    <div class="flex gap-6 mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500">Tickets Sold</p>
+                            <p class="text-lg font-semibold text-gray-900">
+                                {{ event.tickets_sold|default:0 }} / {{ event.capacity }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Revenue</p>
+                            <p class="text-lg font-semibold text-green-600">
+                                £{{ event.revenue|default:0|floatformat:2 }}
+                            </p>
+                        </div>
+                        {% if event.capacity %}
+                        <div>
+                            <p class="text-xs text-gray-500">Capacity</p>
+                            <p class="text-lg font-semibold text-gray-900">
+                                {{ event.tickets_sold|default:0|floatformat:0|add:"0"|floatformat:0|add:"0"|mul:100|div:event.capacity|floatformat:0 }}%
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Progress Bar -->
+                    {% if event.capacity %}
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                        {% widthratio event.tickets_sold event.capacity 100 as percentage %}
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ percentage }}%"></div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'events:detail' event.id %}"
+                   class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    View Details
+                </a>
+
+                {% if event.status == 'draft' %}
+                <span class="inline-flex items-center px-3 py-1.5 border border-blue-300 shadow-sm text-sm font-medium rounded-md text-blue-700 bg-blue-50">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Draft - Publish to activate
+                </span>
+                {% endif %}
+
+                <a href="{% url 'events:detail' event.id %}" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    View Stats
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function publishEvent(eventId) {
+    if (confirm('Are you sure you want to publish this event? It will be visible to customers.')) {
+        // Add publish logic here
+        window.location.href = `/events/${eventId}/publish/`;
+    }
+}
+</script>
