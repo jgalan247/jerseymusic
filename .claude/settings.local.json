@@ -29,7 +29,8 @@
       "Bash(then echo \"❌ MISSING: $file\")",
       "Bash(fi)",
       "Bash(done)",
-      "Read(//Users/josegalan/jersey_music_backup_20251014/**)"
+      "Read(//Users/josegalan/jersey_music_backup_20251014/**)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

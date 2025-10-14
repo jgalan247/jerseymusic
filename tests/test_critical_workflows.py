@@ -356,7 +356,8 @@ class SumUpConnectionWorkflowTests(TestCase):
 
     def test_connection_initiation(self):
         """Test starting SumUp connection process"""
-        response = self.client.get(reverse('payments:sumup_connect'))
+        # FIXED: Use accounts:sumup_connect (OAuth is in accounts app)
+        response = self.client.get(reverse('accounts:sumup_connect'))
         self.assertEqual(response.status_code, 302)
 
         # Should redirect to SumUp OAuth with correct parameters
@@ -366,8 +367,9 @@ class SumUpConnectionWorkflowTests(TestCase):
 
     def test_oauth_callback_success(self):
         """Test successful OAuth callback"""
+        # FIXED: Use accounts:sumup_callback (OAuth callback is in accounts app)
         # Simulate successful callback
-        callback_url = reverse('payments:sumup_callback')
+        callback_url = reverse('accounts:sumup_callback')
         response = self.client.get(callback_url + '?code=test_auth_code&state=test_state')
 
         # Should redirect to success page
@@ -375,7 +377,8 @@ class SumUpConnectionWorkflowTests(TestCase):
 
     def test_oauth_callback_error(self):
         """Test OAuth callback with error"""
-        callback_url = reverse('payments:sumup_callback')
+        # FIXED: Use accounts:sumup_callback (OAuth callback is in accounts app)
+        callback_url = reverse('accounts:sumup_callback')
         response = self.client.get(callback_url + '?error=access_denied&error_description=User%20denied')
 
         # Should redirect to error page

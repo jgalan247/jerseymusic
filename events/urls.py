@@ -17,7 +17,6 @@ urlpatterns = [
     path('analytics/', include(('analytics.urls', 'analytics'), namespace='analytics')),
     # path('pricing/', views.pricing, name='pricing'),
     path("", include(("events.app_urls", "events"), namespace="events")),
-
 ]
 
 if settings.DEBUG:

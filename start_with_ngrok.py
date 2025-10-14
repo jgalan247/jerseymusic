@@ -99,13 +99,14 @@ def update_env_file(ngrok_url):
         return False
     
     print_info("Updating .env file...")
-    
+
     # Read current .env
     with open(env_path, 'r') as f:
         content = f.read()
-    
+
     # Update SUMUP_REDIRECT_URI
-    redirect_uri = f"{ngrok_url}/payments/sumup/oauth/callback/"
+    # FIXED: Use correct OAuth callback URL (accounts app, not payments)
+    redirect_uri = f"{ngrok_url}/accounts/sumup/callback/"
     
     # Pattern to match SUMUP_REDIRECT_URI line
     pattern = r'SUMUP_REDIRECT_URI=.*'

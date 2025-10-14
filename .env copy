@@ -1,0 +1,94 @@
+# .env.example - Copy to .env and fill in your values
+
+# Django Settings
+SECRET_KEY=your-very-secret-key-change-this-in-production
+DEBUG=True
+LOCAL_TEST=True  # Use SQLite for local development
+# ALLOWED_HOSTS=localhost,127.0.0.1
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app']
+
+# Database
+POSTGRES_DB=jersey_artwork
+POSTGRES_USER=jersey
+POSTGRES_PASSWORD=secret
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
+
+# ============================================
+# SUBSCRIPTION SETTINGS (Easily Changeable)
+# ============================================
+# Monthly subscription price for artists (in GBP)
+ARTIST_SUBSCRIPTION_PRICE=15.00  # Change to 20.00 when you want to increase
+
+# Currency for subscriptions
+SUBSCRIPTION_CURRENCY=GBP
+
+# Free trial period in days
+SUBSCRIPTION_TRIAL_DAYS=14
+
+# Grace period after failed payment (days)
+SUBSCRIPTION_GRACE_PERIOD=3
+
+# Maximum artworks per artist
+MAX_ARTWORKS_PER_ARTIST=100
+
+# Number of featured listings allowed
+FEATURED_LISTINGS=3
+
+# ============================================
+# PAYMENT CONFIGURATION
+# ============================================
+# Payment provider: 'sumup', 'stripe', or 'citypay'
+PAYMENT_PROVIDER=sumup
+
+# SumUp Settings (for artwork purchases)
+#SUMUP_BASE_URL=https://api.sumup.com
+#SUMUP_ACCESS_TOKEN=your_access_token
+SUMUP_API_KEY=sup_pk_ByK9Jt1bU5YcYKKsMBLgTlQUfPLJpU8MF
+# SumUp Configuration
+SUMUP_CLIENT_ID=cc_classic_u9OD2Fvg8R2FBv2U4ZQdWZHJGGuBV
+SUMUP_CLIENT_SECRET=cc_sk_classic_o3ozGI6z3Yt0HTjNoEgO0BuKviNV2kvuhPdfBRZ2KXp3cwlluy
+SUMUP_API_BASE_URL=https://api.sumup.com/v0.1
+SUMUP_MERCHANT_CODE=M28WNZCB
+SUMUP_PROCESSING_RATE=2.50
+
+
+
+# OAuth URLs (for development)
+# CRITICAL: Must match SumUp dashboard exactly (including /oauth/ and trailing slash)
+SUMUP_REDIRECT_URI=https://00539b37b8d9.ngrok-free.app/payments/sumup/oauth/callback/
+# SUMUP_REDIRECT_URI=http://localhost:8000/payments/sumup/oauth/callback/
+SUMUP_RETURN_URL=https://00539b37b8d9.ngrok-free.app/payments/success/
+SUMUP_FAIL_URL=https://00539b37b8d9.ngrok-free.app/payments/fail/
+SUMUP_CANCEL_URL=https://00539b37b8d9.ngrok-free.app/payments/cancel/
+SUMUP_WEBHOOK_URL=https://00539b37b8d9.ngrok-free.app/payments/sumup/webhook/
+
+# CityPay Settings (alternative for subscriptions)
+CITYPAY_BASE_URL=https://api.citypay.com
+CITYPAY_MERCHANT_ID=your_citypay_merchant_id
+CITYPAY_LICENCE=your_citypay_licence_key
+
+# ============================================
+# EMAIL CONFIGURATION
+# ============================================
+# Use MailHog in development (True/False)
+USE_MAILHOG=True
+
+# Production email settings (Google Workspace)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@coderra.je
+EMAIL_HOST_PASSWORD=your-app-specific-password  # Not your regular password!
+
+# ============================================
+# HOW TO CHANGE SUBSCRIPTION PRICE
+# ============================================
+# 1. Edit ARTIST_SUBSCRIPTION_PRICE above (e.g., change 15.00 to 20.00)
+# 2. Restart your Django server
+# 3. New subscriptions will use the new price
+# 4. Existing subscriptions keep their old price until renewal
+#
+# You can change this anytime without touching code!
+
+SUMUP_PROCESSING_RATE=2.50

@@ -78,7 +78,7 @@ if DEBUG:
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '831c2e5887a5.ngrok-free.app',  # Add your ngrok domain
+    '00539b37b8d9.ngrok-free.app',  # Add your ngrok domain
 ]
 # Site ID for django.contrib.sites
 SITE_ID = 1

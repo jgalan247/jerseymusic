@@ -1,0 +1,68 @@
+# Systemd service file for Django-Q cluster
+# Copy to: /etc/systemd/system/jerseyevents-django-q.service
+# Then run: sudo systemctl daemon-reload && sudo systemctl enable jerseyevents-django-q
+
+[Unit]
+Description=Jersey Events Django-Q Cluster for Payment Polling
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=josegalan
+Group=josegalan
+WorkingDirectory=/Users/josegalan/Documents/jersey_music
+Environment="DJANGO_SETTINGS_MODULE=events.settings"
+Environment="PATH=/Users/josegalan/Documents/jersey_music/venv/bin:/usr/local/bin:/usr/bin:/bin"
+
+ExecStart=/Users/josegalan/Documents/jersey_music/venv/bin/python /Users/josegalan/Documents/jersey_music/manage.py qcluster
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Logging
+StandardOutput=append:/Users/josegalan/Documents/jersey_music/logs/django_q.log
+StandardError=append:/Users/josegalan/Documents/jersey_music/logs/django_q_error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target
+
+# Deployment Instructions:
+# ========================
+#
+# 1. Copy this file to systemd directory:
+#    sudo cp systemd_django_q.service /etc/systemd/system/jerseyevents-django-q.service
+#
+# 2. Update paths and user in the file if needed:
+#    sudo nano /etc/systemd/system/jerseyevents-django-q.service
+#
+# 3. Reload systemd daemon:
+#    sudo systemctl daemon-reload
+#
+# 4. Enable service to start on boot:
+#    sudo systemctl enable jerseyevents-django-q
+#
+# 5. Start the service:
+#    sudo systemctl start jerseyevents-django-q
+#
+# 6. Check status:
+#    sudo systemctl status jerseyevents-django-q
+#
+# 7. View logs:
+#    sudo journalctl -u jerseyevents-django-q -f
+#    tail -f /Users/josegalan/Documents/jersey_music/logs/django_q.log
+#
+# 8. Control commands:
+#    sudo systemctl restart jerseyevents-django-q
+#    sudo systemctl stop jerseyevents-django-q
+#    sudo systemctl start jerseyevents-django-q
