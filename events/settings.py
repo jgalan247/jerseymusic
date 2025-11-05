@@ -73,6 +73,47 @@ if DEBUG:
     import sys
     print("⚠️  WARNING: DEBUG mode is enabled! Never use in production!", file=sys.stderr)
 
+# ============================================
+# ENVIRONMENT VALIDATION
+# ============================================
+# Validate critical environment variables to catch misconfigurations early
+def validate_production_environment():
+    """Validate production environment configuration."""
+    # Check if we're in a production environment
+    is_railway = os.getenv('RAILWAY_ENVIRONMENT') is not None
+    is_production = not DEBUG or is_railway
+
+    if not is_production:
+        return  # Skip validation for development
+
+    issues = []
+
+    # Check DEBUG is False in production
+    if DEBUG:
+        issues.append("DEBUG=True (MUST be False in production)")
+
+    # Check LOCAL_TEST is False in production
+    if os.getenv('LOCAL_TEST', 'False').lower() == 'true':
+        issues.append("LOCAL_TEST=True (MUST be False in production)")
+
+    # Check database is configured
+    if not os.getenv('DATABASE_URL') and not os.getenv('POSTGRES_PASSWORD'):
+        issues.append("No database configured (need DATABASE_URL or POSTGRES_PASSWORD)")
+
+    # Check SECRET_KEY is set
+    if not os.getenv('SECRET_KEY'):
+        issues.append("SECRET_KEY not set")
+
+    if issues:
+        error_msg = "\n🚨 PRODUCTION ENVIRONMENT MISCONFIGURATION DETECTED:\n"
+        for issue in issues:
+            error_msg += f"  ❌ {issue}\n"
+        error_msg += "\nFix these issues in your Railway environment variables before deploying!\n"
+        print(error_msg, file=sys.stderr)
+        # Don't raise error yet, let specific checks handle it
+
+validate_production_environment()
+
 #ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip(), '831c2e5887a5.ngrok-free.app']
 #ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app', 'testserver']
 ALLOWED_HOSTS = [
@@ -149,7 +190,19 @@ import dj_database_url
 # Check if we're in local test mode
 LOCAL_TEST = os.getenv('LOCAL_TEST', 'False').lower() == 'true'
 
-if LOCAL_TEST and DEBUG:
+# Detect Railway or other production environments
+IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') is not None
+IS_PRODUCTION = not DEBUG or IS_RAILWAY
+
+# ⚠️  CRITICAL SAFEGUARD: Never use SQLite in production
+if IS_PRODUCTION and LOCAL_TEST:
+    raise ValueError(
+        "🚨 CRITICAL ERROR: LOCAL_TEST=True detected in production environment!\n"
+        "SQLite is NOT suitable for production. This WILL cause database errors.\n"
+        "Solution: Set LOCAL_TEST=False in your Railway environment variables."
+    )
+
+if LOCAL_TEST and DEBUG and not IS_RAILWAY:
     # SQLite ONLY for local development/testing
     print("⚠️  Using SQLite for LOCAL TESTING ONLY - Never use in production!")
     DATABASES = {
@@ -163,7 +216,7 @@ else:
     DATABASE_URL = os.getenv('DATABASE_URL')
 
     if DATABASE_URL:
-        # Digital Ocean and most cloud providers set DATABASE_URL
+        # Railway and most cloud providers set DATABASE_URL
         DATABASES = {
             'default': dj_database_url.config(
                 default=DATABASE_URL,
@@ -171,6 +224,7 @@ else:
                 conn_health_checks=True,
             )
         }
+        print(f"✅ Using PostgreSQL database from DATABASE_URL")
     else:
         # Fallback to explicit PostgreSQL configuration
         DATABASES = {
@@ -190,8 +244,11 @@ else:
         }
 
     # Verify database is configured for production
-    if not DEBUG and not DATABASE_URL and not os.getenv("POSTGRES_PASSWORD"):
-        raise ValueError("Production requires DATABASE_URL or POSTGRES_PASSWORD to be set!")
+    if IS_PRODUCTION and not DATABASE_URL and not os.getenv("POSTGRES_PASSWORD"):
+        raise ValueError(
+            "🚨 CRITICAL ERROR: Production database not configured!\n"
+            "Solution: Set DATABASE_URL environment variable in Railway."
+        )
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
@@ -246,8 +303,14 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Session configuration
+# Use signed cookie sessions for better scalability and no database locking
+# This is especially important to avoid SQLite concurrency issues
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_AGE = 86400  # 1 day
+
+# Session serialization - use JSON for security
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 # ============================================
 # SUBSCRIPTION CONFIGURATION (DEPRECATED - Using pay-per-event model)
