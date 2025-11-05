@@ -79,6 +79,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '00539b37b8d9.ngrok-free.app',  # Add your ngrok domain
+    'jerseymusic-production.up.railway.app',  # Railway production domain
 ]
 # Site ID for django.contrib.sites
 SITE_ID = 1
