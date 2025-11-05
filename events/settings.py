@@ -56,13 +56,16 @@ else:
 # ============================================
 # SECURITY WARNING: SECRET_KEY must be set in environment variables for production!
 # Generate a strong key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-if 'SECRET_KEY' not in os.environ and not os.getenv('LOCAL_TEST', False):
+# Check if LOCAL_TEST is enabled using consistent string parsing
+_is_local_test = os.getenv('LOCAL_TEST', 'False').lower() == 'true'
+
+if 'SECRET_KEY' not in os.environ and not _is_local_test:
     raise ValueError(
         "SECRET_KEY environment variable is required! "
         "For production: generate a strong 50+ character key. "
         "For local dev only: set LOCAL_TEST=True"
     )
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-key' if os.getenv('LOCAL_TEST') else None)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-key' if _is_local_test else None)
 
 # SECURITY WARNING: DEBUG must be False in production!
 # Only set DEBUG=True explicitly for development
