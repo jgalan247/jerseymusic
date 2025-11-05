@@ -44,46 +44,165 @@ class PaymentPollingService:
     def process_pending_payments(self):
         """
         Main entry point - called by scheduled task every 5 minutes.
+
+        Now uses SumUpCheckout.needs_polling property for efficient polling.
+        Supports both ticket orders and listing fees.
         """
         logger.info("=" * 80)
         logger.info("Starting payment polling cycle")
-        
-        pending_orders = Order.objects.filter(
-            status='pending_verification',
+
+        # Find all checkouts that need polling using the new polling fields
+        pending_checkouts = SumUpCheckout.objects.filter(
+            status__in=['created', 'pending'],
+            should_poll=True,
             created_at__gte=timezone.now() - timedelta(hours=self.MAX_AGE_HOURS)
-        ).order_by('created_at')[:self.MAX_ORDERS_PER_CYCLE]
-        
-        if not pending_orders.exists():
-            logger.info("No pending orders to process")
-            return {'message': 'No pending orders'}
-        
-        logger.info(f"Found {pending_orders.count()} pending orders to verify")
-        
+        ).select_related('order', 'customer').order_by('created_at')[:self.MAX_ORDERS_PER_CYCLE]
+
+        if not pending_checkouts.exists():
+            logger.info("No pending checkouts to process")
+            return {'message': 'No pending checkouts'}
+
+        logger.info(f"Found {pending_checkouts.count()} pending checkouts to verify")
+
         stats = {
             'verified': 0,
             'failed': 0,
             'still_pending': 0,
-            'errors': 0  # ← This was already here, good!
+            'errors': 0,
+            'listing_fees': 0,  # Track listing fee payments separately
         }
-        
-        for order in pending_orders:
+
+        for checkout in pending_checkouts:
             try:
-                result = self._verify_single_order(order)
-                # Add this check:
+                # Check if this checkout actually needs polling
+                if not checkout.needs_polling:
+                    logger.info(f"Checkout {checkout.payment_id} no longer needs polling (may have expired or reached max duration)")
+                    checkout.stop_polling("Max duration reached or expired")
+                    continue
+
+                # Start polling timestamp if not already set
+                checkout.start_polling()
+
+                # Verify the checkout
+                result = self._verify_single_checkout(checkout)
+
+                # Update polling timestamp
+                checkout.update_poll_timestamp()
+
+                # Track stats
                 if result in stats:
                     stats[result] += 1
                 else:
                     logger.error(f"Unknown result type: {result}")
                     stats['errors'] += 1
-                logger.info(f"Order {order.order_number}: {result}")
+
+                logger.info(f"Checkout {checkout.payment_id}: {result} (poll #{checkout.poll_count})")
+
             except Exception as e:
                 logger.error(
-                    f"Unexpected error processing order {order.order_number}: {e}",
+                    f"Unexpected error processing checkout {checkout.payment_id}: {e}",
                     exc_info=True
                 )
                 stats['errors'] += 1
 
+        logger.info(f"Polling cycle complete: {stats}")
         return stats
+
+    def _verify_single_checkout(self, checkout):
+        """
+        Verify a single checkout via SumUp API.
+        Handles both ticket orders and listing fee payments.
+
+        Args:
+            checkout: SumUpCheckout instance to verify
+
+        Returns:
+            str: 'verified', 'failed', 'still_pending', 'errors', or 'listing_fees'
+        """
+        try:
+            checkout_id = checkout.sumup_checkout_id or checkout.checkout_id
+
+            if not checkout_id:
+                logger.error(f"Checkout {checkout.payment_id} missing sumup_checkout_id")
+                checkout.stop_polling("Missing checkout ID")
+                return 'errors'
+
+            # Determine if this is a listing fee or ticket order
+            is_listing_fee = checkout.order is None and 'listing_fee' in checkout.checkout_reference.lower()
+
+            # Call SumUp API to get current status
+            logger.info(f"Calling SumUp API for checkout {checkout_id}")
+
+            try:
+                # Always use platform token for consistency
+                payment_data = sumup_api.get_checkout_status(checkout_id)
+            except Exception as api_error:
+                logger.error(f"SumUp API call failed for {checkout_id}: {api_error}", exc_info=True)
+                # Don't mark as failed - might be temporary issue
+                return 'errors'
+
+            status = payment_data.get('status')
+            amount = Decimal(str(payment_data.get('amount', 0)))
+
+            logger.info(
+                f"Checkout {checkout.payment_id}: "
+                f"SumUp status={status}, amount={amount}, expected={checkout.amount}"
+            )
+
+            # Update checkout response data
+            checkout.sumup_response = payment_data
+            checkout.save(update_fields=['sumup_response'])
+
+            # Process based on status
+            if status == 'PAID':
+                # SECURITY CHECK: Verify amount
+                if amount != checkout.amount:
+                    logger.error(
+                        f"CRITICAL: Amount mismatch for checkout {checkout.payment_id}! "
+                        f"Expected: {checkout.amount}, Received: {amount}"
+                    )
+                    self._handle_checkout_amount_mismatch(checkout, amount)
+                    return 'errors'
+
+                # Payment verified - process based on type
+                if is_listing_fee:
+                    self._process_listing_fee_payment(checkout, payment_data)
+                    return 'listing_fees'
+                elif checkout.order:
+                    self._process_successful_order_payment(checkout, payment_data)
+                    return 'verified'
+                else:
+                    logger.warning(f"Checkout {checkout.payment_id} has no order or listing fee association")
+                    checkout.status = 'paid'
+                    checkout.paid_at = timezone.now()
+                    checkout.stop_polling("Payment completed")
+                    checkout.save()
+                    return 'verified'
+
+            elif status == 'FAILED':
+                self._process_failed_checkout(checkout)
+                return 'failed'
+
+            elif status in ['PENDING', 'pending', 'created', 'CREATED']:
+                # Check if too old
+                age = timezone.now() - checkout.created_at
+                if age > timedelta(hours=self.MAX_AGE_HOURS):
+                    logger.warning(f"Checkout {checkout.payment_id} expired (age: {age})")
+                    self._mark_checkout_as_expired(checkout)
+                    return 'failed'
+
+                return 'still_pending'
+
+            else:
+                logger.warning(f"Unknown status '{status}' for checkout {checkout.payment_id}")
+                return 'errors'
+
+        except Exception as e:
+            logger.error(
+                f"Error in _verify_single_checkout for {checkout.payment_id}: {e}",
+                exc_info=True
+            )
+            return 'errors'
 
     def _verify_single_order(self, order):
         """
@@ -550,6 +669,244 @@ View order: {self._get_admin_order_url(order)}
     def _get_admin_order_url(self, order):
         """Get admin URL for order."""
         return f"{self._get_base_url()}/admin/orders/order/{order.id}/change/"
+
+    def _process_successful_order_payment(self, checkout, payment_data):
+        """
+        Process successful payment for ticket orders.
+
+        Args:
+            checkout: SumUpCheckout instance
+            payment_data: Dict from SumUp API
+        """
+        order = checkout.order
+
+        with transaction.atomic():
+            # Lock order to prevent race conditions
+            order = Order.objects.select_for_update().get(id=order.id)
+
+            # Double-check not already processed (idempotency)
+            if order.status == 'completed':
+                logger.warning(f"Order {order.order_number} already completed - skipping")
+                checkout.stop_polling("Order already completed")
+                return
+
+            # Update order
+            order.status = 'completed'
+            order.is_paid = True
+            order.paid_at = timezone.now()
+            order.transaction_id = payment_data.get('transaction_code', checkout.sumup_checkout_id)
+            order.payment_notes = f"Payment verified via polling at {timezone.now()}"
+            order.save()
+
+            # Update checkout
+            checkout.status = 'paid'
+            checkout.paid_at = timezone.now()
+            checkout.sumup_response = payment_data
+            checkout.stop_polling("Payment completed")
+            checkout.save()
+
+            # Generate tickets
+            tickets = self._generate_tickets(order)
+
+            logger.info(
+                f"✓ Order {order.order_number} verified successfully. "
+                f"{len(tickets)} tickets issued."
+            )
+
+        # Send confirmation email (after transaction commits)
+        try:
+            email_service.send_order_confirmation(order, tickets)
+            logger.info(f"Confirmation email sent to {order.email}")
+        except Exception as email_error:
+            logger.error(
+                f"Failed to send confirmation email for order {order.order_number}: {email_error}",
+                exc_info=True
+            )
+            self._alert_email_failure(order, str(email_error))
+
+    def _process_listing_fee_payment(self, checkout, payment_data):
+        """
+        Process successful payment for listing fees.
+
+        Args:
+            checkout: SumUpCheckout instance
+            payment_data: Dict from SumUp API
+        """
+        from events.models import ListingFee
+
+        try:
+            # Find the listing fee by checkout reference
+            listing_fee = ListingFee.objects.get(
+                payment_reference__in=[
+                    checkout.checkout_reference.replace('listing_fee_', ''),
+                    checkout.checkout_reference
+                ]
+            )
+
+            with transaction.atomic():
+                # Update listing fee
+                listing_fee.payment_status = 'paid'
+                listing_fee.paid_at = timezone.now()
+                listing_fee.payment_data = payment_data
+                listing_fee.save()
+
+                # Update checkout
+                checkout.status = 'paid'
+                checkout.paid_at = timezone.now()
+                checkout.sumup_response = payment_data
+                checkout.stop_polling("Listing fee payment completed")
+                checkout.save()
+
+                # Publish the event if it was draft
+                event = listing_fee.event
+                if event.status == 'draft':
+                    event.status = 'published'
+                    event.save()
+                    logger.info(f"Event {event.id} published after listing fee payment")
+
+            logger.info(f"✓ Listing fee paid for event {event.id}")
+
+            # Send confirmation email to organizer
+            try:
+                from django.template.loader import render_to_string
+                from django.core.mail import send_mail
+
+                context = {
+                    'event': event,
+                    'listing_fee': listing_fee,
+                    'organizer_name': event.organiser.get_full_name(),
+                }
+
+                html_message = render_to_string('emails/listing_fee_paid.html', context)
+
+                send_mail(
+                    subject=f"Listing Fee Paid - {event.title}",
+                    message=f"Your listing fee for {event.title} has been paid. Your event is now published!",
+                    html_message=html_message,
+                    from_email='noreply@coderra.je',
+                    recipient_list=[event.organiser.email],
+                    fail_silently=True
+                )
+
+                logger.info(f"Listing fee confirmation email sent to {event.organiser.email}")
+            except Exception as email_error:
+                logger.error(f"Failed to send listing fee confirmation: {email_error}", exc_info=True)
+
+        except ListingFee.DoesNotExist:
+            logger.error(f"No listing fee found for checkout {checkout.payment_id}")
+            checkout.stop_polling("Listing fee not found")
+        except Exception as e:
+            logger.error(f"Error processing listing fee payment: {e}", exc_info=True)
+
+    def _process_failed_checkout(self, checkout):
+        """
+        Process failed checkout payment.
+
+        Args:
+            checkout: SumUpCheckout instance
+        """
+        with transaction.atomic():
+            checkout.status = 'failed'
+            checkout.stop_polling("Payment failed")
+            checkout.save()
+
+            # If associated with an order, update order status
+            if checkout.order:
+                order = checkout.order
+                order.status = 'failed'
+                order.payment_notes = f'Payment failed at SumUp - {timezone.now()}'
+                order.save()
+
+                logger.info(f"Order {order.order_number} marked as failed")
+
+                # Send failure notification
+                try:
+                    self._send_payment_failed_email(order)
+                except Exception as e:
+                    logger.error(f"Failed to send failure email: {e}", exc_info=True)
+            else:
+                logger.info(f"Checkout {checkout.payment_id} marked as failed (no order associated)")
+
+    def _mark_checkout_as_expired(self, checkout):
+        """
+        Mark checkout as expired (pending too long without confirmation).
+
+        Args:
+            checkout: SumUpCheckout instance
+        """
+        checkout.status = 'expired'
+        checkout.stop_polling("Expired after max duration")
+        checkout.save()
+
+        # If associated with an order, mark order as expired
+        if checkout.order:
+            order = checkout.order
+            order.status = 'expired'
+            order.payment_notes = (
+                f"Payment verification timed out after {self.MAX_AGE_HOURS} hours - {timezone.now()}"
+            )
+            order.save()
+
+            logger.warning(f"Order {order.order_number} marked as expired")
+            self._alert_admin_expired_order(order)
+        else:
+            logger.warning(f"Checkout {checkout.payment_id} marked as expired")
+
+    def _handle_checkout_amount_mismatch(self, checkout, actual_amount):
+        """
+        CRITICAL: Payment amount doesn't match checkout total.
+
+        Args:
+            checkout: SumUpCheckout instance
+            actual_amount: Decimal amount received from SumUp
+        """
+        checkout.status = 'requires_manual_review'
+        checkout.stop_polling("Amount mismatch - manual review required")
+        checkout.save()
+
+        if checkout.order:
+            order = checkout.order
+            order.status = 'requires_manual_review'
+            order.payment_notes = (
+                f"AMOUNT MISMATCH - Expected: £{checkout.amount}, "
+                f"Received: £{actual_amount} - {timezone.now()}"
+            )
+            order.save()
+
+            # Send critical alert
+            self._send_critical_alert(
+                subject=f"CRITICAL: Amount Mismatch - Order {order.order_number}",
+                message=f"""
+CRITICAL PAYMENT ISSUE
+
+Order: {order.order_number}
+Checkout: {checkout.payment_id}
+Expected Amount: £{checkout.amount}
+Received Amount: £{actual_amount}
+Customer: {order.email}
+
+This order requires IMMEDIATE manual review.
+Do NOT issue tickets until verified.
+
+View order: {self._get_admin_order_url(order)}
+                """.strip()
+            )
+        else:
+            # Listing fee or other payment type
+            logger.error(f"AMOUNT MISMATCH for checkout {checkout.payment_id}")
+            self._send_critical_alert(
+                subject=f"CRITICAL: Amount Mismatch - Checkout {checkout.payment_id}",
+                message=f"""
+CRITICAL PAYMENT ISSUE
+
+Checkout: {checkout.payment_id}
+Reference: {checkout.checkout_reference}
+Expected Amount: £{checkout.amount}
+Received Amount: £{actual_amount}
+
+This requires IMMEDIATE manual review.
+                """.strip()
+            )
 
 
 # Singleton instance
