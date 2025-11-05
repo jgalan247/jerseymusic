@@ -56,13 +56,13 @@ else:
 # ============================================
 # SECURITY WARNING: SECRET_KEY must be set in environment variables for production!
 # Generate a strong key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-if 'SECRET_KEY' not in os.environ and not os.getenv('LOCAL_TEST', False):
+if 'SECRET_KEY' not in os.environ and os.getenv('LOCAL_TEST', 'False').lower() != 'true':
     raise ValueError(
         "SECRET_KEY environment variable is required! "
         "For production: generate a strong 50+ character key. "
         "For local dev only: set LOCAL_TEST=True"
     )
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-key' if os.getenv('LOCAL_TEST') else None)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-key' if os.getenv('LOCAL_TEST', 'False').lower() == 'true' else None)
 
 # SECURITY WARNING: DEBUG must be False in production!
 # Only set DEBUG=True explicitly for development
@@ -109,6 +109,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -221,6 +222,16 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# WhiteNoise configuration for static file serving in production
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Media files
 MEDIA_URL = '/media/'
