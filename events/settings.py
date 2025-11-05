@@ -73,13 +73,28 @@ if DEBUG:
     import sys
     print("⚠️  WARNING: DEBUG mode is enabled! Never use in production!", file=sys.stderr)
 
-#ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip(), '831c2e5887a5.ngrok-free.app']
-#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app', 'testserver']
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '00539b37b8d9.ngrok-free.app',  # Add your ngrok domain
-]
+# Parse ALLOWED_HOSTS from environment variable (comma-separated)
+# Railway automatically provides RAILWAY_PUBLIC_DOMAIN
+RAILWAY_PUBLIC_DOMAIN = os.getenv('RAILWAY_PUBLIC_DOMAIN')
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip()]
+
+# Add Railway domain if available
+if RAILWAY_PUBLIC_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+
+# Add any additional domains
+if not DEBUG:
+    # In production, ensure we have at least the Railway domain
+    if not RAILWAY_PUBLIC_DOMAIN and 'localhost' in ALLOWED_HOSTS:
+        print("⚠️ WARNING: RAILWAY_PUBLIC_DOMAIN not set and DEBUG=False. Set ALLOWED_HOSTS environment variable!")
+
+# Development ngrok domains (only in DEBUG mode)
+if DEBUG:
+    ALLOWED_HOSTS.extend([
+        '00539b37b8d9.ngrok-free.app',
+        '831c2e5887a5.ngrok-free.app',
+        '1de8a13b06da.ngrok-free.app',
+    ])
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
@@ -108,6 +123,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -221,6 +237,9 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
+# WhiteNoise configuration for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -328,20 +347,24 @@ def get_pricing_tier(capacity):
 # PAYMENT CONFIGURATION
 # ============================================
 
+# CSRF trusted origins - automatically includes Railway domain
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://831c2e5887a5.ngrok-free.app',
 ]
 
-    
+# Add Railway domain to CSRF trusted origins
+if RAILWAY_PUBLIC_DOMAIN:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_PUBLIC_DOMAIN}')
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://5d74f0391463.ngrok-free.app',  # ngrok HTTPS
-    'http://localhost:8000',  # Local development
-    'http://127.0.0.1:8000',
-    'https://831c2e5887a5.ngrok-free.app',
-  ]  # Local development (IP), 'https://831c2e5887a5.ngrok-free.app']
+# Development ngrok domains (only in DEBUG mode)
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        'https://5d74f0391463.ngrok-free.app',
+        'https://831c2e5887a5.ngrok-free.app',
+        'https://00539b37b8d9.ngrok-free.app',
+        'https://1de8a13b06da.ngrok-free.app',
+    ])
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
 
