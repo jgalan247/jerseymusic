@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: jerseyevents-web
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn events.wsgi:application --bind 0.0.0.0:$PORT --workers 2
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jerseyevents-db
+          property: connectionString
+
+  - type: worker
+    name: jerseyevents-worker
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py qcluster
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jerseyevents-db
+          property: connectionString
+
+databases:
+  - name: jerseyevents-db
+    plan: starter
+    region: oregon
