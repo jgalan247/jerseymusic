@@ -27,8 +27,11 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
 # Install Node.js dependencies
 RUN npm ci
 
+# Force cache invalidation for settings.py SECURE_REDIRECT_EXEMPT fix
+ARG CACHEBUST=2
+RUN echo "Cache bust: $CACHEBUST"
+
 # Copy the rest of the application
-# Build version: v2.0 (includes SECURE_REDIRECT_EXEMPT fix)
 COPY . .
 
 # Make start script executable
