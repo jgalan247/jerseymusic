@@ -137,4 +137,25 @@ python manage.py collectstatic --noinput
 
 # Start the web server
 echo "🌐 Starting gunicorn web server..."
-exec gunicorn events.wsgi:application --bind 0.0.0.0:$PORT
+echo "   Port: $PORT"
+echo "   Workers: 2 (+ 1 sync worker)"
+echo "   Timeout: 120 seconds"
+echo ""
+
+# Gunicorn configuration for production
+# - Multiple workers for reliability and performance
+# - Longer timeout for slow database queries during startup
+# - Access logging for debugging
+# - Error logging to stderr for Railway logs
+# - Graceful timeout for clean shutdowns
+exec gunicorn events.wsgi:application \
+    --bind 0.0.0.0:$PORT \
+    --workers 3 \
+    --worker-class sync \
+    --timeout 120 \
+    --graceful-timeout 30 \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile - \
+    --capture-output \
+    --enable-stdio-inheritance
