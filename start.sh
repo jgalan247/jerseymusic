@@ -13,6 +13,6 @@ python manage.py migrate --noinput
 echo "📦 Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Start the web server
-echo "🌐 Starting gunicorn web server..."
-exec gunicorn events.wsgi:application --bind 0.0.0.0:$PORT
+# Start the web server with graceful shutdown handling
+echo "🌐 Starting gunicorn web server with graceful shutdown handling..."
+exec gunicorn events.wsgi:application --config gunicorn.conf.py

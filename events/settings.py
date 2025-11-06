@@ -137,7 +137,7 @@ INSTALLED_APPS = [
 
     # Local apps
     'accounts',
-    'events',
+    'events.apps.EventsConfig',  # Use AppConfig for shutdown handler registration
     'cart',
     'orders',
     'payments',
