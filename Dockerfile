@@ -28,6 +28,7 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
 RUN npm ci
 
 # Copy the rest of the application
+# Build version: v2.0 (includes SECURE_REDIRECT_EXEMPT fix)
 COPY . .
 
 # Make start script executable
