@@ -123,14 +123,14 @@ def validate_production_environment():
 
 validate_production_environment()
 
-#ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip(), '831c2e5887a5.ngrok-free.app']
-#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app', 'testserver']
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '00539b37b8d9.ngrok-free.app',  # Add your ngrok domain
-    'jerseymusic-production.up.railway.app',  # Railway production domain
-]
+# Dynamic ALLOWED_HOSTS configuration for Railway and local development
+# Railway provides $RAILWAY_PUBLIC_DOMAIN automatically
+# For local dev: Set ALLOWED_HOSTS env var or it defaults to localhost,127.0.0.1
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip()]
+
+# Add Railway domain if available (avoid duplicates)
+if os.getenv('RAILWAY_PUBLIC_DOMAIN') and os.getenv('RAILWAY_PUBLIC_DOMAIN') not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(os.getenv('RAILWAY_PUBLIC_DOMAIN'))
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
@@ -290,12 +290,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # WhiteNoise configuration for static file serving in production
+# Using CompressedStaticFilesStorage (no manifest) to avoid missing file errors
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
@@ -412,20 +413,22 @@ def get_pricing_tier(capacity):
 # PAYMENT CONFIGURATION
 # ============================================
 
+# Dynamic CSRF trusted origins for Railway and local development
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://831c2e5887a5.ngrok-free.app',
+    'https://localhost:8000',
+    'https://127.0.0.1:8000',
 ]
 
-    
+# Add Railway domain if available
+if os.getenv('RAILWAY_PUBLIC_DOMAIN'):
+    CSRF_TRUSTED_ORIGINS.append(f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}")
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://5d74f0391463.ngrok-free.app',  # ngrok HTTPS
-    'http://localhost:8000',  # Local development
-    'http://127.0.0.1:8000',
-    'https://831c2e5887a5.ngrok-free.app',
-  ]  # Local development (IP), 'https://831c2e5887a5.ngrok-free.app']
+# Add custom domains from environment variable (comma-separated)
+if os.getenv('CSRF_TRUSTED_ORIGINS'):
+    custom_origins = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS').split(',') if origin.strip()]
+    CSRF_TRUSTED_ORIGINS.extend(custom_origins)
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
 
