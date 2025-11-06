@@ -123,19 +123,31 @@ def validate_production_environment():
 
 validate_production_environment()
 
-# Dynamic ALLOWED_HOSTS configuration for Railway and local development
-# Railway provides $RAILWAY_PUBLIC_DOMAIN automatically
-# For local dev: Set ALLOWED_HOSTS env var or it defaults to localhost,127.0.0.1
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip()]
+# ALLOWED_HOSTS configuration
+# Reads from ALLOWED_HOSTS environment variable (set by Railway to RAILWAY_PUBLIC_DOMAIN)
+# Falls back to localhost/testserver for local development
+allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 
 # Add Railway domains (healthcheck and public domain)
 railway_hosts = ['healthcheck.railway.app']
 if os.getenv('RAILWAY_PUBLIC_DOMAIN'):
-    railway_hosts.append(os.getenv('RAILWAY_PUBLIC_DOMAIN'))
+    railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN').strip()
+    if railway_domain:
+        railway_hosts.append(railway_domain)
 
 for host in railway_hosts:
     if host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(host)
+
+# Add any ngrok domains for local testing with webhooks
+# Update this with your current ngrok domain when needed
+if DEBUG:
+    ngrok_domain = os.getenv('NGROK_DOMAIN', '00539b37b8d9.ngrok-free.app')
+    if ngrok_domain and ngrok_domain not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(ngrok_domain)
+
+print(f"✅ ALLOWED_HOSTS configured: {ALLOWED_HOSTS}")
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
