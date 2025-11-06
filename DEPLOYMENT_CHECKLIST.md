@@ -1,6 +1,14 @@
 # 🚀 PRODUCTION DEPLOYMENT CHECKLIST
 **Jersey Events - Django Ticket Sales Platform**
-**Last Updated:** October 5, 2025
+**Last Updated:** November 6, 2025
+
+---
+
+## 📖 DEPLOYMENT GUIDES
+
+**For Railway deployment**, see the detailed guide: **[RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md)**
+
+This checklist covers general production readiness across all platforms.
 
 ---
 

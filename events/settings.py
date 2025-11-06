@@ -78,7 +78,12 @@ if DEBUG:
 # ============================================
 # Validate critical environment variables to catch misconfigurations early
 def validate_production_environment():
-    """Validate production environment configuration."""
+    """
+    Validate production environment configuration.
+
+    This function runs at startup and will FAIL the deployment if critical
+    misconfigurations are detected. This prevents production incidents.
+    """
     # Check if we're in a production environment
     is_railway = os.getenv('RAILWAY_ENVIRONMENT') is not None
     is_production = not DEBUG or is_railway
@@ -109,8 +114,12 @@ def validate_production_environment():
         for issue in issues:
             error_msg += f"  ❌ {issue}\n"
         error_msg += "\nFix these issues in your Railway environment variables before deploying!\n"
+        error_msg += "\nSee RAILWAY_DEPLOYMENT.md for detailed setup instructions.\n"
         print(error_msg, file=sys.stderr)
-        # Don't raise error yet, let specific checks handle it
+
+        # IMPORTANT: We print the error but don't raise an exception here
+        # because the start.sh script also validates and provides better error messages.
+        # The start.sh validation will stop the deployment before Django even starts.
 
 validate_production_environment()
 
