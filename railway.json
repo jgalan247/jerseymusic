@@ -1,0 +1,71 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "bash start.sh",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "environments": {
+    "production": {
+      "variables": {
+        "SECRET_KEY": {
+          "description": "Django secret key for cryptographic signing (50+ characters)",
+          "generator": {
+            "type": "secret"
+          }
+        },
+        "DATABASE_URL": {
+          "description": "PostgreSQL connection string (auto-provided by Railway)",
+          "reference": "DATABASE_URL"
+        },
+        "SENTRY_DSN": {
+          "description": "Sentry error monitoring DSN (get from sentry.io)",
+          "optional": true
+        },
+        "ENVIRONMENT": {
+          "description": "Environment name for monitoring",
+          "default": "production"
+        },
+        "SUMUP_CLIENT_ID": {
+          "description": "SumUp OAuth client ID from developer dashboard"
+        },
+        "SUMUP_CLIENT_SECRET": {
+          "description": "SumUp OAuth client secret from developer dashboard"
+        },
+        "SUMUP_MERCHANT_CODE": {
+          "description": "SumUp merchant code for platform payments"
+        },
+        "SUMUP_ACCESS_TOKEN": {
+          "description": "SumUp platform access token"
+        },
+        "SUMUP_API_KEY": {
+          "description": "SumUp API key"
+        },
+        "SUMUP_MERCHANT_ID": {
+          "description": "SumUp merchant ID"
+        },
+        "EMAIL_HOST_USER": {
+          "description": "Email address for sending notifications",
+          "optional": true
+        },
+        "EMAIL_HOST_PASSWORD": {
+          "description": "Email password or app-specific password",
+          "optional": true
+        },
+        "ALLOWED_HOSTS": {
+          "description": "Comma-separated list of allowed hostnames",
+          "default": "${{RAILWAY_PUBLIC_DOMAIN}}"
+        }
+      },
+      "envVarNotes": {
+        "DEBUG": "⚠️ DO NOT SET DEBUG - it defaults to False in production. Setting DEBUG=True will abort deployment!",
+        "LOCAL_TEST": "⚠️ DO NOT SET LOCAL_TEST - it defaults to False. Setting LOCAL_TEST=True will cause database errors!"
+      }
+    }
+  }
+}
