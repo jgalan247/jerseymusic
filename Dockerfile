@@ -37,14 +37,16 @@ RUN chmod +x start.sh
 RUN mkdir -p logs
 
 # Collect static files during build to speed up container startup
-# DOCKER_BUILD=true bypasses production validation during build
-# LOCAL_TEST=True and DEBUG=True configure SQLite (collectstatic doesn't need actual DB)
+# Build-time environment variables (NOT persisted to runtime):
+#   DOCKER_BUILD=true - bypasses production validation during build
+#   LOCAL_TEST=True and DEBUG=True - configure SQLite (collectstatic doesn't need actual DB)
+#   SECRET_KEY - required by Django settings
 # This prevents Railway health check timeouts by reducing startup time
-ENV DOCKER_BUILD=true
-ENV LOCAL_TEST=True
-ENV DEBUG=True
-ENV SECRET_KEY=build-time-secret-key-for-collectstatic-only
-RUN python manage.py collectstatic --noinput --clear && \
+RUN DOCKER_BUILD=true \
+    LOCAL_TEST=True \
+    DEBUG=True \
+    SECRET_KEY=build-time-secret-key-for-collectstatic-only \
+    python manage.py collectstatic --noinput --clear && \
     echo "✅ Static files collected during Docker build"
 
 # Expose port (Railway will set the PORT env var)
