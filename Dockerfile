@@ -36,12 +36,17 @@ RUN chmod +x start.sh
 # Create logs directory for Django-Q and payment polling
 RUN mkdir -p logs
 
-# Pre-collect static files during build to speed up startup
-# This prevents health check timeouts by reducing container startup time
-ENV SECRET_KEY=build-time-secret-key-for-collectstatic-only
-ENV DEBUG=False
-ENV LOCAL_TEST=True
-RUN python manage.py collectstatic --noinput --clear && \
+# Collect static files during build to speed up container startup
+# Build-time environment variables (NOT persisted to runtime):
+#   DOCKER_BUILD=true - bypasses production validation during build
+#   LOCAL_TEST=True and DEBUG=True - configure SQLite (collectstatic doesn't need actual DB)
+#   SECRET_KEY - required by Django settings
+# This prevents Railway health check timeouts by reducing startup time
+RUN DOCKER_BUILD=true \
+    LOCAL_TEST=True \
+    DEBUG=True \
+    SECRET_KEY=build-time-secret-key-for-collectstatic-only \
+    python manage.py collectstatic --noinput --clear && \
     echo "✅ Static files collected during Docker build"
 
 # Expose port (Railway will set the PORT env var)

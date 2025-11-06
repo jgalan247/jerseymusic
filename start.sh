@@ -152,7 +152,8 @@ fi
 echo "✅ Migrations completed successfully"
 
 # Note: Static files are collected during Docker build to speed up startup
-# See Dockerfile for collectstatic command
+# This prevents Railway health check timeouts by reducing container initialization time
+# See Dockerfile for collectstatic command with DOCKER_BUILD flag
 
 # Verify Django application can initialize
 echo "🔍 Verifying Django application initialization..."
