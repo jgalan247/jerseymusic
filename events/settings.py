@@ -128,9 +128,14 @@ validate_production_environment()
 # For local dev: Set ALLOWED_HOSTS env var or it defaults to localhost,127.0.0.1
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip()]
 
-# Add Railway domain if available (avoid duplicates)
-if os.getenv('RAILWAY_PUBLIC_DOMAIN') and os.getenv('RAILWAY_PUBLIC_DOMAIN') not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(os.getenv('RAILWAY_PUBLIC_DOMAIN'))
+# Add Railway domains (healthcheck and public domain)
+railway_hosts = ['healthcheck.railway.app']
+if os.getenv('RAILWAY_PUBLIC_DOMAIN'):
+    railway_hosts.append(os.getenv('RAILWAY_PUBLIC_DOMAIN'))
+
+for host in railway_hosts:
+    if host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
