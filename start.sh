@@ -151,13 +151,8 @@ if ! python manage.py migrate --noinput; then
 fi
 echo "✅ Migrations completed successfully"
 
-# Collect static files
-echo "📦 Collecting static files..."
-if ! python manage.py collectstatic --noinput; then
-    echo "❌ Static file collection failed!"
-    exit 1
-fi
-echo "✅ Static files collected successfully"
+# Note: Static files are collected during Docker build to speed up startup
+# See Dockerfile for collectstatic command
 
 # Verify Django application can initialize
 echo "🔍 Verifying Django application initialization..."
