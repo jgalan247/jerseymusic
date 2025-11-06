@@ -6,6 +6,7 @@ from . import listing_fee_views
 app_name = "events"
 
 urlpatterns = [
+    path("health/", views.health_check, name="health_check"),
     path("", views.home, name="home"),
     path("events/", views.events_list, name="events_list"),
     path("event/<int:pk>/", views.event_detail, name="event_detail"),

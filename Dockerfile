@@ -30,6 +30,9 @@ COPY . .
 # Make start script executable
 RUN chmod +x start.sh
 
+# Create logs directory for Django-Q and payment polling
+RUN mkdir -p logs
+
 # Expose port (Railway will set the PORT env var)
 EXPOSE ${PORT:-8000}
 

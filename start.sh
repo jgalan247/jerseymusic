@@ -127,13 +127,34 @@ else
     echo "ℹ️  Not running in Railway environment (local development)"
 fi
 
+# Verify PORT is set
+if [ -z "$PORT" ]; then
+    echo "⚠️  WARNING: PORT environment variable not set, defaulting to 8000"
+    export PORT=8000
+fi
+
+echo "🔍 Environment check:"
+echo "   PORT: $PORT"
+echo "   RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set}"
+echo "   DATABASE_URL: ${DATABASE_URL:+configured}"
+echo "   SECRET_KEY: ${SECRET_KEY:+configured}"
+echo ""
+
 # Run database migrations
 echo "📦 Running database migrations..."
-python manage.py migrate --noinput
+if ! python manage.py migrate --noinput; then
+    echo "❌ Database migrations failed!"
+    exit 1
+fi
+echo "✅ Migrations completed successfully"
 
 # Collect static files
 echo "📦 Collecting static files..."
-python manage.py collectstatic --noinput
+if ! python manage.py collectstatic --noinput; then
+    echo "❌ Static file collection failed!"
+    exit 1
+fi
+echo "✅ Static files collected successfully"
 
 # Start the web server
 echo "🌐 Starting gunicorn web server..."

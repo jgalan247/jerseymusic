@@ -10,7 +10,7 @@ from .models import Event
 from django.views.generic import ListView, DetailView
 from decimal import Decimal
 from orders.models import Order, OrderItem
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import csv
 
 @login_required
@@ -167,6 +167,13 @@ def event_detail(request, pk):
     return render(request, 'events/detail.html', {'event': event})
 
 # Add this updated home view to events/views.py
+
+def health_check(request):
+    """Simple health check endpoint for Railway deployment monitoring."""
+    return JsonResponse({
+        'status': 'healthy',
+        'service': 'Jersey Music Events'
+    })
 
 def home(request):
     """Homepage view with featured events and artists."""
