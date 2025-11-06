@@ -3,6 +3,9 @@
 
 set -e  # Exit on error
 
+# Force unbuffered output for Python to ensure logs appear immediately
+export PYTHONUNBUFFERED=1
+
 echo "🚀 Starting Jersey Music application..."
 
 # ============================================
@@ -156,25 +159,45 @@ if ! python manage.py collectstatic --noinput; then
 fi
 echo "✅ Static files collected successfully"
 
+# Verify Django application can initialize
+echo "🔍 Verifying Django application initialization..."
+if ! python manage.py check --deploy 2>&1 | tee /tmp/django-check.log; then
+    echo ""
+    echo "╔═══════════════════════════════════════════════════════════════════════╗"
+    echo "║                    🚨 DJANGO APPLICATION ERROR 🚨                     ║"
+    echo "╚═══════════════════════════════════════════════════════════════════════╝"
+    echo ""
+    echo "Django application failed health check. This must be fixed before deployment."
+    echo "Check the error messages above for details."
+    echo ""
+    cat /tmp/django-check.log
+    exit 1
+fi
+echo "✅ Django application verified successfully"
+echo ""
+
 # Start the web server
 echo "🌐 Starting gunicorn web server..."
 echo "   Port: $PORT"
-echo "   Workers: 2 (+ 1 sync worker)"
+echo "   Workers: 2"
 echo "   Timeout: 120 seconds"
+echo "   Preload: enabled (loads app before forking workers)"
 echo ""
 
 # Gunicorn configuration for production
-# - Multiple workers for reliability and performance
+# - Preload app to catch initialization errors early and reduce startup time
+# - 2 workers for better resource usage during initialization
 # - Longer timeout for slow database queries during startup
-# - Access logging for debugging
-# - Error logging to stderr for Railway logs
+# - Debug logging temporarily enabled to diagnose startup issues
+# - Access and error logging to stderr for Railway logs
 # - Graceful timeout for clean shutdowns
 exec gunicorn events.wsgi:application \
     --bind 0.0.0.0:$PORT \
-    --workers 3 \
+    --workers 2 \
     --worker-class sync \
     --timeout 120 \
     --graceful-timeout 30 \
+    --preload \
     --log-level info \
     --access-logfile - \
     --error-logfile - \
