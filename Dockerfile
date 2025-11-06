@@ -38,8 +38,11 @@ RUN mkdir -p logs
 
 # Collect static files during build to speed up container startup
 # DOCKER_BUILD=true bypasses production validation during build
+# LOCAL_TEST=True and DEBUG=True configure SQLite (collectstatic doesn't need actual DB)
 # This prevents Railway health check timeouts by reducing startup time
 ENV DOCKER_BUILD=true
+ENV LOCAL_TEST=True
+ENV DEBUG=True
 ENV SECRET_KEY=build-time-secret-key-for-collectstatic-only
 RUN python manage.py collectstatic --noinput --clear && \
     echo "✅ Static files collected during Docker build"
