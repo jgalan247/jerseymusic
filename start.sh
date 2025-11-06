@@ -129,11 +129,11 @@ fi
 
 # Run database migrations
 echo "📦 Running database migrations..."
-python manage.py migrate --noinput
+python3 manage.py migrate --noinput
 
 # Collect static files
 echo "📦 Collecting static files..."
-python manage.py collectstatic --noinput
+python3 manage.py collectstatic --noinput
 
 # Start the web server
 echo "🌐 Starting gunicorn web server..."
