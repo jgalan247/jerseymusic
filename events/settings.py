@@ -84,6 +84,10 @@ def validate_production_environment():
     This function runs at startup and will FAIL the deployment if critical
     misconfigurations are detected. This prevents production incidents.
     """
+    # Skip validation during Docker build (collectstatic needs to run)
+    if os.getenv('DOCKER_BUILD', 'False').lower() == 'true':
+        return
+
     # Check if we're in a production environment
     is_railway = os.getenv('RAILWAY_ENVIRONMENT') is not None
     is_production = not DEBUG or is_railway
@@ -216,12 +220,16 @@ import dj_database_url
 # Check if we're in local test mode
 LOCAL_TEST = os.getenv('LOCAL_TEST', 'False').lower() == 'true'
 
+# Detect Docker build environment (bypass validation during build)
+DOCKER_BUILD = os.getenv('DOCKER_BUILD', 'False').lower() == 'true'
+
 # Detect Railway or other production environments
 IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') is not None
 IS_PRODUCTION = not DEBUG or IS_RAILWAY
 
 # ⚠️  CRITICAL SAFEGUARD: Never use SQLite in production
-if IS_PRODUCTION and LOCAL_TEST:
+# Skip validation during Docker build (collectstatic needs to run without full config)
+if IS_PRODUCTION and LOCAL_TEST and not DOCKER_BUILD:
     raise ValueError(
         "🚨 CRITICAL ERROR: LOCAL_TEST=True detected in production environment!\n"
         "SQLite is NOT suitable for production. This WILL cause database errors.\n"

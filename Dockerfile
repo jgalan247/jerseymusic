@@ -36,8 +36,13 @@ RUN chmod +x start.sh
 # Create logs directory for Django-Q and payment polling
 RUN mkdir -p logs
 
-# Create static files directory (will be populated at runtime)
-RUN mkdir -p staticfiles
+# Collect static files during build to speed up container startup
+# DOCKER_BUILD=true bypasses production validation during build
+# This prevents Railway health check timeouts by reducing startup time
+ENV DOCKER_BUILD=true
+ENV SECRET_KEY=build-time-secret-key-for-collectstatic-only
+RUN python manage.py collectstatic --noinput --clear && \
+    echo "✅ Static files collected during Docker build"
 
 # Expose port (Railway will set the PORT env var)
 EXPOSE ${PORT:-8000}
