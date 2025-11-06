@@ -3,6 +3,9 @@
 
 FROM python:3.11-slim
 
+# Force unbuffered Python output so logs appear immediately in Railway
+ENV PYTHONUNBUFFERED=1
+
 # Install Node.js 18 and npm for frontend tooling
 RUN apt-get update && apt-get install -y \
     curl \
