@@ -1,0 +1,22 @@
+# Nixpacks build configuration for Jersey Music Django application
+# This ensures Python is installed as the primary provider, with Node.js for Tailwind CSS
+
+[phases.setup]
+# Install Python 3.11 as primary provider and Node.js for frontend tooling
+nixPkgs = ["python311", "nodejs_18", "npm-9_x"]
+
+[phases.install]
+# Install Python dependencies first, then Node.js dependencies
+cmds = [
+    "pip install -r requirements.txt",
+    "npm ci"
+]
+
+[phases.build]
+# Optional: Build Tailwind CSS if needed
+# Uncomment if you need to compile Tailwind during build
+# cmds = ["npx tailwindcss build"]
+
+[start]
+# Start command - runs migrations and starts gunicorn
+cmd = "bash start.sh"
