@@ -525,6 +525,8 @@ elif DEBUG:
 else:
     # Production email configuration with multiple providers
     email_provider = os.getenv('EMAIL_PROVIDER', 'console').lower()
+    print(f"📧 Email Configuration (Production):")
+    print(f"   EMAIL_PROVIDER env var: {email_provider}")
 
     if email_provider == 'gmail':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -534,6 +536,14 @@ else:
         EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
         EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App-specific password
 
+        # Validate credentials
+        if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+            print(f"   ✅ Using Gmail SMTP ({EMAIL_HOST_USER})")
+        else:
+            print(f"   ❌ ERROR: Gmail selected but credentials missing!")
+            print(f"      EMAIL_HOST_USER: {'✓ SET' if EMAIL_HOST_USER else '✗ NOT SET'}")
+            print(f"      EMAIL_HOST_PASSWORD: {'✓ SET' if EMAIL_HOST_PASSWORD else '✗ NOT SET'}")
+
     elif email_provider == 'sendgrid':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
         EMAIL_HOST = 'smtp.sendgrid.net'
@@ -541,6 +551,11 @@ else:
         EMAIL_USE_TLS = True
         EMAIL_HOST_USER = 'apikey'  # Always 'apikey' for SendGrid
         EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
+
+        if EMAIL_HOST_PASSWORD:
+            print(f"   ✅ Using SendGrid SMTP")
+        else:
+            print(f"   ❌ ERROR: SendGrid selected but SENDGRID_API_KEY not set!")
 
     elif email_provider == 'mailgun':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -550,10 +565,17 @@ else:
         EMAIL_HOST_USER = os.getenv('MAILGUN_SMTP_USER')
         EMAIL_HOST_PASSWORD = os.getenv('MAILGUN_SMTP_PASSWORD')
 
+        if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+            print(f"   ✅ Using Mailgun SMTP")
+        else:
+            print(f"   ❌ ERROR: Mailgun selected but credentials missing!")
+
     else:
         # Fallback to console for production if no provider configured
         EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-        print("⚠️ No email provider configured for production, using console backend")
+        print("   ⚠️  WARNING: No email provider configured!")
+        print("   ⚠️  Using console backend - emails will NOT be sent!")
+        print("   ⚠️  Set EMAIL_PROVIDER to 'gmail', 'sendgrid', or 'mailgun'")
 
 # Default email settings
 DEFAULT_FROM_EMAIL = 'Jersey Events <noreply@coderra.je>'
