@@ -56,13 +56,13 @@ else:
 # ============================================
 # SECURITY WARNING: SECRET_KEY must be set in environment variables for production!
 # Generate a strong key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-if 'SECRET_KEY' not in os.environ and os.getenv('LOCAL_TEST', 'False').lower() != 'true':
+if 'SECRET_KEY' not in os.environ and not os.getenv('LOCAL_TEST', False):
     raise ValueError(
         "SECRET_KEY environment variable is required! "
         "For production: generate a strong 50+ character key. "
         "For local dev only: set LOCAL_TEST=True"
     )
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-key' if os.getenv('LOCAL_TEST', 'False').lower() == 'true' else None)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-key' if os.getenv('LOCAL_TEST') else None)
 
 # SECURITY WARNING: DEBUG must be False in production!
 # Only set DEBUG=True explicitly for development
@@ -73,85 +73,13 @@ if DEBUG:
     import sys
     print("⚠️  WARNING: DEBUG mode is enabled! Never use in production!", file=sys.stderr)
 
-# ============================================
-# ENVIRONMENT VALIDATION
-# ============================================
-# Validate critical environment variables to catch misconfigurations early
-def validate_production_environment():
-    """
-    Validate production environment configuration.
-
-    This function runs at startup and will FAIL the deployment if critical
-    misconfigurations are detected. This prevents production incidents.
-    """
-    # Skip validation during Docker build (collectstatic needs to run)
-    if os.getenv('DOCKER_BUILD', 'False').lower() == 'true':
-        return
-
-    # Check if we're in a production environment
-    is_railway = os.getenv('RAILWAY_ENVIRONMENT') is not None
-    is_production = not DEBUG or is_railway
-
-    if not is_production:
-        return  # Skip validation for development
-
-    issues = []
-
-    # Check DEBUG is False in production
-    if DEBUG:
-        issues.append("DEBUG=True (MUST be False in production)")
-
-    # Check LOCAL_TEST is False in production
-    if os.getenv('LOCAL_TEST', 'False').lower() == 'true':
-        issues.append("LOCAL_TEST=True (MUST be False in production)")
-
-    # Check database is configured
-    if not os.getenv('DATABASE_URL') and not os.getenv('POSTGRES_PASSWORD'):
-        issues.append("No database configured (need DATABASE_URL or POSTGRES_PASSWORD)")
-
-    # Check SECRET_KEY is set
-    if not os.getenv('SECRET_KEY'):
-        issues.append("SECRET_KEY not set")
-
-    if issues:
-        error_msg = "\n🚨 PRODUCTION ENVIRONMENT MISCONFIGURATION DETECTED:\n"
-        for issue in issues:
-            error_msg += f"  ❌ {issue}\n"
-        error_msg += "\nFix these issues in your Railway environment variables before deploying!\n"
-        error_msg += "\nSee RAILWAY_DEPLOYMENT.md for detailed setup instructions.\n"
-        print(error_msg, file=sys.stderr)
-
-        # IMPORTANT: We print the error but don't raise an exception here
-        # because the start.sh script also validates and provides better error messages.
-        # The start.sh validation will stop the deployment before Django even starts.
-
-validate_production_environment()
-
-# ALLOWED_HOSTS configuration
-# Reads from ALLOWED_HOSTS environment variable (set by Railway to RAILWAY_PUBLIC_DOMAIN)
-# Falls back to localhost/testserver for local development
-allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
-ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
-
-# Add Railway domains (healthcheck and public domain)
-railway_hosts = ['healthcheck.railway.app']
-if os.getenv('RAILWAY_PUBLIC_DOMAIN'):
-    railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN').strip()
-    if railway_domain:
-        railway_hosts.append(railway_domain)
-
-for host in railway_hosts:
-    if host not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(host)
-
-# Add any ngrok domains for local testing with webhooks
-# Update this with your current ngrok domain when needed
-if DEBUG:
-    ngrok_domain = os.getenv('NGROK_DOMAIN', '00539b37b8d9.ngrok-free.app')
-    if ngrok_domain and ngrok_domain not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(ngrok_domain)
-
-print(f"✅ ALLOWED_HOSTS configured: {ALLOWED_HOSTS}")
+#ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip(), '831c2e5887a5.ngrok-free.app']
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app', 'testserver']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '00539b37b8d9.ngrok-free.app',  # Add your ngrok domain
+]
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
@@ -181,7 +109,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -221,23 +148,7 @@ import dj_database_url
 # Check if we're in local test mode
 LOCAL_TEST = os.getenv('LOCAL_TEST', 'False').lower() == 'true'
 
-# Detect Docker build environment (bypass validation during build)
-DOCKER_BUILD = os.getenv('DOCKER_BUILD', 'False').lower() == 'true'
-
-# Detect Railway or other production environments
-IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') is not None
-IS_PRODUCTION = not DEBUG or IS_RAILWAY
-
-# ⚠️  CRITICAL SAFEGUARD: Never use SQLite in production
-# Skip validation during Docker build (collectstatic needs to run without full config)
-if IS_PRODUCTION and LOCAL_TEST and not DOCKER_BUILD:
-    raise ValueError(
-        "🚨 CRITICAL ERROR: LOCAL_TEST=True detected in production environment!\n"
-        "SQLite is NOT suitable for production. This WILL cause database errors.\n"
-        "Solution: Set LOCAL_TEST=False in your Railway environment variables."
-    )
-
-if LOCAL_TEST and DEBUG and not IS_RAILWAY:
+if LOCAL_TEST and DEBUG:
     # SQLite ONLY for local development/testing
     print("⚠️  Using SQLite for LOCAL TESTING ONLY - Never use in production!")
     DATABASES = {
@@ -251,7 +162,7 @@ else:
     DATABASE_URL = os.getenv('DATABASE_URL')
 
     if DATABASE_URL:
-        # Railway and most cloud providers set DATABASE_URL
+        # Digital Ocean and most cloud providers set DATABASE_URL
         DATABASES = {
             'default': dj_database_url.config(
                 default=DATABASE_URL,
@@ -259,7 +170,6 @@ else:
                 conn_health_checks=True,
             )
         }
-        print(f"✅ Using PostgreSQL database from DATABASE_URL")
     else:
         # Fallback to explicit PostgreSQL configuration
         DATABASES = {
@@ -279,11 +189,8 @@ else:
         }
 
     # Verify database is configured for production
-    if IS_PRODUCTION and not DATABASE_URL and not os.getenv("POSTGRES_PASSWORD"):
-        raise ValueError(
-            "🚨 CRITICAL ERROR: Production database not configured!\n"
-            "Solution: Set DATABASE_URL environment variable in Railway."
-        )
+    if not DEBUG and not DATABASE_URL and not os.getenv("POSTGRES_PASSWORD"):
+        raise ValueError("Production requires DATABASE_URL or POSTGRES_PASSWORD to be set!")
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
@@ -315,17 +222,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# WhiteNoise configuration for static file serving in production
-# Using CompressedStaticFilesStorage (no manifest) to avoid missing file errors
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
-
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -339,14 +235,8 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Session configuration
-# Use signed cookie sessions for better scalability and no database locking
-# This is especially important to avoid SQLite concurrency issues
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_AGE = 86400  # 1 day
-
-# Session serialization - use JSON for security
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 # ============================================
 # SUBSCRIPTION CONFIGURATION (DEPRECATED - Using pay-per-event model)
@@ -439,22 +329,20 @@ def get_pricing_tier(capacity):
 # PAYMENT CONFIGURATION
 # ============================================
 
-# Dynamic CSRF trusted origins for Railway and local development
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://localhost:8000',
-    'https://127.0.0.1:8000',
+    'https://831c2e5887a5.ngrok-free.app',
 ]
 
-# Add Railway domain if available
-if os.getenv('RAILWAY_PUBLIC_DOMAIN'):
-    CSRF_TRUSTED_ORIGINS.append(f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}")
+    
 
-# Add custom domains from environment variable (comma-separated)
-if os.getenv('CSRF_TRUSTED_ORIGINS'):
-    custom_origins = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS').split(',') if origin.strip()]
-    CSRF_TRUSTED_ORIGINS.extend(custom_origins)
+CSRF_TRUSTED_ORIGINS = [
+    'https://5d74f0391463.ngrok-free.app',  # ngrok HTTPS
+    'http://localhost:8000',  # Local development
+    'http://127.0.0.1:8000',
+    'https://831c2e5887a5.ngrok-free.app',
+  ]  # Local development (IP), 'https://831c2e5887a5.ngrok-free.app']
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
 
@@ -526,8 +414,6 @@ elif DEBUG:
 else:
     # Production email configuration with multiple providers
     email_provider = os.getenv('EMAIL_PROVIDER', 'console').lower()
-    print(f"📧 Email Configuration (Production):")
-    print(f"   EMAIL_PROVIDER env var: {email_provider}")
 
     if email_provider == 'gmail':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -537,14 +423,6 @@ else:
         EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
         EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App-specific password
 
-        # Validate credentials
-        if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-            print(f"   ✅ Using Gmail SMTP ({EMAIL_HOST_USER})")
-        else:
-            print(f"   ❌ ERROR: Gmail selected but credentials missing!")
-            print(f"      EMAIL_HOST_USER: {'✓ SET' if EMAIL_HOST_USER else '✗ NOT SET'}")
-            print(f"      EMAIL_HOST_PASSWORD: {'✓ SET' if EMAIL_HOST_PASSWORD else '✗ NOT SET'}")
-
     elif email_provider == 'sendgrid':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
         EMAIL_HOST = 'smtp.sendgrid.net'
@@ -552,11 +430,6 @@ else:
         EMAIL_USE_TLS = True
         EMAIL_HOST_USER = 'apikey'  # Always 'apikey' for SendGrid
         EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
-
-        if EMAIL_HOST_PASSWORD:
-            print(f"   ✅ Using SendGrid SMTP")
-        else:
-            print(f"   ❌ ERROR: SendGrid selected but SENDGRID_API_KEY not set!")
 
     elif email_provider == 'mailgun':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -566,17 +439,10 @@ else:
         EMAIL_HOST_USER = os.getenv('MAILGUN_SMTP_USER')
         EMAIL_HOST_PASSWORD = os.getenv('MAILGUN_SMTP_PASSWORD')
 
-        if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-            print(f"   ✅ Using Mailgun SMTP")
-        else:
-            print(f"   ❌ ERROR: Mailgun selected but credentials missing!")
-
     else:
         # Fallback to console for production if no provider configured
         EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-        print("   ⚠️  WARNING: No email provider configured!")
-        print("   ⚠️  Using console backend - emails will NOT be sent!")
-        print("   ⚠️  Set EMAIL_PROVIDER to 'gmail', 'sendgrid', or 'mailgun'")
+        print("⚠️ No email provider configured for production, using console backend")
 
 # Default email settings
 DEFAULT_FROM_EMAIL = 'Jersey Events <noreply@coderra.je>'
@@ -783,9 +649,6 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-    # Exempt health check from HTTPS redirect (Railway uses HTTP for internal checks)
-    SECURE_REDIRECT_EXEMPT = [r'^health/$']
-
     # Session cookie security
     SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
     SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
@@ -842,7 +705,24 @@ Q_CLUSTER = {
     'django_redis': None,  # Not using Redis initially (ORM-based queue)
 }
 
-# Should have this for local testing:
+# ============================================
+# EMAIL CONFIGURATION
+# ============================================
+# Amazon SES for production email delivery
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'email-smtp.eu-north-1.amazonaws.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'admin@coderra.je')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Override for local testing with mailhog/mailtrap
 if LOCAL_TEST:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'localhost'
