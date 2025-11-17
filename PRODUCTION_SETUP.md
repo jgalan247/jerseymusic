@@ -149,24 +149,67 @@ Copy the output and add it to Railway as `SECRET_KEY`.
 
 ## 📧 Email Configuration (Amazon SES)
 
-Your application is already configured to use Amazon SES (eu-north-1 region).
+Your application is configured to use **Amazon SES by default** (EU North - Stockholm region).
+
+### Why Amazon SES?
+- **Cost-effective**: 62,000 emails/month free (from EC2)
+- **Reliable**: 99.9% SLA
+- **Scalable**: Handles high volume
+- **EU-based**: GDPR-compliant data storage (eu-north-1)
 
 ### Get SES Credentials
-1. Log into AWS Console: [https://console.aws.amazon.com](https://console.aws.amazon.com)
-2. Go to **SES (Simple Email Service)**
-3. Navigate to **SMTP Settings**
-4. Click **"Create My SMTP Credentials"**
-5. Copy the **SMTP Username** and **SMTP Password**
-6. Add to Railway:
-   - `EMAIL_HOST_USER=<smtp-username>`
-   - `EMAIL_HOST_PASSWORD=<smtp-password>`
 
-### Verify Email Addresses
-1. In SES, go to **Verified Identities**
+#### Step 1: Access AWS SES
+1. Log into AWS Console: [https://console.aws.amazon.com](https://console.aws.amazon.com)
+2. **Region**: Select **Europe (Stockholm) eu-north-1** in top-right
+3. Go to **SES (Simple Email Service)**
+
+#### Step 2: Create SMTP Credentials
+1. Navigate to **SMTP Settings** (left sidebar)
+2. Click **"Create My SMTP Credentials"**
+3. IAM User Name: `jerseymusic-ses-smtp` (or your preferred name)
+4. Click **"Create"**
+5. **IMPORTANT**: Download or copy the credentials immediately:
+   - **SMTP Username**: (starts with `AKIA...`)
+   - **SMTP Password**: (long generated password)
+6. Add to Railway:
+   - `EMAIL_HOST_USER=<your-smtp-username>`
+   - `EMAIL_HOST_PASSWORD=<your-smtp-password>`
+
+#### Step 3: Verify Email Addresses
+SES starts in **sandbox mode** - you must verify email addresses before sending.
+
+1. In SES console, go to **Verified Identities**
 2. Click **"Create Identity"**
-3. Verify your sending email address (e.g., `noreply@jerseymusic.je`)
-4. Check your email for verification link
-5. Click the link to verify
+3. Select **"Email address"**
+4. Enter your sending email (e.g., `noreply@jerseymusic.je`)
+5. Click **"Create Identity"**
+6. Check your email inbox for verification link
+7. Click the link to verify
+
+**For production**: Request production access to send to any email address:
+1. Go to **Account Dashboard** in SES
+2. Click **"Request production access"**
+3. Fill out the form (usually approved within 24 hours)
+
+### Optional: Use a Different SES Region
+
+If you want to use a different AWS region, set in Railway:
+```bash
+EMAIL_SES_REGION=us-east-1  # or eu-west-1, ap-southeast-1, etc.
+```
+
+### Alternative: Use Gmail Instead
+
+If you prefer Gmail, set in Railway:
+```bash
+EMAIL_PROVIDER=gmail
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=<app-specific-password>
+```
+
+**Note**: Gmail requires an app-specific password, not your regular password.
+Get one at: [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
 
 ---
 

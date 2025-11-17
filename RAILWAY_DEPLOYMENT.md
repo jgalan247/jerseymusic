@@ -66,18 +66,27 @@ SUMUP_API_URL=https://api.sumup.com/v0.1
 # ============================================
 # EMAIL CONFIGURATION (RECOMMENDED)
 # ============================================
-# Choose one email provider: gmail, sendgrid, or mailgun
+# Default: Amazon SES (Simple Email Service) - no EMAIL_PROVIDER needed
+# See PRODUCTION_SETUP.md for detailed SES setup instructions
 
-# Option 1: Gmail (Google Workspace)
-EMAIL_PROVIDER=gmail
-EMAIL_HOST_USER=noreply@yourdomain.je
-EMAIL_HOST_PASSWORD=<your-app-specific-password>
+# Amazon SES (DEFAULT - recommended for production)
+# Get SMTP credentials from AWS SES Console
+EMAIL_HOST_USER=<your-ses-smtp-username>
+EMAIL_HOST_PASSWORD=<your-ses-smtp-password>
 
-# Option 2: SendGrid
+# Optional: Change SES region (default: eu-north-1)
+# EMAIL_SES_REGION=us-east-1
+
+# Alternative Option 1: Gmail (Google Workspace)
+# EMAIL_PROVIDER=gmail
+# EMAIL_HOST_USER=noreply@yourdomain.je
+# EMAIL_HOST_PASSWORD=<your-app-specific-password>
+
+# Alternative Option 2: SendGrid
 # EMAIL_PROVIDER=sendgrid
 # SENDGRID_API_KEY=<your-sendgrid-api-key>
 
-# Option 3: Mailgun
+# Alternative Option 3: Mailgun
 # EMAIL_PROVIDER=mailgun
 # MAILGUN_SMTP_USER=<your-mailgun-smtp-user>
 # MAILGUN_SMTP_PASSWORD=<your-mailgun-smtp-password>

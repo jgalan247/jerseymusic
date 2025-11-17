@@ -416,15 +416,29 @@ elif DEBUG:
 
 else:
     # Production email configuration with multiple providers
-    email_provider = os.getenv('EMAIL_PROVIDER', 'console').lower()
+    email_provider = os.getenv('EMAIL_PROVIDER', 'ses').lower()  # Default to Amazon SES
 
-    if email_provider == 'gmail':
+    if email_provider == 'ses' or email_provider == 'amazon-ses':
+        # Amazon SES (Simple Email Service)
+        # Default to EU North (Stockholm) region - change EMAIL_SES_REGION to use different region
+        ses_region = os.getenv('EMAIL_SES_REGION', 'eu-north-1')
+        EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+        EMAIL_HOST = f'email-smtp.{ses_region}.amazonaws.com'
+        EMAIL_PORT = 587
+        EMAIL_USE_TLS = True
+        EMAIL_USE_SSL = False
+        EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+        EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+        print(f"📧 Using Amazon SES for production emails (region: {ses_region})")
+
+    elif email_provider == 'gmail':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
         EMAIL_HOST = 'smtp.gmail.com'
         EMAIL_PORT = 587
         EMAIL_USE_TLS = True
         EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
         EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # App-specific password
+        print("📧 Using Gmail for production emails")
 
     elif email_provider == 'sendgrid':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -433,6 +447,7 @@ else:
         EMAIL_USE_TLS = True
         EMAIL_HOST_USER = 'apikey'  # Always 'apikey' for SendGrid
         EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
+        print("📧 Using SendGrid for production emails")
 
     elif email_provider == 'mailgun':
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -441,6 +456,7 @@ else:
         EMAIL_USE_TLS = True
         EMAIL_HOST_USER = os.getenv('MAILGUN_SMTP_USER')
         EMAIL_HOST_PASSWORD = os.getenv('MAILGUN_SMTP_PASSWORD')
+        print("📧 Using Mailgun for production emails")
 
     else:
         # Fallback to console for production if no provider configured
@@ -712,32 +728,9 @@ if os.getenv('ENABLE_DJANGO_Q', 'false').lower() == 'true':
     }
     print("✅ Django-Q task scheduling enabled")
 
-# ============================================
-# EMAIL CONFIGURATION
-# ============================================
-# Amazon SES for production email delivery
-EMAIL_BACKEND = os.getenv(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.smtp.EmailBackend'
-)
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'email-smtp.eu-north-1.amazonaws.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'admin@coderra.je')
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-# Override for local testing with mailhog/mailtrap
-if LOCAL_TEST:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'localhost'
-    EMAIL_PORT = 1025
-    EMAIL_USE_TLS = False
-    EMAIL_HOST_USER = ''
-    EMAIL_HOST_PASSWORD = ''
-    DEFAULT_FROM_EMAIL = 'noreply@jerseyevents.je'
+# Note: Email configuration is handled earlier in this file (lines 381-470)
+# based on DEBUG mode and EMAIL_PROVIDER environment variable
+# Amazon SES is the default provider for production (EMAIL_PROVIDER=ses)
 
 # ============================================
 # CSRF SETTINGS FOR DEVELOPMENT
