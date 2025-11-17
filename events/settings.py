@@ -695,6 +695,10 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+    # Exempt health check from HTTPS redirect for Railway health checks
+    # Railway's internal health checks use HTTP, not HTTPS
+    SECURE_REDIRECT_EXEMPT = [r'^health/$']
+
     # Session cookie security
     SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
     SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
