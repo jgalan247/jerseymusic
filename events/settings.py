@@ -381,8 +381,18 @@ custom_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
 if custom_csrf_origins:
     for origin in custom_csrf_origins.split(','):
         origin = origin.strip()
-        if origin and origin not in CSRF_TRUSTED_ORIGINS:
-            CSRF_TRUSTED_ORIGINS.append(origin)
+        if origin:
+            # Django 4.0+ requires scheme (https:// or http://)
+            # Auto-prepend https:// if missing
+            if not origin.startswith(('http://', 'https://')):
+                origin = f'https://{origin}'
+            if origin not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(origin)
+
+# Log CSRF trusted origins for debugging in Railway
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    print(f"📋 CSRF_TRUSTED_ORIGINS: {CSRF_TRUSTED_ORIGINS}", file=sys.stderr)
+
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
 
