@@ -11,6 +11,13 @@ class EmailVerificationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # Get current path first for early exemptions
+        path = request.path
+
+        # Skip middleware for health check endpoint (Railway monitoring)
+        if path == '/health/':
+            return self.get_response(request)
+
         # Skip middleware for non-authenticated users
         if not request.user.is_authenticated:
             return self.get_response(request)
@@ -22,9 +29,6 @@ class EmailVerificationMiddleware:
         # Skip middleware for superusers
         if request.user.is_superuser:
             return self.get_response(request)
-
-        # Get current path
-        path = request.path
 
         # Views that require strict email verification
         protected_paths = [

@@ -11,7 +11,12 @@ from django.views.generic import ListView, DetailView
 from decimal import Decimal
 from orders.models import Order, OrderItem
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 import csv
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def create_event(request):
@@ -168,12 +173,24 @@ def event_detail(request, pk):
 
 # Add this updated home view to events/views.py
 
+@csrf_exempt
+@never_cache
 def health_check(request):
-    """Simple health check endpoint for Railway deployment monitoring."""
+    """
+    Health check endpoint for Railway deployment monitoring.
+
+    This endpoint must:
+    - Respond quickly (no database queries)
+    - Be exempt from CSRF protection
+    - Never be cached
+    - Work without authentication
+    """
+    logger.info(f"Health check request from {request.META.get('REMOTE_ADDR', 'unknown')}, Host: {request.META.get('HTTP_HOST', 'unknown')}")
+
     return JsonResponse({
         'status': 'healthy',
         'service': 'Jersey Music Events'
-    })
+    }, status=200)
 
 def home(request):
     """Homepage view with featured events and artists."""

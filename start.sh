@@ -172,12 +172,23 @@ fi
 echo "✅ Django application verified successfully"
 echo ""
 
+# Test if health check endpoint is reachable before starting gunicorn
+echo "🧪 Testing Django health check endpoint availability..."
+if python manage.py shell -c "from django.test import Client; c = Client(); r = c.get('/health/'); print(f'Health check response: {r.status_code}'); exit(0 if r.status_code == 200 else 1)"; then
+    echo "✅ Health check endpoint verified working"
+else
+    echo "⚠️  WARNING: Health check endpoint test failed, but continuing anyway"
+fi
+echo ""
+
 # Start the web server
 echo "🌐 Starting gunicorn web server..."
 echo "   Port: $PORT"
 echo "   Workers: 2"
 echo "   Timeout: 120 seconds"
 echo "   Preload: enabled (loads app before forking workers)"
+echo ""
+echo "📊 About to execute gunicorn at $(date)"
 echo ""
 
 # Gunicorn configuration for production
@@ -187,6 +198,7 @@ echo ""
 # - Debug logging temporarily enabled to diagnose startup issues
 # - Access and error logging to stderr for Railway logs
 # - Graceful timeout for clean shutdowns
+echo "🚀 Executing gunicorn now..."
 exec gunicorn events.wsgi:application \
     --bind 0.0.0.0:$PORT \
     --workers 2 \
@@ -194,7 +206,7 @@ exec gunicorn events.wsgi:application \
     --timeout 120 \
     --graceful-timeout 30 \
     --preload \
-    --log-level info \
+    --log-level debug \
     --access-logfile - \
     --error-logfile - \
     --capture-output \
