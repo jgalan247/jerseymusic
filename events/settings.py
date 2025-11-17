@@ -82,11 +82,16 @@ ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 # Railway health checks come from 'healthcheck.railway.app' - must be allowed
 if os.getenv('RAILWAY_ENVIRONMENT'):
     ALLOWED_HOSTS.append('healthcheck.railway.app')
+    # Also allow wildcard for any Railway internal domains
+    ALLOWED_HOSTS.append('.railway.app')
+    ALLOWED_HOSTS.append('.railway.internal')
+    print("✅ Added Railway health check domains to ALLOWED_HOSTS", file=sys.stderr)
 
 # Add Railway's public domain if available
 railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN')
 if railway_domain and railway_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(railway_domain)
+    print(f"✅ Added Railway public domain to ALLOWED_HOSTS: {railway_domain}", file=sys.stderr)
 
 # Add Railway's static domain if available
 railway_static_url = os.getenv('RAILWAY_STATIC_URL')
@@ -95,6 +100,11 @@ if railway_static_url:
     railway_static_domain = railway_static_url.replace('https://', '').replace('http://', '').split('/')[0]
     if railway_static_domain and railway_static_domain not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(railway_static_domain)
+        print(f"✅ Added Railway static domain to ALLOWED_HOSTS: {railway_static_domain}", file=sys.stderr)
+
+# Log final ALLOWED_HOSTS configuration for debugging
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    print(f"📋 Final ALLOWED_HOSTS: {ALLOWED_HOSTS}", file=sys.stderr)
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
@@ -371,8 +381,18 @@ custom_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
 if custom_csrf_origins:
     for origin in custom_csrf_origins.split(','):
         origin = origin.strip()
-        if origin and origin not in CSRF_TRUSTED_ORIGINS:
-            CSRF_TRUSTED_ORIGINS.append(origin)
+        if origin:
+            # Django 4.0+ requires scheme (https:// or http://)
+            # Auto-prepend https:// if missing
+            if not origin.startswith(('http://', 'https://')):
+                origin = f'https://{origin}'
+            if origin not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(origin)
+
+# Log CSRF trusted origins for debugging in Railway
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    print(f"📋 CSRF_TRUSTED_ORIGINS: {CSRF_TRUSTED_ORIGINS}", file=sys.stderr)
+
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
 
