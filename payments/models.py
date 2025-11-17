@@ -104,8 +104,35 @@ class SumUpCheckout(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     paid_at = models.DateTimeField(null=True, blank=True)
 
+    # Polling configuration (since webhooks are not available)
+    should_poll = models.BooleanField(
+        default=True,
+        help_text="Whether this checkout should be polled for status updates"
+    )
+    polling_started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When polling started for this checkout"
+    )
+    last_polled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last time we checked the payment status"
+    )
+    poll_count = models.IntegerField(
+        default=0,
+        help_text="Number of times we've polled this checkout"
+    )
+    max_poll_duration_minutes = models.IntegerField(
+        default=120,
+        help_text="Maximum duration to poll this checkout (in minutes)"
+    )
+
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'should_poll', 'last_polled_at']),
+        ]
 
     def __str__(self):
         return f"Checkout {self.checkout_reference} - {self.status}"
@@ -147,6 +174,54 @@ class SumUpCheckout(models.Model):
         if self.valid_until:
             return timezone.now() > self.valid_until
         return False
+
+    @property
+    def needs_polling(self):
+        """Check if this checkout needs to be polled for status updates."""
+        # Don't poll if explicitly disabled
+        if not self.should_poll:
+            return False
+
+        # Don't poll final statuses
+        if self.status in ['paid', 'failed', 'expired']:
+            return False
+
+        # Don't poll if expired
+        if self.is_expired:
+            return False
+
+        # Check if we've exceeded max polling duration
+        if self.polling_started_at:
+            max_duration = timezone.timedelta(minutes=self.max_poll_duration_minutes)
+            if timezone.now() - self.polling_started_at > max_duration:
+                return False
+
+        return True
+
+    @property
+    def polling_elapsed_minutes(self):
+        """Get how long we've been polling this checkout."""
+        if self.polling_started_at:
+            delta = timezone.now() - self.polling_started_at
+            return delta.total_seconds() / 60
+        return 0
+
+    def start_polling(self):
+        """Mark this checkout as started for polling."""
+        if not self.polling_started_at:
+            self.polling_started_at = timezone.now()
+            self.save(update_fields=['polling_started_at'])
+
+    def update_poll_timestamp(self):
+        """Update the last polled timestamp and increment poll count."""
+        self.last_polled_at = timezone.now()
+        self.poll_count += 1
+        self.save(update_fields=['last_polled_at', 'poll_count'])
+
+    def stop_polling(self, reason=None):
+        """Stop polling this checkout."""
+        self.should_poll = False
+        self.save(update_fields=['should_poll'])
 
 
 class SumUpTransaction(models.Model):

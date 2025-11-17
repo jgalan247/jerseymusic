@@ -518,39 +518,49 @@ pytest -m e2e
 
 ## 🚀 Deployment
 
+### 📖 Deployment Guides
+
+**🚂 For Railway Deployment:** See **[RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md)** - Complete step-by-step guide with environment variables and troubleshooting.
+
+**📋 General Checklist:** See **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Production readiness across all platforms.
+
 ### Production Checklist
 
-- [ ] Set `DEBUG=False` in `.env`
+- [ ] Set `DEBUG=False` (or don't set it - defaults to False)
 - [ ] Configure `ALLOWED_HOSTS`
-- [ ] Set strong `SECRET_KEY`
+- [ ] Set strong `SECRET_KEY` (generate with Django's `get_random_secret_key()`)
 - [ ] Configure PostgreSQL database
 - [ ] Set up email (Google Workspace or SendGrid)
 - [ ] Configure SumUp credentials
+- [ ] Set up Sentry for error monitoring
 - [ ] Run migrations: `python manage.py migrate`
 - [ ] Collect static files: `python manage.py collectstatic`
 - [ ] Set up SSL/TLS certificate
 - [ ] Configure domain and DNS
-- [ ] Set up monitoring (Sentry, etc.)
 - [ ] Configure backups
 
 ### Deployment Options
 
-**Option 1: Traditional VPS (Recommended for Jersey)**
+**Option 1: Railway (Recommended for Easy Deployment)**
+- Quick setup with PostgreSQL auto-provisioning
+- Automatic HTTPS and deployments
+- See [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md)
+- Environment validation in startup script
+
+**Option 2: Traditional VPS (Recommended for Jersey)**
 - DigitalOcean / Linode / Vultr
 - Nginx + Gunicorn
 - PostgreSQL database
 - SSL via Let's Encrypt
 
-**Option 2: Platform as a Service**
+**Option 3: Other PaaS**
 - Heroku
-- Railway
 - Render
+- Similar to Railway setup
 
-**Option 3: Docker**
+**Option 4: Docker**
 - Docker Compose included
 - Easy container deployment
-
-See `DEPLOYMENT_CHECKLIST.md` for detailed instructions.
 
 ---
 

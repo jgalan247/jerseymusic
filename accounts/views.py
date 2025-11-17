@@ -92,14 +92,14 @@ def register_customer(request):
                     print(f"✅ User email: {user.email}")
                     print(f"✅ User type: {user.user_type}")
 
-                    try:
-                        print(f"🔍 Attempting to send verification email...")
-                        # Send verification email
-                        send_verification_email(user, request)
+                    # Send verification email
+                    print(f"🔍 Attempting to send verification email...")
+                    email_sent = send_verification_email(user, request)
+                    if email_sent:
                         print(f"✅ Verification email sent successfully!")
-                    except Exception as e:
-                        print(f"❌ Email sending failed: {e}")
-                        logger.error(f"Email sending failed: {e}")
+                    else:
+                        print(f"❌ Verification email failed to send (check logs above)")
+                        logger.error(f"Verification email failed for {user.email}")
 
                     messages.success(
                         request,
@@ -169,14 +169,14 @@ def register_organiser(request):
                     print(f"✅ User email: {user.email}")
                     print(f"✅ User type: {user.user_type}")
 
-                    try:
-                        print(f"🔍 Attempting to send verification email...")
-                        # Send verification email
-                        send_verification_email(user, request)
+                    # Send verification email
+                    print(f"🔍 Attempting to send verification email...")
+                    email_sent = send_verification_email(user, request)
+                    if email_sent:
                         print(f"✅ Verification email sent successfully!")
-                    except Exception as e:
-                        print(f"❌ Email sending failed: {e}")
-                        logger.error(f"Email sending failed: {e}")
+                    else:
+                        print(f"❌ Verification email failed to send (check logs above)")
+                        logger.error(f"Verification email failed for {user.email}")
 
                     messages.success(
                         request,
