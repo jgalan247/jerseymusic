@@ -73,13 +73,23 @@ if DEBUG:
     import sys
     print("⚠️  WARNING: DEBUG mode is enabled! Never use in production!", file=sys.stderr)
 
-#ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if h.strip(), '831c2e5887a5.ngrok-free.app']
-#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '1de8a13b06da.ngrok-free.app', 'testserver']
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '00539b37b8d9.ngrok-free.app',  # Add your ngrok domain
-]
+# ALLOWED_HOSTS configuration
+# Supports Railway's automatic domain via RAILWAY_PUBLIC_DOMAIN or explicit ALLOWED_HOSTS env var
+allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+
+# Add Railway's public domain if available
+railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN')
+if railway_domain and railway_domain not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(railway_domain)
+
+# Add Railway's static domain if available
+railway_static_url = os.getenv('RAILWAY_STATIC_URL')
+if railway_static_url:
+    # Extract domain from URL (remove protocol)
+    railway_static_domain = railway_static_url.replace('https://', '').replace('http://', '').split('/')[0]
+    if railway_static_domain and railway_static_domain not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(railway_static_domain)
 # Site ID for django.contrib.sites
 SITE_ID = 1
 
@@ -332,20 +342,32 @@ def get_pricing_tier(capacity):
 # PAYMENT CONFIGURATION
 # ============================================
 
+# CSRF Trusted Origins - for cross-origin POST requests (payments, etc.)
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-    'https://831c2e5887a5.ngrok-free.app',
+    'http://localhost:8000',  # Local development
+    'http://127.0.0.1:8000',  # Local development (IP)
+    'https://localhost:8000',  # Local HTTPS testing
 ]
 
-    
+# Add Railway's public domain if available
+if railway_domain:
+    CSRF_TRUSTED_ORIGINS.extend([
+        f'https://{railway_domain}',
+        f'http://{railway_domain}',  # Fallback, though Railway uses HTTPS
+    ])
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://5d74f0391463.ngrok-free.app',  # ngrok HTTPS
-    'http://localhost:8000',  # Local development
-    'http://127.0.0.1:8000',
-    'https://831c2e5887a5.ngrok-free.app',
-  ]  # Local development (IP), 'https://831c2e5887a5.ngrok-free.app']
+# Add Railway's static URL if available
+if railway_static_url:
+    if railway_static_url not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(railway_static_url)
+
+# Add custom CSRF origins from environment (comma-separated)
+custom_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if custom_csrf_origins:
+    for origin in custom_csrf_origins.split(','):
+        origin = origin.strip()
+        if origin and origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
 
