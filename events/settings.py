@@ -389,9 +389,16 @@ if custom_csrf_origins:
             if origin not in CSRF_TRUSTED_ORIGINS:
                 CSRF_TRUSTED_ORIGINS.append(origin)
 
+# CRITICAL: Final cleanup - remove any entries without scheme (Django 4.0+ requirement)
+# This ensures deployment doesn't fail even if env vars have malformed entries
+CSRF_TRUSTED_ORIGINS = [
+    origin for origin in CSRF_TRUSTED_ORIGINS
+    if origin.startswith(('http://', 'https://'))
+]
+
 # Log CSRF trusted origins for debugging in Railway
 if os.getenv('RAILWAY_ENVIRONMENT'):
-    print(f"📋 CSRF_TRUSTED_ORIGINS: {CSRF_TRUSTED_ORIGINS}", file=sys.stderr)
+    print(f"📋 CSRF_TRUSTED_ORIGINS (after cleanup): {CSRF_TRUSTED_ORIGINS}", file=sys.stderr)
 
 # Payment Provider Selection
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'sumup')  # 'sumup', 'stripe', or 'citypay'
