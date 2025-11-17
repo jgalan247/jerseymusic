@@ -101,7 +101,7 @@ INSTALLED_APPS = [
     'payments',
     'subscriptions',
     'analytics',
-    'help',
+    # 'help',
 
     # Task queue
     'django_q',
