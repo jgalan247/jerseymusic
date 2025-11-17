@@ -78,6 +78,11 @@ if DEBUG:
 allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
 ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 
+# Add Railway-specific domains
+# Railway health checks come from 'healthcheck.railway.app' - must be allowed
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    ALLOWED_HOSTS.append('healthcheck.railway.app')
+
 # Add Railway's public domain if available
 railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN')
 if railway_domain and railway_domain not in ALLOWED_HOSTS:
