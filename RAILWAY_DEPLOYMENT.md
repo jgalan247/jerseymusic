@@ -1,5 +1,7 @@
 # 🚂 Railway Deployment Guide - Jersey Music
 
+> **📘 For a complete production setup guide with Sentry, DEBUG=False verification, and security checklist, see [PRODUCTION_SETUP.md](PRODUCTION_SETUP.md)**
+
 ## ⚠️ CRITICAL: Production Environment Variables
 
 **IMPORTANT:** The application will REFUSE to start if misconfigured. All checks happen in `start.sh` before deployment.
@@ -34,9 +36,14 @@ SECRET_KEY=<generate-a-strong-50-character-secret-key>
 # ============================================
 # ERROR MONITORING (HIGHLY RECOMMENDED)
 # ============================================
-# Get your Sentry DSN from: https://sentry.io
-# 1. Create a new project in Sentry
-# 2. Copy the DSN from Settings > Client Keys
+# Sentry provides real-time error tracking and monitoring
+# See PRODUCTION_SETUP.md for detailed Sentry setup instructions
+#
+# Quick setup:
+# 1. Create account at: https://sentry.io
+# 2. Create a Django project
+# 3. Copy the DSN from Settings > Client Keys (DSN)
+# 4. Add it here:
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/your-project-id
 
 # Optional: Environment name for Sentry (defaults to "production")
