@@ -58,8 +58,8 @@
           "optional": true
         },
         "ALLOWED_HOSTS": {
-          "description": "Comma-separated list of allowed hostnames",
-          "default": "${{RAILWAY_PUBLIC_DOMAIN}}"
+          "description": "Comma-separated list of allowed hostnames (include all custom domains)",
+          "default": "tickets.coderra.je,fitness.coderra.je,beauty.coderra.je,${{RAILWAY_PUBLIC_DOMAIN}}"
         }
       },
       "envVarNotes": {
