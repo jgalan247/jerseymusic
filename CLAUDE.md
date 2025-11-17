@@ -117,6 +117,14 @@ The payment system has evolved through multiple iterations (see SUMUP_*.md files
 - **Coverage**: HTML reports generated in `/htmlcov/`
 - **E2E tests**: Located in `/tests/e2e/` for full user journey testing
 
+### Background Task Processing (Django-Q)
+- **Status**: Conditionally enabled via `ENABLE_DJANGO_Q` environment variable
+- **Default**: Disabled in Railway web deployments (no qcluster worker process)
+- **Usage**: Payment polling, scheduled tasks (requires separate qcluster worker process)
+- **Enable**: Set `ENABLE_DJANGO_Q=true` in environments running `python manage.py qcluster`
+- **Config**: `Q_CLUSTER` settings in `events/settings.py` (only loaded when enabled)
+- **Note**: Standard web deployments work fine without Django-Q - only enable for worker processes
+
 ### User Authentication & Profiles
 - **Custom User model**: `accounts.User` with email-only auth (no username field)
 - **User types**: `customer` or `artist` via `user_type` field

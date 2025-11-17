@@ -102,10 +102,13 @@ INSTALLED_APPS = [
     'subscriptions',
     'analytics',
     # 'help',
-
-    # Task queue
-    'django_q',
 ]
+
+# Conditionally add django_q for background task processing
+# Only include when ENABLE_DJANGO_Q=True (for environments running qcluster worker)
+# Railway web deployments don't need this since they don't run background workers
+if os.getenv('ENABLE_DJANGO_Q', 'false').lower() == 'true':
+    INSTALLED_APPS.append('django_q')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -680,30 +683,34 @@ if not DEBUG:
 # ============================================
 # DJANGO-Q CONFIGURATION (Task Scheduling)
 # ============================================
-Q_CLUSTER = {
-    'name': 'JerseyEvents',
-    'workers': 2 if not DEBUG else 1,
-    'timeout': 300,  # 5 minutes per task
-    'retry': 360,  # Retry failed tasks after 6 minutes
-    'queue_limit': 50,
-    'bulk': 10,  # Process up to 10 tasks at once
-    'orm': 'default',  # Use default database for queue storage
+# Only configure Q_CLUSTER when django_q is enabled
+# This prevents configuration errors when django_q is not in INSTALLED_APPS
+if os.getenv('ENABLE_DJANGO_Q', 'false').lower() == 'true':
+    Q_CLUSTER = {
+        'name': 'JerseyEvents',
+        'workers': 2 if not DEBUG else 1,
+        'timeout': 300,  # 5 minutes per task
+        'retry': 360,  # Retry failed tasks after 6 minutes
+        'queue_limit': 50,
+        'bulk': 10,  # Process up to 10 tasks at once
+        'orm': 'default',  # Use default database for queue storage
 
-    # Scheduling
-    'save_limit': 250,  # Keep last 250 successful tasks
-    'max_attempts': 1,  # Don't retry tasks automatically (we handle retries in polling)
-    'catch_up': False,  # Don't catch up missed schedules on startup
+        # Scheduling
+        'save_limit': 250,  # Keep last 250 successful tasks
+        'max_attempts': 1,  # Don't retry tasks automatically (we handle retries in polling)
+        'catch_up': False,  # Don't catch up missed schedules on startup
 
-    # Logging
-    'log_level': 'INFO',
+        # Logging
+        'log_level': 'INFO',
 
-    # Security
-    'cpu_affinity': 1 if not DEBUG else 0,  # Bind to CPU in production
-    'label': 'Django Q Tasks',
+        # Security
+        'cpu_affinity': 1 if not DEBUG else 0,  # Bind to CPU in production
+        'label': 'Django Q Tasks',
 
-    # Admin
-    'django_redis': None,  # Not using Redis initially (ORM-based queue)
-}
+        # Admin
+        'django_redis': None,  # Not using Redis initially (ORM-based queue)
+    }
+    print("✅ Django-Q task scheduling enabled")
 
 # ============================================
 # EMAIL CONFIGURATION
