@@ -720,7 +720,8 @@ if not DEBUG:
 
     # Exempt health check from HTTPS redirect for Railway health checks
     # Railway's internal health checks use HTTP, not HTTPS
-    SECURE_REDIRECT_EXEMPT = [r'^/health/$']
+    # Match both /health/ and /health (with or without trailing slash)
+    SECURE_REDIRECT_EXEMPT = [r'^health/', r'^/health/']
 
     # Session cookie security
     SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
