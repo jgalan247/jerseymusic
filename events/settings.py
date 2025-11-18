@@ -373,6 +373,9 @@ if railway_domain:
 
 # Add Railway's static URL if available
 if railway_static_url:
+    # Ensure it has a scheme for Django 4.0+
+    if not railway_static_url.startswith(('http://', 'https://')):
+        railway_static_url = f'https://{railway_static_url}'
     if railway_static_url not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(railway_static_url)
 
