@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
 # Railway startup script - runs migrations and starts the web server
 
-set -e  # Exit on error
+# Exit on error and print commands as they execute (for debugging)
+set -ex
 
-# Force unbuffered output for Python to ensure logs appear immediately
+# Force unbuffered output for Python and bash to ensure logs appear immediately
 export PYTHONUNBUFFERED=1
 
-echo "🚀 Starting Jersey Music application..."
+# Redirect all output to both stdout and stderr to ensure Railway captures it
+exec 2>&1
+
+echo "=========================================="
+echo "🚀 STARTING JERSEY MUSIC APPLICATION"
+echo "=========================================="
+echo "Timestamp: $(date)"
+echo "Working directory: $(pwd)"
+echo "User: $(whoami)"
+echo "Bash version: ${BASH_VERSION}"
+echo "=========================================="
 
 # ============================================
 # PRODUCTION ENVIRONMENT VALIDATION
