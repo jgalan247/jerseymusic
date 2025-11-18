@@ -172,13 +172,10 @@ fi
 echo "✅ Django application verified successfully"
 echo ""
 
-# Test if health check endpoint is reachable before starting gunicorn
-echo "🧪 Testing Django health check endpoint availability..."
-if python manage.py shell -c "from django.test import Client; c = Client(); r = c.get('/health/'); print(f'Health check response: {r.status_code}'); exit(0 if r.status_code == 200 else 1)"; then
-    echo "✅ Health check endpoint verified working"
-else
-    echo "⚠️  WARNING: Health check endpoint test failed, but continuing anyway"
-fi
+# Skip internal health check test - Railway will check it externally
+# Internal test uses 'testserver' host which requires special ALLOWED_HOSTS config
+# Railway's external health checks at /health/ are sufficient
+echo "ℹ️  Skipping internal health check test (Railway will verify externally)"
 echo ""
 
 # Start the web server
