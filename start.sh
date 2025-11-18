@@ -207,7 +207,11 @@ echo ""
 # - Access and error logging to stderr for Railway logs
 # - Graceful timeout for clean shutdowns
 echo "🚀 Executing gunicorn now..."
-exec gunicorn events.wsgi:application \
+echo "Command: gunicorn events.wsgi:application --bind 0.0.0.0:$PORT ..."
+echo ""
+
+# Don't use exec so we can see error output if gunicorn fails
+gunicorn events.wsgi:application \
     --bind 0.0.0.0:$PORT \
     --workers 2 \
     --worker-class sync \
@@ -219,3 +223,6 @@ exec gunicorn events.wsgi:application \
     --error-logfile - \
     --capture-output \
     --enable-stdio-inheritance
+
+# If gunicorn exits, show the exit code
+echo "⚠️  Gunicorn exited with code: $?"
