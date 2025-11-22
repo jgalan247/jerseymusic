@@ -472,7 +472,17 @@ else:
     # Production email configuration with multiple providers
     email_provider = os.getenv('EMAIL_PROVIDER', 'ses').lower()  # Default to Amazon SES
 
-    if email_provider == 'ses' or email_provider == 'amazon-ses':
+    if email_provider == 'resend':
+        # Resend (Modern Email API)
+        # Get API key from RESEND_API_KEY environment variable
+        # Sign up at https://resend.com
+        EMAIL_BACKEND = 'events.email_backend.ResendEmailBackend'
+        RESEND_API_KEY = os.getenv('RESEND_API_KEY')
+        if not RESEND_API_KEY:
+            print("⚠️ WARNING: RESEND_API_KEY not configured!", file=sys.stderr)
+        print("📧 Using Resend for production emails")
+
+    elif email_provider == 'ses' or email_provider == 'amazon-ses':
         # Amazon SES (Simple Email Service)
         # Default to EU North (Stockholm) region - change EMAIL_SES_REGION to use different region
         ses_region = os.getenv('EMAIL_SES_REGION', 'eu-north-1')
