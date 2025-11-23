@@ -420,7 +420,11 @@ SUMUP_MERCHANT_ID = os.getenv("SUMUP_MERCHANT_ID", "")
 if not DEBUG and not all([SUMUP_CLIENT_ID, SUMUP_CLIENT_SECRET, SUMUP_MERCHANT_CODE]):
     import sys
     print("⚠️  CRITICAL: Missing SumUp credentials for production!", file=sys.stderr)
-SUMUP_REDIRECT_URI = os.getenv("SUMUP_REDIRECT_URI")  # e.g. https://your.site/payments/sumup/callback/
+
+# SumUp OAuth redirect URI - must match the callback URL registered in SumUp dashboard
+# For artist OAuth: https://your.site/accounts/sumup/callback/
+# If not set, will be constructed from SITE_URL (requires SITE_URL to be set correctly)
+SUMUP_REDIRECT_URI = os.getenv("SUMUP_REDIRECT_URI")
 SUMUP_SUCCESS_URL = os.getenv("SUMUP_SUCCESS_URL", "/payments/success/")
 SUMUP_FAIL_URL = os.getenv("SUMUP_FAIL_URL", "/payments/fail/")
 
@@ -537,6 +541,13 @@ EMAIL_VERIFICATION_TIMEOUT = 48  # Hours before verification link expires
 
 # Site URL for payment callbacks and emails
 SITE_URL = os.getenv('SITE_URL', 'https://1de8a13b06da.ngrok-free.app' if not DEBUG else 'http://127.0.0.1:8000')
+
+# Auto-construct SUMUP_REDIRECT_URI from SITE_URL if not explicitly set
+# This ensures the OAuth callback URL is always correct
+if not SUMUP_REDIRECT_URI and SITE_URL:
+    SUMUP_REDIRECT_URI = f"{SITE_URL.rstrip('/')}/accounts/sumup/callback/"
+    if os.getenv('RAILWAY_ENVIRONMENT'):
+        print(f"✅ Auto-configured SUMUP_REDIRECT_URI: {SUMUP_REDIRECT_URI}", file=sys.stderr)
 
 # ============================================
 # TERMS & CONDITIONS CONFIGURATION

@@ -51,14 +51,40 @@ def get_platform_access_token():
         raise
 
 def oauth_authorize_url(state: str):
+    """
+    Generate SumUp OAuth authorization URL for artist OAuth connection.
+
+    Args:
+        state: Security state parameter to prevent CSRF attacks
+
+    Returns:
+        str: Full OAuth authorization URL to redirect user to SumUp login
+
+    Raises:
+        ValueError: If required OAuth credentials are missing
+    """
+    # Validate required configuration
+    if not settings.SUMUP_CLIENT_ID:
+        logger.error("SUMUP_CLIENT_ID is not configured")
+        raise ValueError("SumUp Client ID is not configured. Please set SUMUP_CLIENT_ID environment variable.")
+
+    if not settings.SUMUP_REDIRECT_URI:
+        logger.error("SUMUP_REDIRECT_URI is not configured")
+        raise ValueError("SumUp Redirect URI is not configured. Please set SUMUP_REDIRECT_URI or SITE_URL environment variable.")
+
     base = f"{settings.SUMUP_BASE_URL}/authorize"
-    return (
+    auth_url = (
         f"{base}?response_type=code"
         f"&client_id={settings.SUMUP_CLIENT_ID}"
         f"&redirect_uri={settings.SUMUP_REDIRECT_URI}"
-        f"&scope=payments%20checkouts"  # add scopes you need
+        f"&scope=payments%20user.profile_readonly%20transactions.history"
         f"&state={state}"
     )
+
+    logger.info(f"Generated OAuth URL: {base}?... (client_id and redirect_uri configured)")
+    logger.debug(f"Full OAuth URL: {auth_url}")
+
+    return auth_url
 
 def exchange_code_for_tokens(code: str):
     """Exchange OAuth authorization code for access/refresh tokens with comprehensive logging."""

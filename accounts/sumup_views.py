@@ -39,13 +39,26 @@ class SumUpConnectView(View):
 
     def get(self, request):
         """Start SumUp OAuth flow."""
-        # Generate state parameter for security
-        state = f"{request.user.id}:{uuid.uuid4()}"
-        request.session['sumup_oauth_state'] = state
+        try:
+            # Generate state parameter for security
+            state = f"{request.user.id}:{uuid.uuid4()}"
+            request.session['sumup_oauth_state'] = state
 
-        # Redirect to SumUp OAuth authorization
-        auth_url = sumup_api.oauth_authorize_url(state)
-        return redirect(auth_url)
+            # Redirect to SumUp OAuth authorization
+            auth_url = sumup_api.oauth_authorize_url(state)
+
+            if not auth_url:
+                logger.error(f"SumUp OAuth URL generation failed for user {request.user.id}")
+                messages.error(request, "Failed to generate SumUp authorization URL. Please check configuration.")
+                return redirect('accounts:dashboard')
+
+            logger.info(f"Redirecting user {request.user.id} to SumUp OAuth: {auth_url[:50]}...")
+            return redirect(auth_url)
+
+        except Exception as e:
+            logger.error(f"Error starting SumUp OAuth for user {request.user.id}: {e}")
+            messages.error(request, "Failed to start SumUp connection. Please try again or contact support.")
+            return redirect('accounts:dashboard')
 
 
 @method_decorator(login_required, name='dispatch')
