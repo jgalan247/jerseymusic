@@ -31,7 +31,7 @@ def pay_listing_fee(request, event_id):
     # Check if user is the organizer
     if event.organiser != request.user:
         messages.error(request, "You can only pay listing fees for your own events.")
-        return redirect('events:event_detail', event_id=event.id)
+        return redirect('events:event_detail', pk=event.id)
 
     # Get or create listing fee
     listing_fee, created = ListingFee.objects.get_or_create(
@@ -45,7 +45,7 @@ def pay_listing_fee(request, event_id):
     # If already paid, redirect to event
     if listing_fee.is_paid:
         messages.info(request, "Listing fee has already been paid for this event.")
-        return redirect('events:event_detail', event_id=event.id)
+        return redirect('events:event_detail', pk=event.id)
 
     if request.method == 'POST':
         try:
@@ -193,7 +193,7 @@ def listing_fee_cancel(request, event_id):
     event = get_object_or_404(Event, id=event_id, organiser=request.user)
 
     messages.info(request, "Listing fee payment was cancelled. Your event remains unpublished.")
-    return redirect('events:event_detail', event_id=event.id)
+    return redirect('events:event_detail', pk=event.id)
 
 
 @csrf_exempt
