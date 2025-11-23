@@ -340,7 +340,7 @@ def redirect_listing_success(request):
 
             messages.success(request, f"Listing fee paid! Your event '{event.title}' is now published.")
 
-        return redirect('events:event_detail', slug=event.slug)
+        return redirect('events:event_detail', pk=event.id)
 
     except (Event.DoesNotExist, ListingFee.DoesNotExist):
         messages.error(request, "Payment record not found.")
