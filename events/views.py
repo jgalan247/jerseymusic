@@ -76,12 +76,13 @@ def create_event(request):
                     is_primary=True,
                     order=1
                 )
-            
+
             messages.success(
                 request,
-                f'"{event.title}" created successfully! Please pay the listing fee to publish your event.'
+                f'"{event.title}" created successfully! Your event has been saved as a draft. '
+                f'Pay the £{listing_fee.amount} listing fee to publish it and make it visible to customers.'
             )
-            return redirect('payments:widget_listing_fee', event_id=event.pk)
+            return redirect('events:event_detail', pk=event.pk)
     else:
         form = EventCreateForm()
     
@@ -93,14 +94,14 @@ from django.db.models import Sum, Count, Q
 @login_required
 def my_events(request):
     """Organiser's event management page"""
-    
+
     if request.user.user_type != 'artist':
         messages.error(request, 'Only event organisers can access this page.')
         return redirect('events:events_list')
-    
+
     # Get all events for this organiser
     events = Event.objects.filter(organiser=request.user).order_by('-created_at')
-    
+
     # Add calculated fields to each event
     for event in events:
         # Calculate tickets sold
@@ -120,7 +121,7 @@ def my_events(request):
         for item in completed_items:
             revenue += item.price * item.quantity
         event.revenue = revenue
-    
+
     # Filter events by status
     published_events = events.filter(status='published')
     draft_events = events.filter(status='draft')
@@ -128,14 +129,18 @@ def my_events(request):
         event_date__gte=timezone.now().date(),
         status='published'
     )
-    
+
     context = {
         'events': events,
         'published_events': published_events,
         'draft_events': draft_events,
         'upcoming_events': upcoming_events,
+        'total_events': events.count(),
+        'published_count': published_events.count(),
+        'drafts_count': draft_events.count(),
+        'upcoming_count': upcoming_events.count(),
     }
-    
+
     return render(request, 'events/my_events.html', context)
 
 def events_list(request):
