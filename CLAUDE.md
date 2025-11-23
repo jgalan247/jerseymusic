@@ -78,7 +78,8 @@ python events/management/commands/runserver_https.py
 
 ### Key Configuration
 - **Settings**: `events/settings.py` - Main Django settings with payment provider configuration
-- **Database**: SQLite3 by default, PostgreSQL configuration available
+- **Root URLconf**: `urls.py` at project root (not `events/urls.py`)
+- **Database**: SQLite3 by default (`LOCAL_TEST=True`), PostgreSQL configuration available via `DATABASE_URL` or explicit postgres env vars
 - **Static Files**: Tailwind CSS + custom styling in `/static/`
 - **Templates**: Global templates in `/templates/`, app-specific in each app's `/templates/`
 
@@ -106,8 +107,8 @@ The payment system has evolved through multiple iterations (see SUMUP_*.md files
 - `events/listing_fee_views.py`: Listing fee payment flow
 
 ### Email Configuration
-- **Development**: MailHog (localhost:1025) or console backend
-- **Production**: Google Workspace SMTP
+- **Development**: MailHog (localhost:1025) or console backend controlled by `USE_MAILHOG` env var
+- **Production**: Amazon SES SMTP (configure via `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, optional `EMAIL_SES_REGION`)
 - Uses `.env` file for configuration
 
 ### Testing Framework
@@ -116,6 +117,7 @@ The payment system has evolved through multiple iterations (see SUMUP_*.md files
 - **Test structure**: Each app has `/tests/` directory with organized test files
 - **Coverage**: HTML reports generated in `/htmlcov/`
 - **E2E tests**: Located in `/tests/e2e/` for full user journey testing
+- **MailHog**: Start with `make mailhog` for email testing, view at http://localhost:8025
 
 ### Background Task Processing (Django-Q)
 - **Status**: Conditionally enabled via `ENABLE_DJANGO_Q` environment variable
@@ -155,7 +157,7 @@ The payment system has evolved through multiple iterations (see SUMUP_*.md files
    - Payment testing: Use SumUp test cards documented in test files
 
 4. **Production Deployment**:
-   - Set `DEBUG=False` and `LOCAL_TEST=False`
+   - Set `DEBUG=False` (or omit - defaults to False) and `LOCAL_TEST=False` (or omit)
    - Configure PostgreSQL via `DATABASE_URL` or explicit postgres env vars
    - Set `SECRET_KEY`, `SUMUP_*` credentials, email provider
    - Run `python manage.py collectstatic`
@@ -169,9 +171,10 @@ The payment system has evolved through multiple iterations (see SUMUP_*.md files
 - **Session config**: `SESSION_SAVE_EVERY_REQUEST = True` ensures cart persistence
 
 ### URL Organization
-- **Main URLs**: `events/urls.py` (project root URLconf)
+- **Main URLs**: `urls.py` at project root (root URLconf)
 - **App URLs**: Each app has `urls.py` with `app_name` for namespacing (e.g., `events:detail`, `accounts:login`)
 - **Payment URLs**: Multiple payment URL patterns in `payments/urls.py` for different checkout flows
+- **Root path**: Events app is mounted at root path `""` in main URLconf
 
 ### Template Inheritance
 - **Base template**: `templates/base.html` with Tailwind CSS styling
@@ -185,12 +188,20 @@ The payment system has evolved through multiple iterations (see SUMUP_*.md files
 - **Jersey-specific**: Parish choices for addresses, postcode field
 
 ### Error Handling & Monitoring
-- **Sentry integration**: Enabled when `DEBUG=False` and `SENTRY_DSN` set (see settings.py:14-52)
+- **Sentry integration**: Enabled when `DEBUG=False` and `SENTRY_DSN` set (see events/settings.py:14-52)
 - **Structured logging**: Separate loggers for `payment_audit`, `payment_debug`, `security`, `tickets`, `cart`
 - **Payment audit trail**: All payment operations logged to `payment_audit` logger with user context
 
 ### Security Notes
-- **CSRF**: Trusted origins configured for ngrok in development (settings.py:251)
+- **CSRF**: Trusted origins configured for Railway domains automatically in settings.py:251-377
 - **Amount validation**: Payment functions require `expected_amount` parameter to prevent tampering
 - **Token rotation**: SumUp platform tokens cached, artist tokens have expiry/refresh
 - **Production security**: HTTPS enforcement, secure cookies, HSTS headers when `DEBUG=False`
+- **Deployment validation**: `start.sh` validates production configuration and prevents deployment with `DEBUG=True` or `LOCAL_TEST=True` in Railway environments
+
+### Railway-Specific Configuration
+- **Health checks**: `start.sh` automatically adds `healthcheck.railway.app` to `ALLOWED_HOSTS`
+- **Environment validation**: Startup script validates critical production settings (`DEBUG`, `LOCAL_TEST`)
+- **Database**: Use Railway-provided `DATABASE_URL` or set explicit postgres env vars
+- **Static domains**: Automatically configures `RAILWAY_PUBLIC_DOMAIN` and `RAILWAY_STATIC_URL` in ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS
+- **Deployment**: Uses `start.sh` as entry point (see railway.json or Procfile)
