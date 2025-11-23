@@ -2,6 +2,7 @@
 
 import uuid
 import logging
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib import messages
@@ -39,6 +40,19 @@ class SumUpConnectView(View):
 
     def get(self, request):
         """Start SumUp OAuth flow."""
+        # Validate redirect URI is configured (will auto-configure from SITE_URL if not set)
+        if not settings.SUMUP_REDIRECT_URI:
+            logger.error("SUMUP_REDIRECT_URI not configured in environment variables")
+            messages.error(
+                request,
+                "SumUp integration is not properly configured. Please contact support."
+            )
+            return redirect('accounts:dashboard')
+
+        # Log the OAuth initiation
+        logger.info(f"User {request.user.id} initiating SumUp OAuth flow")
+        logger.info(f"Configured redirect URI: {settings.SUMUP_REDIRECT_URI}")
+
         try:
             # Generate state parameter for security
             state = f"{request.user.id}:{uuid.uuid4()}"
@@ -47,12 +61,13 @@ class SumUpConnectView(View):
             # Redirect to SumUp OAuth authorization
             auth_url = sumup_api.oauth_authorize_url(state)
 
+            # Validate URL was generated successfully
             if not auth_url:
                 logger.error(f"SumUp OAuth URL generation failed for user {request.user.id}")
                 messages.error(request, "Failed to generate SumUp authorization URL. Please check configuration.")
                 return redirect('accounts:dashboard')
 
-            logger.info(f"Redirecting user {request.user.id} to SumUp OAuth: {auth_url[:50]}...")
+            logger.info(f"Redirecting user {request.user.id} to SumUp OAuth: {auth_url[:100]}...")
             return redirect(auth_url)
 
         except Exception as e:
@@ -67,23 +82,48 @@ class SumUpCallbackView(View):
 
     def get(self, request):
         """Process OAuth callback from SumUp."""
+        # Log all callback parameters for debugging
+        logger.info("=" * 80)
+        logger.info("SumUp OAuth Callback Received")
+        logger.info(f"User: {request.user.id} ({request.user.email})")
+        logger.info(f"Query parameters: {dict(request.GET)}")
+        logger.info(f"Session state: {request.session.get('sumup_oauth_state', 'NOT SET')}")
+        logger.info("=" * 80)
+
         # Verify state parameter
         state_sent = request.session.get('sumup_oauth_state')
         state_received = request.GET.get('state')
 
-        if not state_sent or state_sent != state_received:
+        if not state_sent:
+            logger.error("No OAuth state found in session - possible session timeout")
+            messages.error(
+                request,
+                "Session expired. Please try connecting to SumUp again."
+            )
+            return redirect('accounts:dashboard')
+
+        if state_sent != state_received:
+            logger.error(
+                f"OAuth state mismatch - Expected: {state_sent}, Received: {state_received}"
+            )
             messages.error(request, "Invalid OAuth state. Please try connecting again.")
             return redirect('accounts:dashboard')
 
         # Get authorization code
         code = request.GET.get('code')
         error = request.GET.get('error')
+        error_description = request.GET.get('error_description', '')
 
         if error:
-            messages.error(request, f"SumUp authorization failed: {error}")
+            logger.error(f"SumUp OAuth error: {error} - {error_description}")
+            messages.error(
+                request,
+                f"SumUp authorization failed: {error_description or error}"
+            )
             return redirect('accounts:dashboard')
 
         if not code:
+            logger.error("No authorization code received from SumUp")
             messages.error(request, "No authorization code received from SumUp.")
             return redirect('accounts:dashboard')
 
@@ -91,17 +131,22 @@ class SumUpCallbackView(View):
             # Extract user ID from state
             user_id = int(state_received.split(':')[0])
             if user_id != request.user.id:
+                logger.error(f"User ID mismatch in OAuth state - Expected: {request.user.id}, Got: {user_id}")
                 messages.error(request, "User ID mismatch in OAuth state.")
                 return redirect('accounts:dashboard')
 
             # Get artist profile
             artist_profile = get_object_or_404(ArtistProfile, user=request.user)
 
+            logger.info(f"Exchanging authorization code for user {request.user.id}")
+
             # Exchange code for tokens
             token_data = sumup_api.exchange_code_for_tokens(code)
+            logger.info(f"Successfully received tokens for user {request.user.id}")
 
             # Get merchant information
             merchant_info = sumup_api.get_merchant_info(token_data['access_token'])
+            logger.info(f"Retrieved merchant info for user {request.user.id}: {merchant_info.get('merchant_code', 'N/A')}")
 
             # Update artist profile with OAuth tokens
             artist_profile.update_sumup_connection(token_data)
@@ -120,6 +165,14 @@ class SumUpCallbackView(View):
             logger.info(f"Artist {request.user.id} successfully connected to SumUp")
             return redirect('accounts:dashboard')
 
+        except requests.exceptions.RequestException as e:
+            # Network errors when communicating with SumUp API
+            logger.error(f"Network error during SumUp OAuth for user {request.user.id}: {e}")
+            messages.error(
+                request,
+                "Network error connecting to SumUp. Please check your internet connection and try again."
+            )
+            return redirect('accounts:dashboard')
         except Exception as e:
             logger.error(f"SumUp OAuth callback error for user {request.user.id}: {e}")
             messages.error(request, "Failed to connect to SumUp. Please try again.")

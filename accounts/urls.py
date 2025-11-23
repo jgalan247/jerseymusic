@@ -2,6 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 from . import sumup_views
+from . import views_diagnostic
 
 app_name = 'accounts'
 
@@ -9,15 +10,15 @@ urlpatterns = [
     # Registration
     path('register/customer/', views.register_customer, name='register_customer'),
     path('register/organiser/', views.register_organiser, name='register_organiser'),
-    
+
     # Email verification
     path('verify/<uuid:token>/', views.verify_email, name='verify_email'),
     path('resend-verification/', views.resend_verification, name='resend_verification'),
-    
+
     # Authentication
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    
+
     # Profile
     path('profile/', views.profile_view, name='profile'),
     path('organiser-dashboard/', views.organiser_dashboard, name='organiser_dashboard'),
@@ -28,6 +29,9 @@ urlpatterns = [
     path('sumup/callback/', sumup_views.SumUpCallbackView.as_view(), name='sumup_callback'),
     path('sumup/disconnect/', sumup_views.SumUpDisconnectView.as_view(), name='sumup_disconnect'),
     path('sumup/status/', sumup_views.SumUpStatusView.as_view(), name='sumup_status'),
+
+    # Diagnostic endpoints (superuser only)
+    path('diagnostic/sumup-env/', views_diagnostic.check_sumup_env, name='diagnostic_sumup_env'),
 
     # Password reset
     path('password-reset/', 
