@@ -157,20 +157,54 @@ class SumUpCallbackView(View):
             # Get artist profile
             artist_profile = get_object_or_404(ArtistProfile, user=request.user)
 
-            logger.info(f"Exchanging authorization code for user {request.user.id}")
+            logger.info(f"Step 1/3: Exchanging authorization code for user {request.user.id}")
 
-            # Exchange code for tokens
-            token_data = sumup_api.exchange_code_for_tokens(code)
-            logger.info(f"Successfully received tokens for user {request.user.id}")
+            # Step 1: Exchange code for tokens
+            try:
+                token_data = sumup_api.exchange_code_for_tokens(code)
+                logger.info(f"✅ Step 1/3: Successfully received tokens for user {request.user.id}")
+            except requests.exceptions.HTTPError as e:
+                logger.error(f"❌ Step 1/3 FAILED: Token exchange HTTP error for user {request.user.id}", exc_info=True)
+                logger.error(f"Response status: {e.response.status_code if hasattr(e, 'response') else 'N/A'}")
+                logger.error(f"Response body: {e.response.text if hasattr(e, 'response') else 'N/A'}")
+                messages.error(
+                    request,
+                    "Failed to exchange authorization code with SumUp. The code may have expired. Please try connecting again."
+                )
+                return redirect('accounts:dashboard')
+            except Exception as e:
+                logger.error(f"❌ Step 1/3 FAILED: Token exchange error for user {request.user.id}: {e}", exc_info=True)
+                messages.error(request, "Error during token exchange. Please try again.")
+                return redirect('accounts:dashboard')
 
-            # Get merchant information
-            merchant_info = sumup_api.get_merchant_info(token_data['access_token'])
-            logger.info(f"Retrieved merchant info for user {request.user.id}: {merchant_info.get('merchant_code', 'N/A')}")
+            logger.info(f"Step 2/3: Fetching merchant info for user {request.user.id}")
 
-            # Update artist profile with OAuth tokens
-            artist_profile.update_sumup_connection(token_data)
-            artist_profile.sumup_merchant_code = merchant_info.get('merchant_code', '')
-            artist_profile.save()
+            # Step 2: Get merchant information
+            try:
+                merchant_info = sumup_api.get_merchant_info(token_data['access_token'])
+                logger.info(f"✅ Step 2/3: Retrieved merchant info - Code: {merchant_info.get('merchant_code', 'N/A')}, Name: {merchant_info.get('business_name', 'N/A')}")
+            except requests.exceptions.HTTPError as e:
+                logger.error(f"❌ Step 2/3 FAILED: Merchant info HTTP error for user {request.user.id}", exc_info=True)
+                logger.error(f"Response status: {e.response.status_code if hasattr(e, 'response') else 'N/A'}")
+                messages.error(request, "Failed to retrieve merchant information from SumUp. Please try again.")
+                return redirect('accounts:dashboard')
+            except Exception as e:
+                logger.error(f"❌ Step 2/3 FAILED: Merchant info error for user {request.user.id}: {e}", exc_info=True)
+                messages.error(request, "Error retrieving merchant information. Please try again.")
+                return redirect('accounts:dashboard')
+
+            logger.info(f"Step 3/3: Updating artist profile for user {request.user.id}")
+
+            # Step 3: Update artist profile with OAuth tokens
+            try:
+                artist_profile.update_sumup_connection(token_data)
+                artist_profile.sumup_merchant_code = merchant_info.get('merchant_code', '')
+                artist_profile.save()
+                logger.info(f"✅ Step 3/3: Successfully updated artist profile for user {request.user.id}")
+            except Exception as e:
+                logger.error(f"❌ Step 3/3 FAILED: Profile update error for user {request.user.id}: {e}", exc_info=True)
+                messages.error(request, "Error saving connection details. Please try again.")
+                return redirect('accounts:dashboard')
 
             # Clear session state
             if 'sumup_oauth_state' in request.session:
@@ -184,7 +218,7 @@ class SumUpCallbackView(View):
                 f"Successfully connected to SumUp! Merchant: {merchant_info.get('business_name', 'Your Business')}"
             )
 
-            logger.info(f"Artist {request.user.id} successfully connected to SumUp")
+            logger.info(f"🎉 OAuth flow completed successfully for user {request.user.id}")
 
             # Redirect to the original destination or dashboard
             if next_url:
@@ -194,7 +228,7 @@ class SumUpCallbackView(View):
 
         except requests.exceptions.RequestException as e:
             # Network errors when communicating with SumUp API
-            logger.error(f"Network error during SumUp OAuth for user {request.user.id}: {e}")
+            logger.error(f"Network error during SumUp OAuth for user {request.user.id}: {e}", exc_info=True)
             messages.error(
                 request,
                 "Network error connecting to SumUp. Please check your internet connection and try again."
@@ -206,8 +240,8 @@ class SumUpCallbackView(View):
             messages.error(request, "Incomplete response from SumUp. Please try connecting again.")
             return redirect('accounts:dashboard')
         except Exception as e:
-            logger.error(f"SumUp OAuth callback error for user {request.user.id}: {e}", exc_info=True)
-            messages.error(request, "Failed to connect to SumUp. Please try again.")
+            logger.error(f"Unexpected error in SumUp OAuth callback for user {request.user.id}: {e}", exc_info=True)
+            messages.error(request, f"Unexpected error: {str(e)}. Please check logs for details.")
             return redirect('accounts:dashboard')
 
 
