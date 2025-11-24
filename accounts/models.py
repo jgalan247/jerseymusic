@@ -204,29 +204,61 @@ class ArtistProfile(Profile):
 
     def update_sumup_connection(self, token_data):
         """Update SumUp OAuth tokens and connection status."""
-        self.sumup_access_token = token_data.get('access_token', '')
-        self.sumup_refresh_token = token_data.get('refresh_token', '')
-        self.sumup_token_type = token_data.get('token_type', 'Bearer')
-        self.sumup_scope = token_data.get('scope', '')
-        self.sumup_merchant_code = token_data.get('merchant_code', '')
+        import logging
+        logger = logging.getLogger(__name__)
 
-        # Set expiration time - handle both expires_at (datetime) and expires_in (seconds)
-        if 'expires_at' in token_data:
-            # Token data contains pre-calculated expiration datetime
-            self.sumup_expires_at = token_data['expires_at']
-        elif 'expires_in' in token_data:
-            # Token data contains seconds until expiration
-            from django.utils import timezone
-            from datetime import timedelta
-            expires_in = int(token_data['expires_in'])
-            self.sumup_expires_at = timezone.now() + timedelta(seconds=expires_in - 30)
+        logger.info(f"Updating SumUp connection for user {self.user.id}")
+        logger.info(f"Token data keys: {list(token_data.keys())}")
 
-        # Update connection status and timestamp
-        self.sumup_connection_status = 'connected'
-        if not self.sumup_connected_at:
-            self.sumup_connected_at = timezone.now()
+        try:
+            # Extract and validate token fields
+            access_token = token_data.get('access_token', '')
+            refresh_token = token_data.get('refresh_token', '')
+            token_type = token_data.get('token_type', 'Bearer')
+            scope = token_data.get('scope', '')
 
-        self.save()
+            logger.info(f"Access token length: {len(access_token)}")
+            logger.info(f"Refresh token length: {len(refresh_token)}")
+            logger.info(f"Token type: {token_type}")
+            logger.info(f"Scope: {scope}")
+
+            # Assign token fields
+            self.sumup_access_token = access_token
+            self.sumup_refresh_token = refresh_token
+            self.sumup_token_type = token_type
+            self.sumup_scope = scope
+
+            # Note: merchant_code comes from merchant_info, not token_data
+            # It will be set separately by the caller
+
+            # Set expiration time - handle both expires_at (datetime) and expires_in (seconds)
+            if 'expires_at' in token_data:
+                # Token data contains pre-calculated expiration datetime
+                self.sumup_expires_at = token_data['expires_at']
+                logger.info(f"Set expires_at: {self.sumup_expires_at}")
+            elif 'expires_in' in token_data:
+                # Token data contains seconds until expiration
+                from django.utils import timezone
+                from datetime import timedelta
+                expires_in = int(token_data['expires_in'])
+                self.sumup_expires_at = timezone.now() + timedelta(seconds=expires_in - 30)
+                logger.info(f"Calculated expires_at from expires_in ({expires_in}s): {self.sumup_expires_at}")
+            else:
+                logger.warning("No expiration information in token_data")
+
+            # Update connection status and timestamp
+            self.sumup_connection_status = 'connected'
+            if not self.sumup_connected_at:
+                self.sumup_connected_at = timezone.now()
+                logger.info(f"Set sumup_connected_at: {self.sumup_connected_at}")
+
+            logger.info(f"Attempting to save ArtistProfile for user {self.user.id}")
+            self.save()
+            logger.info(f"✅ Successfully saved ArtistProfile for user {self.user.id}")
+
+        except Exception as e:
+            logger.error(f"❌ Error in update_sumup_connection for user {self.user.id}: {e}", exc_info=True)
+            raise
 
     def disconnect_sumup(self):
         """Disconnect SumUp integration."""
