@@ -44,7 +44,10 @@ class SumUpCheckout(models.Model):
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
-        related_name='checkouts'
+        related_name='checkouts',
+        null=True,
+        blank=True,
+        help_text="Order for ticket purchases (null for standalone payments like listing fees)"
     )
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
