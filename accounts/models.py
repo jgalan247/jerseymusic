@@ -210,8 +210,12 @@ class ArtistProfile(Profile):
         self.sumup_scope = token_data.get('scope', '')
         self.sumup_merchant_code = token_data.get('merchant_code', '')
 
-        # Set expiration time
-        if 'expires_in' in token_data:
+        # Set expiration time - handle both expires_at (datetime) and expires_in (seconds)
+        if 'expires_at' in token_data:
+            # Token data contains pre-calculated expiration datetime
+            self.sumup_expires_at = token_data['expires_at']
+        elif 'expires_in' in token_data:
+            # Token data contains seconds until expiration
             from django.utils import timezone
             from datetime import timedelta
             expires_in = int(token_data['expires_in'])

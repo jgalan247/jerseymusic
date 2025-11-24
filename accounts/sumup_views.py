@@ -200,8 +200,13 @@ class SumUpCallbackView(View):
                 "Network error connecting to SumUp. Please check your internet connection and try again."
             )
             return redirect('accounts:dashboard')
+        except KeyError as e:
+            # Missing required field in token data
+            logger.error(f"Missing required field in SumUp OAuth response for user {request.user.id}: {e}", exc_info=True)
+            messages.error(request, "Incomplete response from SumUp. Please try connecting again.")
+            return redirect('accounts:dashboard')
         except Exception as e:
-            logger.error(f"SumUp OAuth callback error for user {request.user.id}: {e}")
+            logger.error(f"SumUp OAuth callback error for user {request.user.id}: {e}", exc_info=True)
             messages.error(request, "Failed to connect to SumUp. Please try again.")
             return redirect('accounts:dashboard')
 
