@@ -42,17 +42,9 @@ def create_event(request):
         messages.error(request, "Artist profile not found. Please complete your profile first.")
         return redirect('accounts:profile')
 
-    # DEVELOPMENT MODE - Skip subscription check
-    if settings.DEBUG:
-        can_upload = True
-    else:
-        # Production - check subscription
-        can_upload = hasattr(request.user, 'subscription') and request.user.subscription.is_active
+    # Platform uses pay-per-event pricing with listing fees (no subscription required)
+    # Artists pay a listing fee when creating each event
 
-    if not can_upload:
-        messages.error(request, "Active subscription required")
-        return redirect('subscriptions:plans')
-    
     if request.method == 'POST':
         form = EventCreateForm(request.POST, request.FILES)
         if form.is_valid():
