@@ -39,7 +39,20 @@ class SumUpConnectView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
-        """Start SumUp OAuth flow."""
+        """Show SumUp connection page or initiate OAuth flow."""
+        # Check if user confirmed they want to connect (clicked the button)
+        confirm = request.GET.get('confirm')
+
+        if not confirm:
+            # Show the informational page with explanation and connect button
+            # Store the 'next' URL parameter so it's preserved through the flow
+            next_url = request.GET.get('next', '')
+            context = {
+                'next_url': next_url
+            }
+            return render(request, 'accounts/sumup_connect.html', context)
+
+        # User confirmed - proceed with OAuth flow
         # Validate redirect URI is configured (will auto-configure from SITE_URL if not set)
         if not settings.SUMUP_REDIRECT_URI:
             logger.error("SUMUP_REDIRECT_URI not configured in environment variables")
