@@ -34,7 +34,10 @@ def create_event(request):
                 'Please connect your SumUp account before creating events. '
                 'This is where customers\' ticket payments will be sent directly to you.'
             )
-            return redirect('accounts:sumup_connect')
+            # Store the current URL to redirect back after SumUp OAuth
+            from django.urls import reverse
+            next_url = reverse('events:create_event')
+            return redirect(f"{reverse('accounts:sumup_connect')}?next={next_url}")
     except:
         messages.error(request, "Artist profile not found. Please complete your profile first.")
         return redirect('accounts:profile')
