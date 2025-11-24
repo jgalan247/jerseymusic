@@ -205,6 +205,9 @@ class ArtistProfile(Profile):
     def update_sumup_connection(self, token_data):
         """Update SumUp OAuth tokens and connection status."""
         import logging
+        from django.utils import timezone
+        from datetime import timedelta
+
         logger = logging.getLogger(__name__)
 
         logger.info(f"Updating SumUp connection for user {self.user.id}")
@@ -238,8 +241,6 @@ class ArtistProfile(Profile):
                 logger.info(f"Set expires_at: {self.sumup_expires_at}")
             elif 'expires_in' in token_data:
                 # Token data contains seconds until expiration
-                from django.utils import timezone
-                from datetime import timedelta
                 expires_in = int(token_data['expires_in'])
                 self.sumup_expires_at = timezone.now() + timedelta(seconds=expires_in - 30)
                 logger.info(f"Calculated expires_at from expires_in ({expires_in}s): {self.sumup_expires_at}")
