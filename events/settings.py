@@ -751,7 +751,7 @@ if not DEBUG:
     # Session cookie security
     SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
     SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
-    SESSION_COOKIE_SAMESITE = 'Strict'  # CSRF protection
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Allow cookies on OAuth redirects while maintaining CSRF protection
     SESSION_COOKIE_NAME = 'je_sessionid'  # Custom name to avoid defaults
     SESSION_COOKIE_AGE = 3600  # 1 hour for payment processing security
 

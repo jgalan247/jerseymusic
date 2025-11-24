@@ -54,6 +54,12 @@ class SumUpConnectView(View):
         logger.info(f"Configured redirect URI: {settings.SUMUP_REDIRECT_URI}")
 
         try:
+            # Store the 'next' URL parameter for post-OAuth redirect
+            next_url = request.GET.get('next', '')
+            if next_url:
+                request.session['sumup_oauth_next'] = next_url
+                logger.info(f"Stored next URL for post-OAuth redirect: {next_url}")
+
             # Generate state parameter for security
             state = f"{request.user.id}:{uuid.uuid4()}"
             request.session['sumup_oauth_state'] = state
@@ -157,12 +163,20 @@ class SumUpCallbackView(View):
             if 'sumup_oauth_state' in request.session:
                 del request.session['sumup_oauth_state']
 
+            # Get the stored 'next' URL for redirect
+            next_url = request.session.pop('sumup_oauth_next', None)
+
             messages.success(
                 request,
                 f"Successfully connected to SumUp! Merchant: {merchant_info.get('business_name', 'Your Business')}"
             )
 
             logger.info(f"Artist {request.user.id} successfully connected to SumUp")
+
+            # Redirect to the original destination or dashboard
+            if next_url:
+                logger.info(f"Redirecting to stored next URL: {next_url}")
+                return redirect(next_url)
             return redirect('accounts:dashboard')
 
         except requests.exceptions.RequestException as e:
