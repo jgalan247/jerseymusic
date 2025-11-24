@@ -661,6 +661,18 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        # SumUp OAuth integration (NO user context during token exchange)
+        'payments.sumup': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # Accounts models (NO user context during save operations)
+        'accounts.models': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         # Ticket operations
         'tickets': {
             'handlers': ['console'],
